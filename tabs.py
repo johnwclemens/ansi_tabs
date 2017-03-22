@@ -136,7 +136,7 @@ class Tabs(object):
                 print('init() truncated tabs to \'{}\', setting tabs = tabs[:mult], len(tabs):{} * mult:{} = {}'.format(tabs, len(tabs), mult, len(tabs) * mult), file=self.dbgFile)
             for r in range(0, self.numStrings):
 #                print('init({}, {}) len(tabs)={}, len(HN)={}'.format(r, c, len(self.tabs), len(self.harmonicNotes)), file=self.dbgFile)
-                self.tabs.append(bytearray([ord(t), ord('0') for t in tabs] * mult))
+                self.tabs.append(bytearray([ord(t) for t in tabs] * mult))
                 self.harmonicNotes.append(bytearray([ord('0') for t in tabs] * mult))
         finally:
             self.modsObj = mods.Mods(file=self.dbgFile)

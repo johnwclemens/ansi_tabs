@@ -8,7 +8,7 @@ class Strings(object):
         self.dbgFile = dbgFile
         self._map = {}
         self._keys = []
-        alias = alias[0].upper()
+        if alias: alias = alias[0].upper()
         self._initAliases()
         print('Strings() alias={}, spelling={}'.format(alias, spelling), file=self.dbgFile)
         if not spelling and not alias:
