@@ -1,5 +1,11 @@
+'''tabs.py module.  Main entry point, class list: [Tabs].  Note the user simply instantiates this object and this object handles the entire tabs session.'''
+
+'''Thus all methods are essentially private.  Note some functionality is deemed customizable by the user and is thus factored out into a separate module.  
+e.g. The tab modifications are in mods.py and the string tunings and aliases are in strings.py.'''
+
 import os, inspect, sys
 
+'''Lame attempt at portability.  Should work on Windows, might work on Linux.'''
 try:
     import tty, termios
 except ImportError:
@@ -27,12 +33,13 @@ else:
         return ch
 
 import colorama
+import cmdArgs
 import notes
 import mods
 import strings
 
 class Tabs(object):
-    '''Represent musical tab notation and implement associated functionality.'''
+    '''Model musical tab notation and tab editor functionality.'''
     ESC = '\033'
     CSI = '\033\133'
     QUIT_STR = 'Received Quit Cmd: Exiting'
@@ -43,77 +50,72 @@ class Tabs(object):
         self.loop()
 
     def init(self, inName='tabs.tab', outName='tabs.tab', dbgName='dbg.tab'):
-        '''Initialize colorama, enabling automatic reset of console after each call via print(colorama.Style.RESET_ALL).'''
+        '''Initialize class instance, enable automatic reset of console after each call via implicit print(colorama.Style.RESET_ALL).'''
         colorama.init(autoreset=True)
         self.clearScreen()
 
         self.initFiles(inName, outName, dbgName)
         self.initConsts()
-        self.uiCmds = {}
-        self.uiKeys = []
-        self.registerUiCmds()
-        self.mods = {}
-        self.lastRowDirty = 0
-        self.dbgMove = True
+        self.registerUiCmds()                                  # register the dictionary for all the user interactive commands
+        self.mods = {}                                         # dict of tab modification characters -> contextual descriptions 
+        self.lastRowDirty = 0                                  # used by printTabMod() to erase tab mod description when it goes out of scope
+        self.dbgMove = True                                    # used for finding bugs in basic movement functionality
         
-        self.harmonicNotes = []
+        self.harmonicNotes = []                                # list of bytearrays, one for each string; for harmonic tabs
         self.tabCount = 0
-        self.tabs = []                                                    # list of bytearrays, one for each string
-        self.selectTabs = []
-        self.selectCols = []
-        self.numSelectCols = 0
-        self.chords = {}
-        self.stringMap = {}
-        self.stringKeys = []
+        self.tabs = []                                         # list of bytearrays, one for each string; for all the tabs
+        self.selectTabs = []                                   # list of bytearrays, one for each string; for selected tabs
+        self.selectCols = []                                   # list of column indices, one for each selected column; for selected columns
+        self.numSelectCols = 0                                 # count of selected columns - NOTE: column selection honers order and repetition
+        self.chords = {}                                       # dict of chord spelling -> chord name; cache of discovered chords to avoid calculation
+        self.stringMap = {}                                    # dict of string note name -> note index
+        self.stringKeys = []                                   # list of keys; stringMap keys sorted by note index
 
-        self.numLines = 1
-        self.numTabsPerStringPerLine = 10
-        self.numTabsPerString = self.numLines * self.numTabsPerStringPerLine
+        self.numLines = 1                                      # number of music lines to display
+        self.numTabsPerStringPerLine = 10                      # number of tabs to display on each line (for each string)
+        self.numTabsPerString = self.numLines * self.numTabsPerStringPerLine  # total number of tabs per string
         
-        self.ROW_OFF = 1
-        self.COL_OFF = 3
-        self.CHORD_LEN = 0
-        self.NOTE_LEN = 0
+        self.ROW_OFF = 1                                       # offset between cursor row    number and tabs row    index
+        self.COL_OFF = 3                                       # offset between cursor column number and tabs column index
+        self.CHORD_LEN = 0                                     # number of rows used to display chords
+        self.NOTE_LEN = 0                                      # number of rows used to display notes
       
-        self.hiliteCount = 0
-        self.colNum = 0
-        self.rowNum = 0
-        self.rowNumPos = 0
-        self.row = self.ROW_OFF
-        self.col = self.COL_OFF
-        self.editModeCol = 1
-        self.cursorModeCol = 2
-        self.numStrings = 1
-        self.lastRow = self.ROW_OFF + self.numLines * self.lineDelta() - 1
+        self.hiliteCount = 0                                   # statistic for measuring efficiency
+        self.hiliteColNum = 0                                  # used to hilite the current cursor column and unhilite the previous cursor column
+        self.hiliteRowNum = 0                                  # used to hilite the current cursor row    and unhilite the previous cursor row
+        self.hilitePrevRowPos = 0
+        self.row = self.ROW_OFF                                # current cursor row    number
+        self.col = self.COL_OFF                                # current cursor column number
+        self.editModeCol = 1                                   # column to display edit mode
+        self.cursorModeCol = 2                                 # column to display cursor mode
+        self.numStrings = 1                                    # number of strings on the musical instrument, set here in case initStrings() fails
+        self.lastRow = self.ROW_OFF + self.numLines * self.lineDelta() - 1  # the row used to display status, set here in case initStrings() fails e.g. tab mod info or error info etc...
         
-        self.displayStatus = self.DISPLAY_STATUS['DISABLED']
-        self.displayNotes = self.DISPLAY_NOTES['DISABLED']
-        self.displayChords = self.DISPLAY_CHORDS['DISABLED']
-        self.cursorDir = self.CURSOR_DIRS['DOWN']
-        self.enharmonic = self.ENHARMONIC['SHARP']
-        self.editMode = self.EDIT_MODES['REPLACE']
-        self.cursorMode = self.CURSOR_MODES['MELODY']
+        self.displayModesAndLabels = self.DISPLAY_MODES_AND_LABELS['DISABLED']   # enable or disable the display of the modes and labels section before each line
+        self.displayNotes = self.DISPLAY_NOTES['DISABLED']     # enable or disable the display of the notes section for each line
+        self.displayChords = self.DISPLAY_CHORDS['DISABLED']   # enable or disable the display of the chords section for each line
+        self.cursorDir = self.CURSOR_DIRS['DOWN']              # affects the automatic cursor movement (up/down) when entering a tab in chord or arpeggio mode
+        self.enharmonic = self.ENHARMONIC['SHARP']             # toggle to display enharmonic notes using flats or sharps
+        self.editMode = self.EDIT_MODES['REPLACE']             # toggle between modifying the current character or inserting a new character
+        self.cursorMode = self.CURSOR_MODES['MELODY']          # toggle between different cursor modes; melody, chord, and arpeggio
         
         argMap = {}
-        self.initMyLib()
-        import jwc_cmdArgs
-        jwc_cmdArgs.parse_cmd_line(argMap)
+        cmdArgs.parseCmdLine(argMap)
         print('tabs.py args={}'.format(argMap), file=self.dbgFile)
         if 'f' in argMap and len(argMap['f']) > 0:
-            self.inName = argMap['f'][0]
-            self.outName = argMap['f'][0]
+            self.inName = argMap['f'][0]                       # file to read from
+            self.outName = argMap['f'][0]                      # file to write to, only written to with the saveTabs command
         if 't' in argMap and len(argMap['t']) > 0:
-            self.initTabLen(argMap['t'])
-        if 's' in argMap and len(argMap['s']) > 0:
-            self.initStrings(spelling=argMap['s'])
-        elif 'S' in argMap and len(argMap['S']) > 0:
-            self.initStrings(alias=argMap['S'])
+            self.initTabLen(argMap['t'])                       # set number of tabs/columns per line (and per string)
+        if 'S' in argMap and len(argMap['S']) > 0:
+            self.initStrings(alias=argMap['S'])                # set string tuning with alias 
+        elif 's' in argMap and len(argMap['s']) > 0:
+            self.initStrings(spelling=argMap['s'])             # set string tuning with string spelling
         else:
-            self.initStrings()
-        self.setLastRow()
-        self.numTabs = self.numStrings * self.numTabsPerString
+            self.initStrings()                                 # set default string tuning
+        self.setLastRow()                                      # calculate last row, depends on numStrings which is supposed to be set in initStrings()
+        self.numTabs = self.numStrings * self.numTabsPerString # total number of tab characters
 
-#        self.testAnsi()
         try:
             with open(self.inName, 'rb') as self.inFile:
                 self.initTabs(readSize=500)
@@ -145,40 +147,30 @@ class Tabs(object):
             for k in self.mods:
                 print('{}:{}, '.format(k, self.mods[k]), file=self.dbgFile)
             if 'F' in argMap and len(argMap['F']) == 0:
-                self.toggleEnharmonic()
+                self.toggleEnharmonic()                        # toggle enharmonic note display from sharp to flat
             if 'i' in argMap and len(argMap['i']) == 0:
-                self.toggleCursorDir(dbg=1)
+                self.toggleCursorDir(dbg=1)                    # toggle automatic cursor movement direction from down to up
             if 'a' in argMap and len(argMap['a']) == 0:
-                self.toggleDisplayStatus(printTabs=False)
+                self.toggleDisplayModesAndLabels(printTabs=False) # toggle the display of the edit mode, cursor mode, and column number labels in first row for each line
             if 'b' in argMap and len(argMap['b']) == 0:
-                self.toggleDisplayChords(printTabs=False)
+                self.toggleDisplayChords(printTabs=False)      # enable the chords section display
             if 'n' in argMap and len(argMap['n']) == 0:
-                self.toggleDisplayNotes(printTabs=False)
+                self.toggleDisplayNotes(printTabs=False)       # enable the notes section display
             if 'z' in argMap and len(argMap['z']) == 0:
-                self.goToLastTab(lastLine=False)
+                self.goToLastTab(lastLine=False)               # go to last tab on current line
             if 'Z' in argMap and len(argMap['z']) == 0:
-                self.goToLastTab()
+                self.goToLastTab()                             # go to last tab on last line
             if 'h' in argMap and len(argMap['h']) == 0:
-                self.printHelpInfo()
-            self.printTabs()
+                self.printHelpInfo()                           # display the help info
+            self.printTabs()                                   # display all the tabs in the tabs section, optionally display the notes and chords sections and the modes/labels row
             self.hiliteRowColNum()
  
-    def initMyLib(self):
-        file = inspect.getfile(inspect.currentframe())
-        filePath = os.path.abspath(file)
-        splitFilePath = os.path.split(filePath)[0]
-        myLibPath = splitFilePath.replace('tabs', 'lib')
-        print('file={}\nfilePath={}\nsplitFilePath={}\nmyLibPath={}'.format(file, filePath, splitFilePath, myLibPath), file=self.dbgFile)
-        if myLibPath not in sys.path:
-            sys.path.insert(0, myLibPath)
-
     def testAnsi(self):
         file = open('testAnsi.tab', 'w')
         self.clearScreen(file=file)
         styles = {'NORMAL':'22;', 'CONS':'37;40m', 'TABS':'32;40m'}
-        print(colorama.Style.NORMAL + self.styles['CONS'] + '{}{};{}H{}'.format(self.CSI, 1, 1, 'a'), file=file)
-        print(self.CSI + styles['NORMAL'] + styles['TABS'] + '{}{};{}H{}'.format(self.CSI, 2, 1, 'b'), file=file)
-        print(self.CSI + styles['NORMAL'] + styles['CONS'] + self.CSI + '{};{}H{}'.format(3, 1, 'c'), file=file)
+        print(self.CSI + styles['NORMAL'] + styles['TABS'] + '{}{};{}H{}'.format(self.CSI, 1, 1, 'b'), file=file)
+        print(self.CSI + styles['NORMAL'] + styles['CONS'] + self.CSI + '{};{}H{}'.format(2, 1, 'c'), file=file)
         self.quit('testAnsi()')
      
     def initFiles(self, inName, outName, dbgName):
@@ -188,10 +180,10 @@ class Tabs(object):
         self.outName = outName
         self.outFile = None
         
-    def initConsts(self): #        self.INTERVAL_RANK = { v:k for k,v in self.INTERVALS.items() }
+    def initConsts(self):
         self.styles = { 'NAT_NOTE':'32;47m', 'NAT_CHORD':'37;46m', 'MIN_COL_NUM':'36;40m',  'TABS':'32;40m', 'NORMAL':'22;', 
                         'FLT_NOTE':'34;47m', 'FLT_CHORD':'34;46m', 'MAJ_COL_NUM':'32;40m',  'CONS':'37;40m', 'BRIGHT':'1;', 
-                        'SHP_NOTE':'31;47m', 'SHP_CHORD':'31;46m',       'ERROR':'31;42m', 'MODES':'34;47m',  }
+                        'SHP_NOTE':'31;47m', 'SHP_CHORD':'31;46m',       'MODES':'34;47m', 'ERROR':'31;42m', }
         self.SHARPS_2_FLATS = { 'C#':'Db', 'D#':'Eb', 'F#':'Gb', 'G#':'Ab', 'A#':'Bb' }
         self.FLATS_2_SHARPS = { 'Bb':'A#', 'Ab':'G#', 'Gb':'F#', 'Eb':'D#', 'Db':'C#' }
         self.INTERVALS = { 0:'R',  1:'b2',  2:'2',  3:'m3',  4:'M3',  5:'4',   6:'b5',  7:'5',  8:'a5',  9:'6',  10:'b7', 11:'7', 
@@ -208,7 +200,7 @@ class Tabs(object):
         self.CURSOR_MODES = { 'MELODY':0, 'CHORD':1, 'ARPEGGIO':2 }
         self.EDIT_MODES = { 'REPLACE':0, 'INSERT':1 }
         self.ENHARMONIC = { 'FLAT':0, 'SHARP':1 }
-        self.DISPLAY_STATUS = { 'DISABLED':0, 'ENABLED':1 }
+        self.DISPLAY_MODES_AND_LABELS = { 'DISABLED':0, 'ENABLED':1 }
         self.DISPLAY_NOTES = { 'DISABLED':0, 'ENABLED':1 }
         self.DISPLAY_CHORDS = { 'DISABLED':0, 'ENABLED':1 }
     
@@ -251,69 +243,62 @@ class Tabs(object):
 
     def initTabs(self, readSize=600):
         dbg = 1
-        if self.inFile != None:
-            fileSize = self.initInFile()
-            tmp = []
-            cnt, bytesRead, endOfTabs, hasFrag, rowStr = 0, 0, None, False, '{}'.format(self.ROW_OFF)
-            data = self.inFile.read(readSize)
-            print('initTabs({}) fileSize {:,} bytes, reading first {:,} bytes:\'\n{}\''.format(rowStr, fileSize, readSize, ''.join([chr(data[p]) for p in range(0, readSize)])), file=self.dbgFile)
-            while len(data) != 0:
-                bytesRead += len(data)
-                i, bgn, fragment, end = 0, 0, b'', len(data)
-                while i != -1:
-                    ii = i
-                    cnt += 1
-                    i = data.find(ord('H'), bgn, end)
-                    if i == -1 or i + 1 >= len(data):
-                        fragment += data[ii+2:end]
-                        hasFrag = True
-                        if dbg: print('initTabs({}) detected fragment, len={} \'{}\' ii={}, p1={}, p2={}, i={}, bgn={}'.format(rowStr, len(fragment), ''.join([chr(fragment[p]) for p in range(0, len(fragment))]), ii, p1, p2, i, bgn), file=self.dbgFile)
-                    else:
-                        p2 = data.rfind(ord(';'), i - 6, i)
-                        p1 = data.rfind(ord('['), i - 6, i) + 1
-                        row = ''.join([chr(data[p]) for p in range(p1, p2)])
-                        col = ''.join([chr(data[p]) for p in range(p2+1, i)])
-                        tab = chr(data[i+1])
+        fileSize = self.initInFile()
+        tmp = []
+        cnt, bytesRead, endOfTabs, hasFrag, rowStr = 0, 0, None, False, '{}'.format(self.ROW_OFF)
+        data = self.inFile.read(readSize)
+        print('initTabs({}) fileSize {:,} bytes, reading first {:,} bytes:\'\n{}\''.format(rowStr, fileSize, readSize, ''.join([chr(data[p]) for p in range(0, readSize)])), file=self.dbgFile)
+        while len(data) != 0:
+            bytesRead += len(data)
+            i, bgn, fragment, end = 0, 0, b'', len(data)
+            while i != -1:
+                ii = i
+                cnt += 1
+                i = data.find(ord('H'), bgn, end)
+                if i == -1 or i + 1 >= len(data):
+                    fragment += data[ii+2:end]
+                    hasFrag = True
+                    if dbg: print('initTabs({}) detected fragment, len={} \'{}\' ii={}, p1={}, p2={}, i={}, bgn={}'.format(rowStr, len(fragment), ''.join([chr(fragment[p]) for p in range(0, len(fragment))]), ii, p1, p2, i, bgn), file=self.dbgFile)
+                else:
+                    p2 = data.rfind(ord(';'), i - 6, i)
+                    p1 = data.rfind(ord('['), i - 6, i) + 1
+                    row = ''.join([chr(data[p]) for p in range(p1, p2)])
+                    col = ''.join([chr(data[p]) for p in range(p2+1, i)])
+                    tab = chr(data[i+1])
+                    tmp.append(data[i + 1])
+                    if hasFrag:
+                        print('initTabs({}) {} {} [{},{}], ii={}, p1={}, p2={}, i={}, bgn={} {} \'{}\' data=\'{}\' tmp=\'{}\''.format(rowStr, cnt, len(fragment), row, col, ii, p1, p2, i, bgn, hasFrag, tab, ''.join([chr(data[p]) for p in range(ii, i+2)]), ''.join([chr(tmp[p]) for p in range(0, len(tmp))])), file=self.dbgFile)
+                        hasFrag = False
+                    elif dbg:
+                        print('initTabs({}) {} {} [{},{}], ii={}, p1={}, p2={}, i={}, bgn={} {} \'{}\' data=\'{}\' tmp=\'{}\''.format(rowStr, cnt, len(fragment), row, col, ii, p1, p2, i, bgn, hasFrag, tab, ''.join([chr(data[p]) for p in range(ii+2, i+2)]), ''.join([chr(tmp[p]) for p in range(0, len(tmp))])), file=self.dbgFile)
+                    z1 = data.find(ord('<'), bgn, p1)
+                    z2 = data.find(ord('>'), z1, p1)
+                    if z1 != -1 and z2 != -1 and data[z1+1:z2] == b'END_TABS_SECTION':
+                        endOfTabs = data[z1+1:z2]
+                        print('initTabs() found \'{}\' mark at z1,z2={},{}'.format(data[z1+1:z2], z1, z2), file=self.dbgFile)
+                        break
+                    elif self.numTabsPerStringPerLine == 0 and int(row) == self.ROW_OFF + 1:
+                        self.numTabsPerStringPerLine = cnt - self.COL_OFF
+                        self.numTabsPerString = self.numLines * self.numTabsPerStringPerLine
+                        tmp, rowStr = self.appendTabs(tmp, rowStr)
                         tmp.append(data[i + 1])
-                        if hasFrag:
-                            print('initTabs({}) {} {} [{},{}], ii={}, p1={}, p2={}, i={}, bgn={} {} \'{}\' data=\'{}\' tmp=\'{}\''.format(rowStr, cnt, len(fragment), row, col, ii, p1, p2, i, bgn, hasFrag, tab, ''.join([chr(data[p]) for p in range(ii, i+2)]), ''.join([chr(tmp[p]) for p in range(0, len(tmp))])), file=self.dbgFile)
-                            hasFrag = False
-                        elif dbg:
-                            print('initTabs({}) {} {} [{},{}], ii={}, p1={}, p2={}, i={}, bgn={} {} \'{}\' data=\'{}\' tmp=\'{}\''.format(rowStr, cnt, len(fragment), row, col, ii, p1, p2, i, bgn, hasFrag, tab, ''.join([chr(data[p]) for p in range(ii+2, i+2)]), ''.join([chr(tmp[p]) for p in range(0, len(tmp))])), file=self.dbgFile)
-                        z1 = data.find(ord('<'), bgn, p1)
-                        z2 = data.find(ord('>'), z1, p1)
-                        if z1 != -1 and z2 != -1 and data[z1+1:z2] == b'END_TABS_SECTION':
-                            endOfTabs = data[z1+1:z2]
-                            print('initTabs() found \'{}\' mark at z1,z2={},{}'.format(data[z1+1:z2], z1, z2), file=self.dbgFile)
-                            break
-                        elif self.numTabsPerStringPerLine == 0 and int(row) == self.ROW_OFF + 1:
-                            self.numTabsPerStringPerLine = cnt - self.COL_OFF
-                            self.numTabsPerString = self.numLines * self.numTabsPerStringPerLine
-                            tmp, rowStr = self.appendTabs(tmp, rowStr)
-                            tmp.append(data[i + 1])
-                            if dbg: print('initTabs({}) {} [{},{}] \'{}\' setting numTabsPerStringPerLine={} tmp=\'{}\''.format(rowStr, cnt, row, col, tab, self.numTabsPerStringPerLine, ''.join([chr(tmp[p]) for p in range(0, len(tmp))])), file=self.dbgFile)
-                        elif self.isTab(tab) and self.numTabsPerStringPerLine != 0 and int(col) == self.COL_OFF - 1 + self.numTabsPerStringPerLine:# and len(tmp) > 1 and tmp[1] == '|':
-                            tmp, rowStr = self.appendTabs(tmp, rowStr)
+                        if dbg: print('initTabs({}) {} [{},{}] \'{}\' setting numTabsPerStringPerLine={} tmp=\'{}\''.format(rowStr, cnt, row, col, tab, self.numTabsPerStringPerLine, ''.join([chr(tmp[p]) for p in range(0, len(tmp))])), file=self.dbgFile)
+                    elif self.isTab(tab) and self.numTabsPerStringPerLine != 0 and int(col) == self.COL_OFF - 1 + self.numTabsPerStringPerLine:# and len(tmp) > 1 and tmp[1] == '|':
+                        tmp, rowStr = self.appendTabs(tmp, rowStr)
 #                            self.dumpTabs('after appendTabs()')
 #                        else: tmp = []
-                    bgn = i + 2
-                if endOfTabs: break
-                data = self.inFile.read(readSize)
-                dataLen = len(data)
-                if dataLen == 0:
-                    print('initTabs() No more data to read from inFile, fragment: \'{}\''.format(''.join([chr(fragment[p]) for p in range(0, len(fragment))])), file=self.dbgFile)
-                    break
-                data = fragment + data
-                if dbg: print('initTabs() bytes read {:,}, reading next {:,} bytes and appending to fragment of len {} bytes ({:,} bytes):\n{}'.format(bytesRead, dataLen, len(fragment), dataLen + len(fragment), ''.join([chr(data[p]) for p in range(0, len(data))])), file=self.dbgFile)
-            print('initTabs() numStrings:{} =?= len(tabs):{}, numTabsPerString:{} =?= numLines:{} * numTabsPerStringPerLine:{}, totTabs:{}'.format(
-                self.numStrings, len(self.tabs), self.numTabsPerString, self.numLines, self.numTabsPerStringPerLine, len(self.tabs) * len(self.tabs[0])), file=self.dbgFile)
-            self.dumpTabs('initTabs()')
-        else:
-            for r in range(0, self.numStrings):
-                print('initTabs({}, {}) len(tabs)={}, len(HN)={}'.format(r, c, len(self.tabs), len(self.harmonicNotes)), file=self.dbgFile)
-                self.tabs.append(bytearray([ord('-'), ord('0')] * self.numTabsPerString))
-                self.harmonicNotes.append(bytearray([ord('0')] * self.numTabsPerString))
-            self.quit('', code=1)
+                bgn = i + 2
+            if endOfTabs: break
+            data = self.inFile.read(readSize)
+            dataLen = len(data)
+            if dataLen == 0:
+                print('initTabs() No more data to read from inFile, fragment: \'{}\''.format(''.join([chr(fragment[p]) for p in range(0, len(fragment))])), file=self.dbgFile)
+                break
+            data = fragment + data
+            if dbg: print('initTabs() bytes read {:,}, reading next {:,} bytes and appending to fragment of len {} bytes ({:,} bytes):\n{}'.format(bytesRead, dataLen, len(fragment), dataLen + len(fragment), ''.join([chr(data[p]) for p in range(0, len(data))])), file=self.dbgFile)
+        print('initTabs() numStrings:{} =?= len(tabs):{}, numTabsPerString:{} =?= numLines:{} * numTabsPerStringPerLine:{}, totTabs:{}'.format(
+            self.numStrings, len(self.tabs), self.numTabsPerString, self.numLines, self.numTabsPerStringPerLine, len(self.tabs) * len(self.tabs[0])), file=self.dbgFile)
+        self.dumpTabs('initTabs()')
 
     def appendTabs(self, tmp, rowStr):
         rowStr = '{}'.format(int(rowStr) + 1)
@@ -451,8 +436,10 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
             print('{:>20} : {}'.format(k, self.uiCmds[k].__doc__), file=self.dbgFile)
     
     def registerUiCmds(self):
+        self.uiCmds = {}
+        self.uiKeys = []
         self.registerUiCmd('Tablature',           self.setTab)
-        self.registerUiCmd('Ctrl A',              self.toggleDisplayStatus)
+        self.registerUiCmd('Ctrl A',              self.toggleDisplayModesAndLabels)
         self.registerUiCmd('Ctrl B',              self.toggleDisplayChords)
         self.registerUiCmd('Ctrl C',              self.copySelectTabs)
         self.registerUiCmd('Ctrl D',              self.deleteSelectTabs)
@@ -499,7 +486,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         while True:
             b = ord(getwch())
             if self.isTab(chr(b)):  self.uiCmds['Tablature'](b)   # setTab()               # N/A
-            elif b == 1:   self.uiCmds['Ctrl A']()                # toggleDisplayStatus()  # cmd line opt  -a
+            elif b == 1:   self.uiCmds['Ctrl A']()                # toggleDisplayModesAndLabels()  # cmd line opt  -a
             elif b == 2:   self.uiCmds['Ctrl B']()                # toggleDisplayChords()  # cmd line opt  -b
             elif b == 3:   self.uiCmds['Ctrl C']()                # copySelectTabs()       # N/A
             elif b == 4:   self.uiCmds['Ctrl D']()                # deleteSelectTabs()     # N/A
@@ -560,7 +547,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         if dbg: print('moveTo({}, {}, {}) old: row={}, col={}, line={}'.format(row, col, hi, self.row, self.col, self.row2Line(self.row)), file=self.dbgFile)
         print('{}{};{}H'.format(self.CSI, self.row, self.col), end='')
         self.printTabMod()
-        if self.displayStatus == self.DISPLAY_STATUS['ENABLED'] and hi == 1:
+        if self.displayModesAndLabels == self.DISPLAY_MODES_AND_LABELS['ENABLED'] and hi == 1:
             self.hiliteRowColNum()
    
     def moveLeft(self, dbg=None):
@@ -721,7 +708,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
     def toggleEditMode(self, dbg=None):
         '''Toggle cursor movement modes (insert or replace).'''
         self.editMode = (self.editMode + 1) % len(self.EDIT_MODES)
-        if self.displayStatus == self.DISPLAY_STATUS['ENABLED']:
+        if self.displayModesAndLabels == self.DISPLAY_MODES_AND_LABELS['ENABLED']:
             for line in range(0, self.numLines):
                 r = line * self.lineDelta() + 1
                 if self.editMode == self.EDIT_MODES['INSERT']:
@@ -734,7 +721,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
     def toggleCursorMode(self, dbg=None):
         '''Toggle cursor movement modes (melody, chord, or arpeggio).'''
         self.cursorMode = (self.cursorMode + 1) % len(self.CURSOR_MODES)
-        if self.displayStatus == self.DISPLAY_STATUS['ENABLED']:
+        if self.displayModesAndLabels == self.DISPLAY_MODES_AND_LABELS['ENABLED']:
             for line in range(0, self.numLines):
                 r = line * self.lineDelta() + 1
                 if self.cursorMode == self.CURSOR_MODES['MELODY']:
@@ -760,18 +747,18 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         self.enharmonic = (self.enharmonic + 1) % len(self.ENHARMONIC)
         self.printTabs()
   
-    def toggleDisplayStatus(self, printTabs=True):
-        '''Toggle (enable or disable) display of status row.  [cmd line opt -a]'''
-        self.displayStatus = (self.displayStatus + 1) % len(self.DISPLAY_STATUS)
+    def toggleDisplayModesAndLabels(self, printTabs=True):
+        '''Toggle (enable or disable) display of modes and labels row.  [cmd line opt -a]'''
+        self.displayModesAndLabels = (self.displayModesAndLabels + 1) % len(self.DISPLAY_MODES_AND_LABELS)
         line = self.row2Line(self.row)
-        if self.displayStatus == self.DISPLAY_STATUS['ENABLED']:
+        if self.displayModesAndLabels == self.DISPLAY_MODES_AND_LABELS['ENABLED']:
             self.ROW_OFF = 2
             self.row += 1
-        elif self.displayStatus == self.DISPLAY_STATUS['DISABLED']:
+        elif self.displayModesAndLabels == self.DISPLAY_MODES_AND_LABELS['DISABLED']:
             self.ROW_OFF = 1
             self.row -= 1
         self.setLastRow()
-        self.printLineInfo('toggleDisplayStatus({}) row,col=({}, {}), line={},'.format(self.displayStatus, self.row, self.col, line))
+        self.printLineInfo('toggleDisplayModesAndLabels({}) row,col=({}, {}), line={},'.format(self.displayModesAndLabels, self.row, self.col, line))
         if printTabs:
             self.printTabs()
         
@@ -1004,23 +991,23 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
 
     def hiliteRowColNum(self):
         self.hiliteCount += 1
-        print('hiliteRowColNum({}, {}) rowNum={}, colNum={}, hiliteCount={}'.format(self.row, self.col, self.rowNum, self.colNum, self.hiliteCount), file=self.dbgFile)
+        print('hiliteRowColNum({}, {}) hilitePrevRowPos={}, hiliteRowNum={}, hiliteColNum={}, hiliteCount={}'.format(self.row, self.col, self.hilitePrevRowPos, self.hiliteRowNum, self.hiliteColNum, self.hiliteCount), file=self.dbgFile)
         for line in range(0, self.numLines):
             row = line * self.lineDelta() + 1
-            if self.colNum != 0:
-                self.printColNum(row, self.colNum, self.styles['NORMAL'])
-        self.colNum = self.col - self.COL_OFF + 1
+            if self.hiliteColNum != 0:
+                self.printColNum(row, self.hiliteColNum, self.styles['NORMAL'])
+        self.hiliteColNum = self.col - self.COL_OFF + 1
         for line in range(0, self.numLines):
             row = line * self.lineDelta() + 1
-            if self.colNum != 0:
-                self.printColNum(row, self.colNum, self.styles['BRIGHT'])
+            if self.hiliteColNum != 0:
+                self.printColNum(row, self.hiliteColNum, self.styles['BRIGHT'])
                 
-        if self.rowNum != 0:
-            self.prints(self.rowNum, self.rowNumPos, 1, self.styles['NORMAL'] + self.styles['TABS'])
-        self.rowNum = self.row - self.row2Line(self.row) *  self.lineDelta() - 1
-        self.rowNumPos = self.row
-        print('hiliteRowColNum({}, {}) rowNum={}, colNum={}, hiliteCount={}'.format(self.row, self.col, self.rowNum, self.colNum, self.hiliteCount), file=self.dbgFile)
-        self.prints(self.rowNum, self.row, 1, self.styles['BRIGHT'] + self.styles['TABS'])
+        if self.hiliteRowNum != 0:
+            self.prints(self.hiliteRowNum, self.hilitePrevRowPos, 1, self.styles['NORMAL'] + self.styles['TABS'])
+        self.hiliteRowNum = self.row - self.row2Line(self.row) *  self.lineDelta() - 1
+        self.hilitePrevRowPos = self.row
+        print('hiliteRowColNum({}, {}) hilitePrevRowPos={}, hiliteRowNum={}, hiliteColNum={}, hiliteCount={}'.format(self.row, self.col, self.hilitePrevRowPos, self.hiliteRowNum, self.hiliteColNum, self.hiliteCount), file=self.dbgFile)
+        self.prints(self.hiliteRowNum, self.row, 1, self.styles['BRIGHT'] + self.styles['TABS'])
         print(self.CSI + '{};{}H'.format(self.row, self.col), end='')
 
     def deleteTab(self, row=None, col=None):
@@ -1246,7 +1233,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
                 for c in range(0, self.numTabsPerStringPerLine):
                     tab = self.tabs[r][c + line * self.numTabsPerStringPerLine]
                     style = self.styles['TABS']
-                    if chr(self.harmonicNotes[r][c + line * self.numTabsPerStringPerLine]) == '1': style += colorama.Style.BRIGHT
+                    if chr(self.harmonicNotes[r][c + line * self.numTabsPerStringPerLine]) == '1': style += self.styles['BRIGHT']
                     if c == 0:
 #                        self.prints('{}'.format(rowLabel),    row, 1, self.styles['TABS'])
                         self.prints('{}'.format(r + 1), row, 1, style)
@@ -1282,7 +1269,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
             self.printFileMark('<BGN_CHORDS_SECTION>')
             self.printChords()
             self.printFileMark('<END_CHORDS_SECTION>')
-        if self.displayStatus == self.DISPLAY_STATUS['ENABLED']:
+        if self.displayModesAndLabels == self.DISPLAY_MODES_AND_LABELS['ENABLED']:
             self.printFileMark('<BGN_LABELS_SECTION>')
             for line in range(0, self.numLines):
                 r = line * self.lineDelta() + 1
@@ -1634,9 +1621,8 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         if not file: print('{}{}K'.format(Tabs.CSI, arg), end='')
         else:        print('{}{}K'.format(Tabs.CSI, arg), end='', file=file)
         
-    @staticmethod
-    def hilite(text):
-        return colorama.Back.GREEN + colorama.Fore.RED + text + colorama.Back.BLACK + colorama.Fore.WHITE
+    def hilite(self, text):
+        return self.CSI + self.styles['ERROR'] + text + self.CSI + self.styles['CONS']
         
 def main():
     Tabs()
@@ -1669,11 +1655,12 @@ e.g. Carlos Santana, Black Magic Woman, on 6 string guitar with standard tuning 
 5|----------------------------------------------------------------------------------------------------------------------------------------------------------------
 6|----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Desired features list:
+Desired new features list:
 X    Usage guide
 X    Cut and paste column of tabs
-?    Add row number labels and hilite them
+?    Add row number labels and hilite them?
     Save harmonic note info?
+    Display and use Capo
     Compress arpeggio -> chord, expand chord -> arpeggio?
     Print arpeggio chord names?
     Analysis for key signature calculation

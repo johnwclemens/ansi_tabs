@@ -1,7 +1,15 @@
+'''strings.py module.  class list: [Strings].  Users are encouraged to modify this module to customize the aliases dictionary'''
+
 import notes
 
 class Strings(object):
-    '''Represent the musical instrument strings and how they are tuned in ascending order.'''
+    '''Model the musical instrument strings and how they are tuned in ascending order.'''
+    
+    def _initAliases(self):
+        '''Register aliases for specific string spellings.  Edit this method to add, remove, or modify aliases as desired.'''
+        self.ALIASES = {}
+        self.ALIASES['GUITAR']              = ['E2A2D3G3B3E4']
+        self.ALIASES['GUITAR_OPEN_GMIN_OT'] = ['G2G2D3G3Bb3D4']
     
     def __init__(self, dbgFile, spelling=None, alias=None):
         '''The alias argument overrides the spelling argument.  e.g. alias='GUITAR' -> strings=['E2A2D3G3B3E4'] represents a standard 6 string guitar tuning.'''
@@ -27,11 +35,6 @@ class Strings(object):
             print('Strings() spelling={}'.format(spelling), file=self.dbgFile)
             self._parseSpelling(spelling)
 
-    def _initAliases(self):
-        self.ALIASES = {}
-        self.ALIASES['GUITAR']              = ['E2A2D3G3B3E4']
-        self.ALIASES['GUITAR_OPEN_GMIN_OT'] = ['G2G2D3G3Bb3D4']
-    
     @property
     def map(self):
         return self._map
@@ -42,7 +45,7 @@ class Strings(object):
         
     @map.setter
     def map(self):
-        '''Return map of string note names -> note indices e.g. a standard 6 string guitar tuning { E2:28 A2:33 D3:38 G3:43 B3:47 E4:52 }.'''
+        '''Return map of string note name -> note index e.g. a standard 6 string guitar tuning { E2:28 A2:33 D3:38 G3:43 B3:47 E4:52 }.'''
         return self._map
         
     @keys.setter
@@ -51,7 +54,7 @@ class Strings(object):
         return self._keys
         
     def _parseSpelling(self, spelling):
-        '''Parse string spelling into map of note names -> note indices.'''
+        '''Parse string spelling into map of note name -> note index.'''
         if len(spelling) != 1:
             errorMsg = 'Strings.parseSpelling() invalid raw spelling len(spelling)={} expected len(spelling)=1, spelling={}'.format(len(spelling), spelling)
             print(errorMsg, file=self.dbgFile)
@@ -89,4 +92,3 @@ class Strings(object):
     def _mapKeyFunc(self, inKey):
         '''Internal method for sorting the map keys in ascending order.'''
         return self.map[inKey]
-
