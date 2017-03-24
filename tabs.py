@@ -119,8 +119,8 @@ class Tabs(object):
         try:
             with open(self.inName, 'rb') as self.inFile:
                 self.initTabs(readSize=500)
-        except FileNotFoundError as e:
-            print('init() Exception: FileNotFoundError: {}'.format(e), file=self.dbgFile)
+        except Exception as e: # FileNotFoundError as e:
+            print('init() Exception: {}'.format(e), file=self.dbgFile)
             mult = 1
             tabs = '0123456789abcdefghijklmno'
             print('init() seeding tabs with \'{}\', len(tabs):{}, numTabsPerString:{} = numLines:{} * numTabsPerStringPerLine:{}'.format(tabs, len(tabs), self.numTabsPerString, self.numLines, self.numTabsPerStringPerLine), file=self.dbgFile)
@@ -247,6 +247,10 @@ class Tabs(object):
         tmp = []
         cnt, bytesRead, endOfTabs, hasFrag, rowStr = 0, 0, None, False, '{}'.format(self.ROW_OFF)
         data = self.inFile.read(readSize)
+        if not len(data) or not fileSize:
+            info = 'initTabs({}) ERROR! Invalid input file: file={} fileSize {:,} bytes, readSize {:,}, len(data)={}, data={}'.format(rowStr, self.inFile, fileSize, readSize, len(data), data) 
+            print(info, file=self.dbgFile)
+            raise Exception(info)
         print('initTabs({}) fileSize {:,} bytes, reading first {:,} bytes:\'\n{}\''.format(rowStr, fileSize, readSize, ''.join([chr(data[p]) for p in range(0, readSize)])), file=self.dbgFile)
         while len(data) != 0:
             bytesRead += len(data)
