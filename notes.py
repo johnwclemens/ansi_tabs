@@ -12,21 +12,31 @@ INDICES = { 'C0': 0, 'C#0': 1, 'Db0': 1, 'D0': 2, 'D#0': 3, 'Eb0': 3, 'E0': 4, '
             'C7':84, 'C#7':85, 'Db7':85, 'D7':86, 'D#7':87, 'Eb7':87, 'E7':88, 'F7':89, 'F#7':90, 'Gb7':90, 'G7':91, 'G#7':92, 'Ab7':92, 'A7':93, 'A#7':94, 'Bb7':94, 'B7':95, 
             'C8':96 } # For simplicity omit double flats and double sharps and other redundant enharmonic note names e.g. Abb, C##, Cb, B#, Fb, E#
 
-# Not currently used.  May want to use float instead of integer
+#NAMES = { 0:'C0',  1:'C#0',  2:'D0',  3:'D#0',  4:'E0',  5:'F0',  6:'F#0',  7:'G0',  8:'G#0',  9:'A0', 10:'A#0', 11:'B0',
+#         12:'C1', 13:'C#1', 14:'D1', 15:'D#1', 16:'E1', 17:'F1', 18:'F#1', 19:'G1', 20:'G#1', 21:'A1', 22:'A#1', 23:'B1', 
+#         24:'C2', 25:'C#2', 26:'D2', 27:'D#2', 28:'E2', 29:'F2', 30:'F#2', 31:'G2', 32:'G#2', 33:'A2', 34:'A#2', 35:'B2', 
+#         36:'C3', 37:'C#3', 38:'D3', 39:'D#3', 40:'E3', 41:'F3', 42:'F#3', 43:'G3', 44:'G#3', 45:'A3', 46:'A#3', 47:'B3', 
+#         48:'C4', 49:'C#4', 50:'D4', 51:'D#4', 52:'E4', 53:'F4', 54:'F#4', 55:'G4', 56:'G#4', 57:'A4', 58:'A#4', 59:'B4', 
+#         60:'C5', 61:'C#5', 62:'D5', 63:'D#5', 64:'E5', 65:'F5', 66:'F#5', 67:'G5', 68:'G#5', 69:'A5', 70:'A#5', 71:'B5', 
+#         72:'C6', 73:'C#6', 74:'D6', 75:'D#6', 76:'E6', 77:'F6', 78:'F#6', 79:'G6', 80:'G#6', 81:'A6', 82:'A#6', 83:'B6', 
+#         84:'C7', 85:'C#7', 86:'D7', 87:'D#7', 88:'E7', 89:'F7', 90:'F#7', 91:'G7', 92:'G#7', 93:'A7', 94:'A#7', 95:'B6', 
+#         96:'C8' } # Probably not needed - just use the getOvactaveNum() method and TONES dictionary.
+            
 #FREQS = {                                'C0':16,  'C#0':17,  'D0':18,  'D#0':19,  'E0':21,  'F0':22,  'F#0':23,  'G0':24,  'G#0':26,
 #          'A0':28,  'A#0':29,  'B0':31,  'C1':33,  'C#1':35,  'D1':37,  'D#1':39,  'E1':41,  'F1':44,  'F#1':46,  'G1':49,  'G#1':52,
 #          'A1':55,  'A#1':58,  'B1':62,  'C2':65,  'C#2':69,  'D2':73,  'D#2':78,  'E2':82,  'F2':87,  'F#2':92,  'G2':98,  'G#2':104,
 #          'A2':110, 'A#2':117, 'B2':123, 'C3':131, 'C#3':139, 'D3':147, 'D#3':156, 'E3':165, 'F3':175, 'F#3':185, 'G3':196, 'G#3':208,
-#          'A3':220, 'A#3':233, 'B3':247, 'C4':262, 'C#4':277, 'D4':294, 'D#4':311, 'E4':330, 'F4':349, 'F#4':370, 'G4':392, 'G#4':415, 'A4':440 }
+#          'A3':220, 'A#3':233, 'B3':247, 'C4':262, 'C#4':277, 'D4':294, 'D#4':311, 'E4':330, 'F4':349, 'F#4':370, 'G4':392, 'G#4':415, 
+#          'A4':440 } # Not currently used.  May want to use float instead of integer and also may want to calculate rather than hard code
 
 class Note(object):
     '''Model a musical note played on a stringed instrument.'''
     
     def __init__(self, index):
         '''The index identifies the note value, the name is looked up using the TONES dictionary.'''
-        self._indexLen = len(TONES)            # calculate once and store for efficiency
+        self._len = len(TONES)              # calculate once and store for efficiency
         self._index = index
-        self._name = TONES[index % self._indexLen]  # Go ahead and calculate once now, even though the client may not every use this value
+        self._name = TONES[index % self._len]  # Go ahead and calculate once now, even though the client may not ever use this value
         
     @property
     def index(self):
@@ -45,7 +55,15 @@ class Note(object):
         self._name = name
         
     def getPianoIndex(self):
-        return self.index - 8                  # The lowest piano key is 'A0', INDICES['A0'] = 9, thus subtract 8 from our index to yield the 1 based piano index
+        return self.index - 8                    # The lowest piano key is 'A0', INDICES['A0'] = 9, thus subtract 8 from our index to yield the 1 based piano index
         
-    def getOctv(self):
-        return int(self.index / self._indexLen)     # Essentially the same as the piano octave number
+    def getOctaveNum(self):
+        return int(self.index / self._len)  # Essentially the same as the piano octave number
+
+    def getFrequency(self):
+        return 440.0 * pow(pow(2, 1/12), self.index - INDICES['A4'])
+        
+    def getWavelength(self):
+        return 1125 / self.getFrequency()
+        
+        
