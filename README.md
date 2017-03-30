@@ -44,9 +44,12 @@ position.
 Status info is displayed in the last row of the last line, after the optional notes section and or optional chords section.  
 The status row is used to display error messages and or extra information about the tab character at the current cursor 
 position.  e.g. if the cursor is on a tab character that is a fret, then extra information about the note is displayed.  
-Similarly, extra info is displayed when the cursor is on a tab modification character.  
+Similarly, extra info is displayed when the cursor is on a tab modification character.
 
+e.g. The fifth fret on the first standard guitar string:
 A4, index=57, frequency=440.00 Hz, wavelength=2.56 inches
+
+e.g. A tab modification, slide up, between the second and 4th frets 2/4:
 / slide up from 2 to 4
 
 Tab modifications are optional characters that are appended to a tab character or inserted in between successive tab 
