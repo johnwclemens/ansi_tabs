@@ -2,8 +2,8 @@
 
 Developed and tested on Windows 7 Professional with Service Pack 1. 
 
-The tabs.py module is the entry point for the tabs application.  The tabs application is essentially an old school console 
-based tabs editor.  The notation used is intentionally compact using a single character for each tab, note, and tab 
+The **tabs.py** module is the entry point for the tabs application.  The tabs application is essentially an old school 
+console based tabs editor.  The notation used is intentionally compact using a single character for each tab, note, and tab 
 modification.  
 
 A tab character represents the finger position or fret number being played on a particular string.  The value '-' denotes an 
@@ -12,8 +12,8 @@ denotes the open string being played, the value '1' the first fret, and the valu
 tab value is 'o' representing the 24'th fret.  This is probably enough tabs/frets for most instruments, however, in the future 
 this might be extended to support high order harmonic notes.
 
-The number of strings and the string tuning is customizable and specified in the strings.py module.  The user is encouraged to 
-modify strings.py to customize the string tuning spellings (and the number of strings) via the aliases dictionary.
+The number of strings and the string tuning is customizable and specified in the **strings.py** module.  The user is encouraged 
+to modify **strings.py** to customize the string tuning spellings (and the number of strings) via the aliases dictionary.
 
 The tabs console display consists of a number of lines, each line has a tabs section, an optional notes section, an optional 
 chords section, and an optional modes and labels section.  There is also a status row after the last data row for the last 
@@ -34,7 +34,7 @@ musical chord.  Note 5 rows are reserved for this section on each line regardles
 spelled vertically so that they line up with the tabs and notes and potentially every column can display a chord.  The chord 
 calculation is attempted every time there is more than one tab in a give column on a given line.  A dictionary is used to 
 registered discovered chord spellings so the subsequent identical chords can be displayed without additional calculations.  
-In the future this functionality might be re-factored into a separate chords.py module to encourage user customization.
+In the future this functionality might be re-factored into a separate **chords.py** module to encourage user customization.
 
 The optional modes and labels section is a single row before the tabs section for each line.  It consists of a single row 
 containing column number labels, the edit mode, and the cursor mode.  These optional column number label rows are also used 
@@ -59,10 +59,10 @@ Tab modifications are optional characters that are appended to a tab character o
 characters denoting a specific playing technique that modifies the note tone (e.g. vibrato, string bending, sliding etc...) 
 of the previous tab or the transition from the previous tab to the next tab.
 
-Tab modifications are handled in the mod.py module.  The user is encouraged to edit mod.py to customize the tab mods 
+Tab modifications are handled in the **mods.py** module.  The user is encouraged to edit **mods.py** to customize the tab mods 
 dictionary key -> value mapping.  The tab mod keys are the characters that are displayed in the tabs and optional notes 
-sections.  The tab mod dictionary values are displayed, in the status row, with optional contextual data when the cursor 
-is on one of the dictionary keys.
+sections.  The tab mod dictionary values are displayed, in the status row, with optional contextual data when the cursor is 
+on one of the dictionary keys.
 
 Navigation in the tabs section is via the left, right, up, and down arrow keys, the page up key, the page down key, the home 
 key, and the end key.  Also, the cursor automatically advances (right, up, down, right and up, or, right and down) after a 
@@ -77,5 +77,5 @@ cursor to the right and up or down depending on the current cursor direction.  A
 automatically advance the cursor to the right and wrap the cursor vertically to the bottom or top of the current line when 
 they reach the top or bottom of the current line.
 
-See the help page in the tabs.py application for documentation on all the command line arguments and user interactive 
+See the help page in the **tabs.py** application for documentation on all the command line arguments and user interactive 
 commands.  Use the '-h' command line option or the 'Shift + H' user interactive command to display the help page.
