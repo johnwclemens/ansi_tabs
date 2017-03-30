@@ -47,10 +47,13 @@ position.  e.g. if the cursor is on a tab character that is a fret, then extra i
 Similarly, extra info is displayed when the cursor is on a tab modification character.
 
 e.g. The fifth fret on the first standard guitar string:
+```
 A4, index=57, frequency=440.00 Hz, wavelength=2.56 inches
-
+```
 e.g. A tab modification, slide up, between the second and 4th frets 2/4:
+```
 / slide up from 2 to 4
+```
 
 Tab modifications are optional characters that are appended to a tab character or inserted in between successive tab 
 characters denoting a specific playing technique that modifies the note tone (e.g. vibrato, string bending, sliding etc...) 
