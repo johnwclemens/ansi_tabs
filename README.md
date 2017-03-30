@@ -1,10 +1,10 @@
-tabs.py
+**tabs.py**
 
 Developed and tested on Windows 7 Professional with Service Pack 1. 
 
-#The tabs.py module is the entry point for the tabs application.  The tabs application is essentially an old school console 
+The tabs.py module is the entry point for the tabs application.  The tabs application is essentially an old school console 
 based tabs editor.  The notation used is intentionally compact using a single character for each tab, note, and tab 
-modification.  #
+modification.  
 
 A tab character represents the finger position or fret number being played on a particular string.  The value '-' denotes an 
 unplayed or completely muted string.  The [0-9] and [a-o] characters are used to represent the tabs or frets.  The value '0' 
