@@ -44,7 +44,8 @@ position.
 Status info is displayed in the last row of the last line, after the optional notes section and or optional chords section.  
 The status row is used to display error messages and or extra information about the tab character at the current cursor 
 position.  e.g. if the cursor is on a tab character that is a fret, then extra information about the note is displayed.  
-Similarly, extra info is displayed when the cursor is on a tab modification character.
+Similarly, extra info is displayed when the cursor is on a tab modification character.  
+
 A4, index=57, frequency=440.00 Hz, wavelength=2.56 inches
 / slide up from 2 to 4
 
