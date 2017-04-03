@@ -47,6 +47,10 @@ def parseCmdLine(options):
             if dbg: print(this, "[%d] arg [%s] [%s] [%s]: " % (idx, argv, key, vals), end='')
         idx += 1
         if dbg: print()
+    if dbg:
+        print('{} options={}'.format(this, options))
+        print('exiting dbg cmdArgs')
+        exit(0)
 
 this = os.path.basename(sys.argv[0]) + ': ' + 'cmdArgs:'
 

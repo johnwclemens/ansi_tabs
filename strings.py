@@ -8,9 +8,17 @@ class Strings(object):
     def _initAliases(self):
         '''Register aliases for specific string spellings.  Edit this method to add, remove, or modify aliases as desired.'''
         self.ALIASES = {}
-        self.ALIASES['GUITAR']              = ['E2A2D3G3B3E4']
-        self.ALIASES['GUITAR_OPEN_G_OT']    = ['G2G2D3G3B3D4']
-        self.ALIASES['GUITAR_OPEN_GMIN_OT'] = ['G2G2D3G3Bb3D4']
+        self.ALIASES['GUITAR']                    = ['E2A2D3G3B3E4']
+        self.ALIASES['GUITAR_OPEN_D_VESTAPOL']    = ['D2A2D3F#3A3D4']
+        self.ALIASES['GUITAR_OPEN_G_OVERTONE']    = ['G2G2D3G3B3D4']
+        self.ALIASES['GUITAR_OPEN_GMIN_OVERTONE'] = ['G2G2D3G3Bb3D4']
+        self.ALIASES['BASS']                      = ['E1A1D2G2']
+        self.ALIASES['BASS_5_STRING']             = ['B0E1A1D2G2']
+        self.ALIASES['BASS_5_STRING_TENOR']       = ['E1A1D2G2C3']
+        self.ALIASES['BASS_6_STRING']             = ['B0E1A1D2G2C3']
+        self.ALIASES['CELLO']                     = ['C2G2D3A3']
+        self.ALIASES['VIOLA']                     = ['C3G3D4A4']
+        self.ALIASES['VIOLIN']                    = ['G3D4A4E5']
     
     def __init__(self, dbgFile, spelling=None, alias=None):
         '''The alias argument overrides the spelling argument.  e.g. alias='GUITAR' -> strings=['E2A2D3G3B3E4'] represents a standard 6 string guitar tuning.'''
@@ -75,12 +83,12 @@ class Strings(object):
                 print('Strings.parseSpelling({}) enharmonic string key {}'.format(i, key), file=self.dbgFile)
             if key:
                 print('Strings.parseSpelling({}) current key={}, current map={}'.format(i, key, self.map), file=self.dbgFile)
-                if key not in notes.INDICES:
+                if key not in notes.Note.INDICES:
                     errorMsg = 'Strings.parseSpelling({}) invalid key={}, extracted from spelling={}'.format(i, key, spelling)
                     print(errorMsg, file=self.dbgFile)
                     print(errorMsg)
                     raise Exception(errorMsg)
-                self.map[key] = notes.INDICES[key]
+                self.map[key] = notes.Note.INDICES[key]
                 print('Strings.parseSpelling({}) appending {}:{} to map={}'.format(i, key, self.map[key], self.map), file=self.dbgFile)
         self._keys = sorted(self.map, key=self._mapKeyFunc, reverse=False)
         print('Strings.parseSpelling() map={}'.format(self.map), file=self.dbgFile)
