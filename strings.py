@@ -9,6 +9,7 @@ class Strings(object):
         '''Register aliases for specific string spellings.  Edit this method to add, remove, or modify aliases as desired.'''
         self.ALIASES = {}
         self.ALIASES['GUITAR']              = ['E2A2D3G3B3E4']
+        self.ALIASES['GUITAR_OPEN_G_OT']    = ['G2G2D3G3B3D4']
         self.ALIASES['GUITAR_OPEN_GMIN_OT'] = ['G2G2D3G3Bb3D4']
     
     def __init__(self, dbgFile, spelling=None, alias=None):

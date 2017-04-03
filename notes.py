@@ -1,7 +1,5 @@
 '''notes.py module.  class list: [Note].'''
 
-TONES = { 0:'C', 1:'C#', 2:'D', 3:'D#', 4:'E', 5:'F', 6:'F#', 7:'G', 8:'G#', 9:'A', 10:'A#', 11:'B' } # For simplicity omit the enharmonic flat notes
-
 INDICES = { 'C0': 0, 'C#0': 1, 'Db0': 1, 'D0': 2, 'D#0': 3, 'Eb0': 3, 'E0': 4, 'F0': 5, 'F#0': 6, 'Gb0': 6, 'G0': 7, 'G#0': 8, 'Ab0': 8, 'A0': 9, 'A#0':10, 'Bb0':10, 'B0':11,
             'C1':12, 'C#1':13, 'Db1':13, 'D1':14, 'D#1':15, 'Eb1':15, 'E1':16, 'F1':17, 'F#1':18, 'Gb1':18, 'G1':19, 'G#1':20, 'Ab1':20, 'A1':21, 'A#1':22, 'Bb1':22, 'B1':23,
             'C2':24, 'C#2':25, 'Db2':25, 'D2':26, 'D#2':27, 'Eb2':27, 'E2':28, 'F2':29, 'F#2':30, 'Gb2':30, 'G2':31, 'G#2':32, 'Ab2':32, 'A2':33, 'A#2':34, 'Bb2':34, 'B2':35,
@@ -22,21 +20,19 @@ INDICES = { 'C0': 0, 'C#0': 1, 'Db0': 1, 'D0': 2, 'D#0': 3, 'Eb0': 3, 'E0': 4, '
 #         84:'C7', 85:'C#7', 86:'D7', 87:'D#7', 88:'E7', 89:'F7', 90:'F#7', 91:'G7', 92:'G#7', 93:'A7', 94:'A#7', 95:'B6', 
 #         96:'C8' } # Probably not needed - just use the getOvactaveNum() method and TONES dictionary.
             
-#FREQS = {                                'C0':16,  'C#0':17,  'D0':18,  'D#0':19,  'E0':21,  'F0':22,  'F#0':23,  'G0':24,  'G#0':26,
-#          'A0':28,  'A#0':29,  'B0':31,  'C1':33,  'C#1':35,  'D1':37,  'D#1':39,  'E1':41,  'F1':44,  'F#1':46,  'G1':49,  'G#1':52,
-#          'A1':55,  'A#1':58,  'B1':62,  'C2':65,  'C#2':69,  'D2':73,  'D#2':78,  'E2':82,  'F2':87,  'F#2':92,  'G2':98,  'G#2':104,
-#          'A2':110, 'A#2':117, 'B2':123, 'C3':131, 'C#3':139, 'D3':147, 'D#3':156, 'E3':165, 'F3':175, 'F#3':185, 'G3':196, 'G#3':208,
-#          'A3':220, 'A#3':233, 'B3':247, 'C4':262, 'C#4':277, 'D4':294, 'D#4':311, 'E4':330, 'F4':349, 'F#4':370, 'G4':392, 'G#4':415, 
-#          'A4':440 } # Not currently used.  May want to use float instead of integer and also may want to calculate rather than hard code
-
 class Note(object):
     '''Model a musical note played on a stringed instrument.'''
     
-    def __init__(self, index):
+    S_TONES = { 0:'C', 1:'C#', 2:'D', 3:'D#', 4:'E', 5:'F', 6:'F#', 7:'G', 8:'G#', 9:'A', 10:'A#', 11:'B' }
+    F_TONES = { 0:'C', 1:'Db', 2:'D', 3:'Eb', 4:'E', 5:'F', 6:'Gb', 7:'G', 8:'Ab', 9:'A', 10:'Bb', 11:'B' }
+    
+    def __init__(self, index, flats=None):
         '''The index identifies the note value, the name is looked up using the TONES dictionary.'''
-        self._len = len(TONES)              # calculate once and store for efficiency
         self._index = index
-        self._name = TONES[index % self._len]  # Go ahead and calculate once now, even though the client may not ever use this value
+        if flats is None or flats is 0:
+            self._name = self.S_TONES[index % len(self.S_TONES)]
+        else:
+            self._name = self.F_TONES[index % len(self.F_TONES)]
         
     @property
     def index(self):
@@ -55,10 +51,10 @@ class Note(object):
         self._name = name
         
     def getPianoIndex(self):
-        return self.index - 8                    # The lowest piano key is 'A0', INDICES['A0'] = 9, thus subtract 8 from our index to yield the 1 based piano index
+        return self.index - 8                      # The lowest piano key is 'A0', INDICES['A0'] = 9, so subtract 8 from our index to yield the 1 based piano index
         
     def getOctaveNum(self):
-        return int(self.index / self._len)  # Essentially the same as the piano octave number
+        return int(self.index / len(self.S_TONES)) # Essentially the same as the piano octave number
 
     def getFrequency(self):
         return 440.0 * pow(pow(2, 1/12), self.index - INDICES['A4'])
