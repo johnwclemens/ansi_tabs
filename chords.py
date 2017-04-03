@@ -3,8 +3,6 @@
 class Chords(object):
     '''Model chords for stringed instruments.  Discover and name chords'''
     
-#    def __init__(self, dbgFile):
-#        self.dbgFile = dbgFile
     def __init__(self, tabsObj):
         self.INTERVAL_RANK = { 'R':0, 'b2':1, '2':2, 'm3':3, 'M3':4, '4':5, 'b5':6, '5':7, 'a5':8, '6':9, 'b7':10, '7':11, 'b9':12, '9':13, '11':14, '13':15 }
         self.tabsObj = tabsObj
@@ -69,16 +67,12 @@ class Chords(object):
             for t in range(len(tbs)):
                 print('{:>5}'.format(tbs[t]), end=' ', file=self.tabsObj.dbgFile)
         
-#        tbs.reverse()
         notes = []
-#        for r in range(0, len(tbs)):
-#            if self.tabsObj.isFret(tbs[r]):
         for r in range(0, self.tabsObj.numStrings):
             if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][c])):
                 if chr(self.tabsObj.htabs[r][c]) == '1':
                     note = self.tabsObj.getHarmonicNote(r + 1, self.tabsObj.tabs[r][c])
                 else:
-#                    note = self.tabsObj.getNote(r + 1, ord(tbs[r]))
                     note = self.tabsObj.getNote(r + 1, self.tabsObj.tabs[r][c])
                 if len(note.name) > 1 and note.name[1] == '#' and self.tabsObj.enharmonic == self.tabsObj.ENHARMONIC['FLAT']:
                     note.name = self.tabsObj.SHARPS_2_FLATS[note.name]
@@ -88,25 +82,20 @@ class Chords(object):
         notes.reverse()
         if dbg:
             print(']\nnotes       [', end='', file=self.tabsObj.dbgFile)
-#            for t in range(len(tbs)):
             for t in range(len(notes)):
                 print('{:>5}'.format(notes[t]), end=' ', file=self.tabsObj.dbgFile)
         indices = []
-#        for r in range(0, len(tbs)):
-#            if self.tabsObj.isFret(tbs[r]):
         for r in range(0, self.tabsObj.numStrings):
             if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][c])):
                 if chr(self.tabsObj.htabs[r][c]) == '1':
                     note = self.tabsObj.getHarmonicNote(r + 1, self.tabsObj.tabs[r][c])
                     indices.append(note.index)
                 else:
-#                    note = self.tabsObj.getNote(r + 1, ord(tbs[r]))
                     note = self.tabsObj.getNote(r + 1, self.tabsObj.tabs[r][c])
                     indices.append(note.index)
         indices.reverse()
         if dbg:
             print(']\nindices     [', end='', file=self.tabsObj.dbgFile)
-#            for t in range(len(tbs)):
             for t in range(len(indices)):
                 print('{:>5}'.format(indices[t]), end=' ', file=self.tabsObj.dbgFile)
             print(']', file=self.tabsObj.dbgFile)
@@ -126,7 +115,6 @@ class Chords(object):
                     deltas.append(indices[i] - indices[j] + 48)
             if dbg:
                 print('deltas      [', end='', file=self.tabsObj.dbgFile)
-#                for t in range(len(tbs)):
                 for t in range(len(deltas)):
                     print('{:>5}'.format(deltas[t]), end=' ', file=self.tabsObj.dbgFile)
             intervals = []
@@ -134,7 +122,6 @@ class Chords(object):
                 intervals.append(self.tabsObj.INTERVALS[deltas[i]])
             if dbg:
                 print(']\nintervals   [', end='', file=self.tabsObj.dbgFile)
-#                for t in range(len(tbs)):
                 for t in range(len(deltas)):
                     print('{:>5}'.format(intervals[t]), end=' ', file=self.tabsObj.dbgFile)
             
