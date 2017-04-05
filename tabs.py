@@ -201,7 +201,7 @@ class Tabs(object):
                           12:'R', 13:'b9', 14:'9', 15:'m3', 16:'M3', 17:'11', 18:'b5', 19:'5', 20:'a5', 21:'13', 22:'b7', 23:'7',
                           24:'R', 25:'b9', 26:'9', 27:'m3', 28:'M3', 29:'11', 30:'b5', 31:'5', 32:'a5', 33:'13', 34:'b7', 35:'7', 
                           36:'R', 37:'b9', 38:'9', 39:'m3', 40:'M3', 41:'11', 42:'b5', 43:'5', 44:'a5', 45:'13', 46:'b7', 47:'7', 48:'R' }
-        self.HARMONIC_FRETS = { 12:12, 7:19, 19:19, 5:24, 24:24, 4:28, 9:28, 16:48, 28:28 }
+        self.HARMONIC_FRETS = { 12:12, 7:19, 19:19, 5:24, 24:24, 4:28, 9:28, 16:28, 28:28 }
 #        self.FRET_INDICES = { 0:0, 1:1, 2:2, 3:3, 4:4, 5:5, 6:6, 7:7, 8:8, 9:9, 10:'a' }  # for moving along the fretboard?
 #        self.MAJ_INDICES = [ 0, 2, 4, 5, 7, 9, 11, 12 ]                                   # for key signatures and or chords?
 #        self.MIN_INDICES = [ 0, 2, 3, 5, 7, 9, 10, 12 ]                                   # for key signatures and or chords?
@@ -1404,7 +1404,8 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
                                 self.prints(chr(self.capo), row, 2, self.styles['NUT_UP'])
                         if self.isFret(chr(capTab)):
                             if chr(self.htabs[r][c + line * self.numTabsPerStringPerLine]) == '1':
-                                n = self.getHarmonicNote(r + 1, capTab)
+                                print('printTabs() tab={}, capTab={}, chr(tab)={}, chr(capTab)={}, tabFN={}, capoFN={}'.format(tab, capTab, chr(tab), chr(capTab), self.getFretNum(tab), self.getFretNum(capTab)), file=self.dbgFile)
+                                n = self.getHarmonicNote(r + 1, tab)
                                 self.printNote(row, c + self.COL_OFF, n, hn=1)
                             else:
                                 n = self.getNote(r + 1, capTab)
@@ -1542,9 +1543,10 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
     def getHarmonicNote(self, str, tab):
         '''Return harmonic note object given string number and tab fret number byte.'''
         fret = self.getFretNum(tab)
-        delta = self.HARMONIC_FRETS[fret]
-        note = notes.Note(self.getNoteIndex(str, delta), self.enharmonic)
-        print('getHarmonicNote() f={}, d={}, n.i={}, n.n={}, n.o={})'.format(fret, delta, note.index, note.name, note.getOctaveNum()), file=self.dbgFile)
+        hfret = self.HARMONIC_FRETS[fret]
+        chfret = hfret + self.getFretNum(self.capo)
+        note = notes.Note(self.getNoteIndex(str, chfret), self.enharmonic)
+        print('getHarmonicNote({}, {}) f={}, hf={}, chf={}, n.i={}, n.n={}, n.o={})'.format(str, tab, fret, hfret, chfret, note.index, note.name, note.getOctaveNum()), file=self.dbgFile)
         return note
         
     def getNoteIndex(self, str, f):
