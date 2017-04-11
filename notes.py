@@ -44,15 +44,22 @@ class Note(object):
         return int(self.index / len(self.S_TONES)) # Essentially the same as the piano octave number
 
     def getPhysProps(self):
-        freq = 440.0 * pow(pow(2, 1/12), self.index - self.INDICES['A4'])
-        wlen = 343 / freq
-        return 'f={:03.2f} Hz, wlen={:04.3f} m'.format(freq, wlen)
+        freq, freqUnit = self.getFreqInfo()
+        waveLen, waveLenUnit = self.getWaveLenInfo(freq)
+        return 'freq={:03.2f} {}, waveLen={:04.3f} {}'.format(freq, freqUnit, waveLen, waveLenUnit)
         
-#    def getFrequency(self):
-#        return 440.0 * pow(pow(2, 1/12), self.index - self.INDICES['A4'])
-        
-#    def getWavelength(self):
-#        return 343 / self.getFrequency()
+    def getFreqInfo(self):
+        return self.getFreq(), 'Hz'
+
+    def getFreq(self):
+        return 440.0 * pow(pow(2, 1/12), self.index - self.INDICES['A4'])
+    
+    def getWaveLenInfo(self, freq=None):
+        if freq is None:
+            freq, freqUnit = self.getFreqInfo()
+            return 343 / freq, freqUnit
+        else:
+            return 343 / freq, 'm'
 
 #    def getPianoIndex(self):
 #        return self.index - 8                      # The lowest piano key is 'A0', INDICES['A0'] = 9, so subtract 8 from our index to yield the 1 based piano index

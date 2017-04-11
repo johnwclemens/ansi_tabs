@@ -66,13 +66,12 @@ class Tabs(object):
         self.chordsObj = None                                  # the chords.Chords instance
         
         self.htabs = []                                        # list of bytearrays, one for each string; for harmonic tabs
-        self.tabCount = 0
+        self.tabCount = 0                                      # used by appendTabs() 
         self.tabs = []                                         # list of bytearrays, one for each string; for all the tabs
         self.selectTabs = []                                   # list of bytearrays, one for each string; for selected tabs
         self.selectHTabs = []                                  # list of bytearrays, one for each string; for selected tabs
         self.selectCols = []                                   # list of column indices, one for each selected column; for selected columns
         self.numSelectCols = 0                                 # count of selected columns - NOTE: column selection honers order and repetition
-        self.chords = {}                                       # dict of chord spelling -> chord name; cache of discovered chords to avoid calculation
         self.stringMap = {}                                    # dict of string note name -> note index
         self.stringKeys = []                                   # list of keys; stringMap keys sorted by note index
         self.numStrings = 1                                    # number of strings on the musical instrument, set here in case initStrings() fails
@@ -122,7 +121,6 @@ class Tabs(object):
         self.setLastRow()                                      # calculate last row, depends on numStrings which is supposed to be set in initStrings()
         self.numTabs = self.numStrings * self.numTabsPerString # total number of tab characters
 
-#        self.testAnsi()
         try:
             with open(self.inName, 'rb') as self.inFile:
                 self.readTabs(readSize=500)
@@ -966,21 +964,21 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         if self.htabs[r][c] == ord('0'):
             if self.isFret(chr(tab)) and self.getFretNum(tab) in self.HARMONIC_FRETS:
                 self.htabs[r][c] = ord('1')
-                pn = self.getNote(r + 1, tab)
                 n = self.getHarmonicNote(r + 1, tab)
                 self.prints(chr(tab), self.row, self.col, self.styles['H_TABS'])
                 if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
                     self.printNote(r + line * self.lineDelta() + self.endRow(0) + 1 , self.col, n, hn=1)
                     self.moveTo()
+                pn = self.getNote(r + 1, tab)
                 print('toggleHarmonicNote({}, {}), r={}, c={}, tab={}, pn.n={}, pn.i={} normal->harmonic n.n={}, n.i={}'.format(self.row, self.col, r, c, chr(tab), pn.name, pn.index, n.name, n.index), file=self.dbgFile)
         else:
             self.htabs[r][c] = ord('0')
-            pn = self.getHarmonicNote(r + 1, tab)
             n = self.getNote(r + 1, tab)
             self.prints(chr(tab), self.row, self.col, self.styles['TABS'])
             if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
                 self.printNote(r + line * self.lineDelta() + self.endRow(0) + 1 , self.col, n)
                 self.moveTo()
+            pn = self.getHarmonicNote(r + 1, tab)
             print('toggleHarmonicNote({}, {}), r={}, c={}, tab={}, pn.n={}, pn.i={} harmonic-> n.n={}, n.i={}'.format(self.row, self.col, r, c, chr(tab), pn.name, pn.index, n.name, n.index), file=self.dbgFile)
         if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
             self.chordsObj.eraseChord(c)
@@ -1002,7 +1000,18 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
                 self.capo = ord(c)            
                 print('setCapo() c={}, ord(c)={}, capo={}, capFN={}, chr(mf)={}, maxFret={}, maxFN={} setting capo'.format(c, ord(c), self.capo, capFN, chr(self.maxFret), self.maxFret, maxFN), file=self.dbgFile)
                 self.printTabs()
-    
+
+    def findMaxFret(self):
+        maxFN = 0
+        for r in range(0, len(self.tabs)):
+            for c in range(0, len(self.tabs[r])):
+                tab = self.tabs[r][c]
+                if self.isFret(chr(tab)):
+                    currFN = self.getFretNum(tab)
+                    if currFN > maxFN:
+                        maxFN = currFN
+        return self.getFretByte(maxFN)
+        
     def setTab(self, tab):
         '''Set given tab byte at the current row and col, print the corresponding tab character and then move cursor according to the cursor mode.'''
         print('setTab({}, {}) chr(tab)={}, tab, bgn: check row/col'.format(self.row, self.col, chr(tab), tab), file=self.dbgFile)
@@ -1012,8 +1021,15 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
             if self.editMode == self.EDIT_MODES['INSERT']:
                 for c in range(len(self.tabs[rr]) - 1, cc, - 1):
                     self.tabs[rr][c] = self.tabs[rr][c - 1]
-            print('setTab({}, {}) chr(tab)={}, tab={}, check isFret(chr(tab))'.format(rr, cc, chr(tab), tab), file=self.dbgFile)
+            if self.htabs[rr][cc] == ord('1'):
+                self.htabs[rr][cc] = ord('0')
+                print('setTab() cleared htab={}, rr={}, cc={}'.format(chr(self.htabs[rr][cc]), rr, cc), file=self.dbgFile)
+            prevTab = self.tabs[rr][cc]
             capTab = self.tabs[rr][cc] = tab
+            if self.isFret(chr(prevTab)) and self.getFretNum(prevTab) == self.getFretNum(self.maxFret):
+                self.maxFret = self.findMaxFret()
+                print('setTab() setting maxFret=({},{},{}) prevMF=({},{},{})'.format(self.maxFret, chr(self.maxFret), self.getFretNum(self.maxFret), prevTab, chr(prevTab), self.getFretNum(prevTab)), file=self.dbgFile)
+            print('setTab({}, {}) chr(tab)={}, tab={}, check isFret(chr(tab)), htab={}'.format(rr, cc, chr(tab), tab, self.htabs[rr][cc]), file=self.dbgFile)
             if self.isFret(chr(tab)):
                 tabFN = self.getFretNum(tab)
                 maxFN = self.getFretNum(self.maxFret)
@@ -1051,7 +1067,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
                                 break
             self.moveCursor()
         else:
-            info = 'row/col Exception in setTab({:d},{:d},{:c})'.format(self.row, self.col, tab)
+            info = 'row/col ERROR in setTab({},{},{})'.format(self.row, self.col, tab)
             self.printe(info)
 
     def goTo(self):
@@ -1142,7 +1158,10 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         if row is None: row = self.row
         if col is None: col = self.col
         r, c = self.rowCol2Indices(row, col)
-        print('deleteTab() adjusted: row={}, col={}, r={}, c={}'.format(row, col, r, c), file=self.dbgFile)
+        tab = self.tabs[r][c]
+        tabFN = self.getFretNum(tab)
+        maxFN = self.getFretNum(self.maxFret)
+        print('deleteTab({},{},{},{}) tab={}, chr(tab)={}, tabFN={}'.format(row, col, r, c, tab, chr(tab), tabFN, maxFN), file=self.dbgFile)
         if self.editMode == self.EDIT_MODES['INSERT']:
             for cc in range(c, len(self.tabs[r])):
                 if len(self.tabs[r]) > cc + 1:
@@ -1159,6 +1178,9 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
                 self.chordsObj.eraseChord(c)
                 self.chordsObj.printChord(c=c)
             self.moveTo(row=row, col=col)
+        if self.isFret(chr(tab)) and tabFN == maxFN:
+            self.maxFret = self.findMaxFret()
+            print('deleteTab() reset maxFret={}, chr(maxFret)={}, maxFN={}, tab={}, chr(tab)={}, tabFN={}'.format(self.maxFret, chr(self.maxFret), self.getFretNum(self.maxFret), tab, chr(tab), tabFN), file=self.dbgFile)
 
     def deletePrevTab(self):
         '''Delete previous tab (backspace).'''
@@ -1171,6 +1193,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
             for c in range(0, len(self.tabs[r])):
                 self.tabs[r][c] = ord('-')
                 self.htabs[r][c] = ord('0')
+        self.maxFret = ord('0')
         self.printTabs()
 
     def resetTabs(self):
@@ -1235,6 +1258,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
             self.selectCols = []
         if self.displayChords == self.DISPLAY_NOTES['ENABLED']:
             self.chordsObj.printChords()
+        self.maxFret = self.findMaxFret()
         self.moveTo()
 
     def cutSelectTabs(self):
@@ -1493,11 +1517,13 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
             print('printTabFretInfo() r={}, c={}, tab={}, n.n={}, n.o={}, n.i={}, {}'.format(r, c, tab, n.name, n.getOctaveNum(), n.index, n.getPhysProps()), file=self.dbgFile)
             print(self.CSI + style + self.CSI + '{};{}H{}{}, '.format(self.lastRow, 1, n.name, n.getOctaveNum()), end='')
             print(self.CSI + self.styles['ERROR'] + 'harmonic note', end='')
-            print(self.CSI + style + ', index={}, {}'.format(n.index, n.getPhysProps()), end='')
+            print(self.CSI + style + ', fretNum={}, index={}, {}'.format(self.getFretNum(ord(tab)), n.index, n.getPhysProps()), end='')
         else:
             n = self.getNote(r + 1, ord(tab))
             print('printTabFretInfo() r={}, c={}, tab={}, n.n={}, n.o={}, n.i={}, {}'.format(r, c, tab, n.name, n.getOctaveNum(), n.index, n.getPhysProps()), file=self.dbgFile)
-            print(self.CSI + style + self.CSI + '{};{}H{}{}, index={}, {}'.format(self.lastRow, 1, n.name, n.getOctaveNum(), n.index, n.getPhysProps()), end='')
+            print(self.CSI + style + self.CSI + '{};{}H{}{}, '.format(self.lastRow, 1, n.name, n.getOctaveNum()), end='')
+            print(self.CSI + style + 'normal note', end='')
+            print(self.CSI + style + ', fretNum={}, index={}, {}'.format(self.getFretNum(ord(tab)), n.index, n.getPhysProps()), end='')
         self.lastRowDirty = 1
     
     def printTabMod(self, key, r, c):
