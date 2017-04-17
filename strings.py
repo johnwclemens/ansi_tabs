@@ -21,7 +21,7 @@ class Strings(object):
         self.ALIASES['VIOLIN']                    = ['G3D4A4E5']
     
     def __init__(self, dbgFile, spelling=None, alias=None):
-        '''The alias argument overrides the spelling argument.  e.g. alias='GUITAR' -> strings=['E2A2D3G3B3E4'] represents a standard 6 string guitar tuning.'''
+        '''The alias argument overrides the spelling argument.  e.g. alias=['GUITAR'] -> strings=['E2A2D3G3B3E4'] represents a standard 6 string guitar tuning.'''
         self.dbgFile = dbgFile
         self._map = {}
         self._keys = []

@@ -70,8 +70,9 @@ class Chords(object):
         
         notes = []
         for r in range(0, self.tabsObj.numStrings):
-            if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][c])):
-                note = self.tabsObj.getNote(r + 1, self.tabsObj.tabs[r][c])
+            tab = self.tabsObj.getFretByte(self.tabsObj.getFretNum(self.tabsObj.tabs[r][c]) + self.tabsObj.getFretNum(self.tabsObj.capo))
+            if self.tabsObj.isFret(chr(tab)):
+                note = self.tabsObj.getNote(r + 1, tab)
                 if len(note.name) > 1 and note.name[1] == '#' and self.tabsObj.enharmonic == self.tabsObj.ENHARMONIC['FLAT']:
                     note.name = self.tabsObj.SHARPS_2_FLATS[note.name]
                 elif len(note.name) > 1 and note.name[1] == 'b' and self.tabsObj.enharmonic == self.tabsObj.ENHARMONIC['SHARP']:
@@ -84,8 +85,9 @@ class Chords(object):
                 print('{:>5}'.format(notes[t]), end=' ', file=self.tabsObj.dbgFile)
         indices = []
         for r in range(0, self.tabsObj.numStrings):
-            if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][c])):
-                note = self.tabsObj.getNote(r + 1, self.tabsObj.tabs[r][c])
+            tab = self.tabsObj.getFretByte(self.tabsObj.getFretNum(self.tabsObj.tabs[r][c]) + self.tabsObj.getFretNum(self.tabsObj.capo))
+            if self.tabsObj.isFret(chr(tab)):
+                note = self.tabsObj.getNote(r + 1, tab)
                 indices.append(note.index)
         indices.reverse()
         if dbg:

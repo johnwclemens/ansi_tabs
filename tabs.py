@@ -213,7 +213,7 @@ class Tabs(object):
         self.DISPLAY_CHORDS = { 'DISABLED':0, 'ENABLED':1 }
     
     def initStrings(self, alias=None, spelling=None):
-        print('initStrings( alias={}, spelling={})'.format(alias, spelling), file=self.dbgFile)
+        print('initStrings(alias={}, spelling={})'.format(alias, spelling), file=self.dbgFile)
         try:
             self.strings = strings.Strings(self.dbgFile, alias=alias, spelling=spelling)
         except Exception as ex:
@@ -472,7 +472,7 @@ Also note the tabs section is the only section that is editable.  The navigation
 The notes section has the same number of rows and columns as the tabs section and displays the note names corresponding to the tabs in the tabs section.  
 The notes section uses the color red to indicate a sharp note and blue to represent a flat note.  
 Note any optional tab modification characters present in the tabs section are also displayed in the notes section.  
-''' + self.hilite('Chords section:  \'Ctrl N\'') + ''' 
+''' + self.hilite('Chords section:  \'Ctrl B\'') + ''' 
 Chords are spelled vertically so that they line up with the tabs and notes and potentially every column can display a chord.  
 Chord names are automatically calculated and recalculated whenever the number of tabs in a given column is greater than one.  
 The maximum chord name length is set to 5 and is not currently configurable.
@@ -600,6 +600,9 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         else: # down = 160, up = 152
             self.printe('{:<17}: :{}'.format(reason, b))
 
+    def resetPos(self):
+        print(self.CSI + '{};{}H'.format(self.row, self.col), end='')
+    
     def moveTo(self, row=None, col=None, hi=0):
         '''Move to given row and col (optionally hilite row and col num).'''
         dbg = 1
@@ -779,7 +782,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
                 elif self.editMode == self.EDIT_MODES['REPLACE']:
                     self.prints('R', r, self.editModeCol, self.styles['MODES'])
             if dbg: self.printLineInfo('toggleEditMode({}, {})'.format(self.row, self.col))
-            self.moveTo()
+            self.resetPos()
     
     def toggleCursorMode(self, dbg=None):
         '''Toggle cursor movement modes (melody, chord, or arpeggio).'''
@@ -794,7 +797,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
                 elif self.cursorMode == self.CURSOR_MODES['ARPEGGIO']:
                     self.prints('A', r, self.cursorModeCol, self.styles['MODES'])
             if dbg: self.printLineInfo('toggleCursorMode({}, {})'.format(self.row, self.col))
-            self.moveTo()
+            self.resetPos()
 
     def toggleCursorDir(self, dbg=None):
         '''Toggle direction (up or down) of cursor vertical movement.  [cmd line opt -i]'''
@@ -808,7 +811,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
                     self.prints(chr(self.capo), r + self.bgnRow(line), self.COL_OFF - 1, self.styles['NUT_UP'])
                     self.prints(chr(self.capo), r + self.endRow(line), self.COL_OFF - 1, self.styles['NUT_UP'])
         if dbg: self.printLineInfo('toggleCursorDir({}, {}, {}, {})'.format(self.row, self.col, self.cursorDir, self.CURSOR_DIR_INDS[self.cursorDir]))
-        self.moveTo()
+        self.resetPos()
 
     def toggleEnharmonic(self):
         '''Toggle display of enharmonic (sharp or flat) notes.  [cmd line opt -F]'''
@@ -929,7 +932,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         self.selectTabs = []
         self.selectHTabs = []
         self.numSelectCols = 0
-        self.moveTo()
+        self.resetPos()
             
     def setColStyle(self, c, style):
         col = c
@@ -968,7 +971,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
                 self.prints(chr(tab), self.row, self.col, self.styles['H_TABS'])
                 if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
                     self.printNote(r + line * self.lineDelta() + self.endRow(0) + 1 , self.col, n, hn=1)
-                    self.moveTo()
+                    self.resetPos()
                 pn = self.getNote(r + 1, tab)
                 print('toggleHarmonicNote({}, {}), r={}, c={}, tab={}, pn.n={}, pn.i={} normal->harmonic n.n={}, n.i={}'.format(self.row, self.col, r, c, chr(tab), pn.name, pn.index, n.name, n.index), file=self.dbgFile)
         else:
@@ -977,7 +980,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
             self.prints(chr(tab), self.row, self.col, self.styles['TABS'])
             if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
                 self.printNote(r + line * self.lineDelta() + self.endRow(0) + 1 , self.col, n)
-                self.moveTo()
+                self.resetPos()
             pn = self.getHarmonicNote(r + 1, tab)
             print('toggleHarmonicNote({}, {}), r={}, c={}, tab={}, pn.n={}, pn.i={} harmonic-> n.n={}, n.i={}'.format(self.row, self.col, r, c, chr(tab), pn.name, pn.index, n.name, n.index), file=self.dbgFile)
         if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
@@ -1151,7 +1154,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         self.hilitePrevRowPos = self.row
         print('hiliteRowColNum({}, {}) hilitePrevRowPos={}, hiliteRowNum={}, hiliteColNum={}, hiliteCount={}'.format(self.row, self.col, self.hilitePrevRowPos, self.hiliteRowNum, self.hiliteColNum, self.hiliteCount), file=self.dbgFile)
         self.prints(self.hiliteRowNum, self.row, 1, self.styles['BRIGHT'] + self.styles['TABS'])
-        print(self.CSI + '{};{}H'.format(self.row, self.col), end='')
+        self.resetPos()
 
     def deleteTab(self, row=None, col=None):
         '''Delete current tab.'''
@@ -1259,7 +1262,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         if self.displayChords == self.DISPLAY_NOTES['ENABLED']:
             self.chordsObj.printChords()
         self.maxFret = self.findMaxFret()
-        self.moveTo()
+        self.resetPos()
 
     def cutSelectTabs(self):
         '''Cut selected tabs.'''
@@ -1354,7 +1357,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
                             self.prints(chr(tab), row + r, col + c, self.styles['H_TABS'])
                         else:
                             self.prints(chr(tab), row + r, col + c, self.styles['TABS'])
-            self.moveTo()
+            self.resetPos()
         self.numSelectCols = 0
         del self.selectTabs
         self.selectTabs = []
@@ -1364,7 +1367,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         self.selectCols = []
         if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
             self.chordsObj.printChords()
-        self.moveTo()
+        self.resetPos()
         self.dumpTabs('pasteTabs({}, {}) end: '.format(self.row, self.col))
         
     def dumpTabs(self, reason='', h=None):
@@ -1503,13 +1506,14 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
             self.clearRow()
             self.lastRowDirty = 0
         if tab in self.mods:
-            self.printTabMod(tab, r, c)
+            self.printTabModInfo(tab, r, c)
         elif self.isFret(tab):
             self.printTabFretInfo(tab, r, c)
-        print(self.CSI + '{};{}H'.format(self.row, self.col), end='')
+        else:
+            self.printStringInfo(r + 1)
+        self.resetPos()
         
     def printTabFretInfo(self, tab, r, c):
-        extra = ''
         style = self.styles['STATUS']
         if self.htabs[r][c] == ord('1'):
             print('printTabFretInfo() r={}, c={}, tab={}, harmonic note'.format(r, c, tab,), file=self.dbgFile)
@@ -1526,20 +1530,33 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
             print(self.CSI + style + ', fretNum={}, index={}, {}'.format(self.getFretNum(ord(tab)), n.index, n.getPhysProps()), end='')
         self.lastRowDirty = 1
     
-    def printTabMod(self, key, r, c):
-        print('printTabMod({}, {}) key={}'.format(r, c, key), file=self.dbgFile)
-        prev = chr(self.tabs[r][c-1])
-        next = chr(self.tabs[r][c+1])
-        dir, dir2 = None, None
-        if prev < next:
-            dir = 'up'
-            dir2 = 'on'
-        elif prev > next:
-            dir = 'down'
-            dir2 = 'off'
-        self.modsObj.setMods(dir, prev, next, dir2)
-        style = self.styles['STATUS']
-        print(self.CSI + style + self.CSI + '{};{}H{} {}'.format(self.lastRow, 1, key, self.mods[key]), end='')
+    def printTabModInfo(self, key, r, c):
+        print('printTabModInfo({}, {}) key={}'.format(r, c, key), file=self.dbgFile)
+        prev, next, dir1, dir2 = None, None, None, None
+        if self.isFret(chr(self.tabs[r][c-1])):
+            prev = chr(self.tabs[r][c-1])
+        if self.isFret(chr(self.tabs[r][c+1])):
+            next = chr(self.tabs[r][c+1])
+        if prev is not None and next is not None:
+            if prev < next:
+                dir1 = 'up'
+                dir2 = 'on'
+            elif prev > next:
+                dir1 = 'down'
+                dir2 = 'off'
+        self.modsObj.setMods(dir1=dir1, dir2=dir2, prev=prev, next=next)
+        print(self.CSI + self.styles['STATUS'] + self.CSI + '{};{}H{} {}'.format(self.lastRow, 1, key, self.mods[key]), end='')
+        self.lastRowDirty = 1
+    
+    def printStringInfo(self, s):
+        n = self.getNote(s, 0)
+        s = self.row2Index(self.row) + 1
+        if   s == 1: sfx = 'st'
+        elif s == 2: sfx = 'nd'
+        elif s == 3: sfx = 'rd'
+        else:        sfx = 'th'
+        info = '{}{} string ({}) not played'.format(s, sfx, n.name)
+        print(self.CSI + self.styles['STATUS'] + self.CSI + '{};{}H{}'.format(self.lastRow, 1, info), end='')
         self.lastRowDirty = 1
     
     def prints(self, c, row, col, style):
@@ -1552,11 +1569,11 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         if row is None: row=self.row
         if col is None: col=self.col
         if style == None: style = self.styles['ERROR']
-#        if self.lastRowDirty:
-#            print(self.CSI + '{};{}H'.format(self.lastRow, 1), end='')
-#            print('printe() clearing dirty last row={}'.format(self.lastRow), file=self.dbgFile)
-#            self.clearRow()
-#            self.lastRowDirty = 0
+        if self.lastRowDirty:
+            print(self.CSI + '{};{}H'.format(self.lastRow, 1), end='')
+            print('printe() clearing dirty last row={}'.format(self.lastRow), file=self.dbgFile)
+            self.clearRow()
+            self.lastRowDirty = 0
         print('printe({}, {}) {}'.format(row, col, info), file=self.dbgFile)
         print(self.CSI + style + self.CSI + '{};{}H{}'.format(self.lastRow, 1, info), end='')
         print(self.CSI + style + self.CSI + '{};{}H'.format(row, col), end='')
@@ -1631,39 +1648,30 @@ def main():
 if __name__ == "__main__":
     main()
 
-# NOTE to fix the console display from a bad run try the color cmd, 'Color ?' or 'Color 07' restores white on black.
+# NOTE to fix the console foreground and background colors from a bad run try the color cmd, 'Color ?' or 'Color 07' restores white on black.
 '''
-e.g. Here is a C Major chord played on a six string guitar in standard tuning 'E2A2D3G3B3E4'
-1|0
-2|1
-3|0
-4|2
-5|3
-6|-
-E|E
-B|C
-G|G
-D|E
-A|C
-E|-
-
-e.g. Carlos Santana, Black Magic Woman, on 6 string guitar with standard tuning 'E2A2D3G3B3E4':
+e.g. Tabs Section: 6 string guitar with standard tuning 'E2A2D3G3B3E4': Carlos Santana, Black Magic Woman:
   1234567891123456789212345678931234567894123456789512345678961234567897123456789812345678991234567890123456789112345678921234567893123456789412345678951234567896
-1|----------------------------------5=-------------------5=---------------------a--a------------------------------------------------------------------------------
-2|6+8+6==----------6+8+6==------------8=6/5==-8=6=5/3==----8=6/5==-8=6=5/3==---a-----d-f\d\f----------------------------------------------------------------------
-3|--------7\9\7==----------7\9\7==--------------------------------------------a-----------------------------------------------------------------------------------
-4|----------------------------------------------------------------------------------------------------------------------------------------------------------------
-5|----------------------------------------------------------------------------------------------------------------------------------------------------------------
-6|----------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+10----------------------------5=----------------5=---------------a--a---------------------------------------------------------------------------------------------
+20--8/6=---------6+8+6=---------8=6/5=-8=6=5/3=---8=6/5=-8=6=5--a----d-f\da-d\f\d+a-------------------------------------------------------------------------------
+30-------7\9\7=---------9\7=-----------------------------------a--------------------------------------------------------------------------------------------------
+40----------------------------------------------------------------------------------------------------------------------------------------------------------------
+50----------------------------------------------------------------------------------------------------------------------------------------------------------------
+60----------------------------------------------------------------------------------------------------------------------------------------------------------------
+Optional Notes Section: 6 string guitar with standard tuning 'E2A2D3G3B3E4': Carlos Santana, Black Magic Woman:
+E0----------------------------A=----------------A=---------------D--D---------------------------------------------------------------------------------------------
+B0--G/F=---------F+G+F=---------G=F/E=-G=F=E/D=---G=F/E=-G=F=E--A----C-D\CA-C\D\C+A-------------------------------------------------------------------------------
+G0-------D\E\D=---------E\D=-----------------------------------F--------------------------------------------------------------------------------------------------
+D0----------------------------------------------------------------------------------------------------------------------------------------------------------------
+A0----------------------------------------------------------------------------------------------------------------------------------------------------------------
+E0----------------------------------------------------------------------------------------------------------------------------------------------------------------
+||
+| -- Capo fret number (0 means no capo)
+---- String numbers and String note names
+ 
 Desired new features list:
-X    Usage guide, remember to update
-X    Readme file, remember to update
-X    Cut and paste column of tabs
-X    Add row number labels and hilite them?  Actually reuse 1st column for hilite instead
-X    Display and use Capo, also save to and read from outFile
 X    Enhance Status row usage
-X    Save harmonic note info
+    Optimize printTabs?
     Compress arpeggio -> chord, expand chord -> arpeggio?
     Print arpeggio chord names?
     Analysis for key signature calculation
