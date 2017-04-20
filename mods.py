@@ -7,25 +7,25 @@ The tab mod characters are assumed to apply to the previous tab or between the p
 overriding defined alphabetic characters as keys.'''
 
 class Mods(object):
-    '''Model playing techniques and expression using a dictionary of tab modifier keys and contextually descriptive values.'''
-    def __init__(self, file=None):
-        self.dbgFile = file
-        self.dir1 = '(up or down)'
-        self.dir2 = '(off or on)'
-        self.prev = 'prev'
-        self.next = 'next'
+    '''Model playing techniques and expression using a dictionary of tab modifier keys with contextually descriptive values.'''
+    def __init__(self, tabsObj):
+        self.tabsObj = tabsObj
         self.mods = {}
-        self._setMods()
         # init the mods that do not use contextual data
-        self.mods['='] = 'vibrato'
+        self.mods['~'] = 'vibrato'
         self.mods['.'] = 'staccato'
         self.mods['_'] = 'legato'
+        self.setMods()
   
     def _setMods(self):
         '''Internal method to specify tab modifiers that use contextual data.'''
-        self.mods['\\'] =   'bend {} from {} to {}'.format(self.dir1, self.prev, self.next)
-        self.mods['/']  =  'slide {} from {} to {}'.format(self.dir1, self.prev, self.next)
-        self.mods['+']  = 'hammer {} from {} to {}'.format(self.dir2, self.prev, self.next)
+        pfs, nfs = '', ''
+        if isinstance(self.prev, int): pfs = self.tabsObj.getOrdSfx(self.prev)
+        if isinstance(self.next, int): nfs = self.tabsObj.getOrdSfx(self.next)
+        self.mods['=']  =   'play {}{} fret with vibrato'.format(self.prev, pfs)
+        self.mods['\\'] =   'bend {} from {}{} fret to {}{} fret'.format(self.dir1, self.prev, pfs, self.next, nfs)
+        self.mods['/']  =  'slide {} from {}{} fret to {}{} fret'.format(self.dir1, self.prev, pfs, self.next, nfs)
+        self.mods['+']  = 'hammer {} from {}{} fret to {}{} fret'.format(self.dir2, self.prev, pfs, self.next, nfs)
     
     def setMods(self, dir1=None, dir2=None, prev=None, next=None):
         '''Specify the contextual data for tab modifiers'''

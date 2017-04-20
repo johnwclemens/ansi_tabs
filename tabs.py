@@ -145,7 +145,7 @@ class Tabs(object):
                 self.tabs.append(bytearray([ord(t) for t in tabs] * mult))
                 self.htabs.append(bytearray([ord('0') for t in tabs] * mult))
         finally:
-            self.modsObj = mods.Mods(file=self.dbgFile)
+            self.modsObj = mods.Mods(self)
             self.mods = self.modsObj.getMods()
             print('init() mods=\{ ', file=self.dbgFile)
             for k in self.mods:
@@ -963,7 +963,6 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         line = self.row2Line(self.row)
         r, c = self.rowCol2Indices(self.row, self.col)
         tab = self.tabs[r][c]
-#        print('toggleHarmonicNote({}, {}), r={}, c={}, tab={} bgn'.format(self.row, self.col, r, c, chr(tab)), file=self.dbgFile)
         if self.htabs[r][c] == ord('0'):
             if self.isFret(chr(tab)) and self.getFretNum(tab) in self.HARMONIC_FRETS:
                 self.htabs[r][c] = ord('1')
@@ -973,7 +972,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
                     self.printNote(r + line * self.lineDelta() + self.endRow(0) + 1 , self.col, n, hn=1)
                     self.resetPos()
                 pn = self.getNote(r + 1, tab)
-                print('toggleHarmonicNote({}, {}), r={}, c={}, tab={}, pn.n={}, pn.i={} normal->harmonic n.n={}, n.i={}'.format(self.row, self.col, r, c, chr(tab), pn.name, pn.index, n.name, n.index), file=self.dbgFile)
+                print('toggleHarmonicNote({},{}) r,c={},{}, tab={}, pn.n={}, pn.i={} norm->harm n.n={}, n.i={}'.format(self.row, self.col, r, c, chr(tab), pn.name, pn.index, n.name, n.index), file=self.dbgFile)
         else:
             self.htabs[r][c] = ord('0')
             n = self.getNote(r + 1, tab)
@@ -982,7 +981,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
                 self.printNote(r + line * self.lineDelta() + self.endRow(0) + 1 , self.col, n)
                 self.resetPos()
             pn = self.getHarmonicNote(r + 1, tab)
-            print('toggleHarmonicNote({}, {}), r={}, c={}, tab={}, pn.n={}, pn.i={} harmonic-> n.n={}, n.i={}'.format(self.row, self.col, r, c, chr(tab), pn.name, pn.index, n.name, n.index), file=self.dbgFile)
+            print('toggleHarmonicNote({},{}) r,c={},{}, tab={}, pn.n={}, pn.i={} harm->norm n.n={}, n.i={}'.format(self.row, self.col, r, c, chr(tab), pn.name, pn.index, n.name, n.index), file=self.dbgFile)
         if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
             self.chordsObj.eraseChord(c)
             self.chordsObj.printChord(c=c)
@@ -1437,8 +1436,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
                             else:
                                 n = self.getNote(r + 1, capTab)
                                 self.printNote(row, c + self.COL_OFF, n)
-                        else:
-                            self.prints(chr(tab), row, c + self.COL_OFF, self.styles['NAT_NOTE'])
+                        else: self.prints(chr(tab), row, c + self.COL_OFF, self.styles['NAT_NOTE'])
                     print(file=self.outFile)
                 print()
             self.printFileMark('<END_NOTES_SECTION>')
@@ -1505,65 +1503,56 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
             print('printStatus() clearing dirty last row={}'.format(self.lastRow), file=self.dbgFile)
             self.clearRow()
             self.lastRowDirty = 0
-        if tab in self.mods:
-            self.printTabModInfo(tab, r, c)
-        elif self.isFret(tab):
-            self.printTabFretInfo(tab, r, c)
-        else:
-            self.printStringInfo(r + 1)
+        if   self.isFret(tab): self.printTabFretInfo(tab, r, c)
+        elif tab in self.mods: self.printTabModInfo(tab, r, c)
+        else:                  self.printDefTabInfo(tab, r, c)
         self.resetPos()
         
     def printTabFretInfo(self, tab, r, c):
-        style = self.styles['STATUS']
+        s, ss = r + 1, self.getOrdSfx(r + 1)
+        f, fs = self.getFretNum(ord(tab)), self.getOrdSfx(self.getFretNum(ord(tab)))
         if self.htabs[r][c] == ord('1'):
-            print('printTabFretInfo() r={}, c={}, tab={}, harmonic note'.format(r, c, tab,), file=self.dbgFile)
-            n = self.getHarmonicNote(r + 1, ord(tab))
-            print('printTabFretInfo() r={}, c={}, tab={}, n.n={}, n.o={}, n.i={}, {}'.format(r, c, tab, n.name, n.getOctaveNum(), n.index, n.getPhysProps()), file=self.dbgFile)
-            print(self.CSI + style + self.CSI + '{};{}H{}{}, '.format(self.lastRow, 1, n.name, n.getOctaveNum()), end='')
-            print(self.CSI + self.styles['ERROR'] + 'harmonic note', end='')
-            print(self.CSI + style + ', fretNum={}, index={}, {}'.format(self.getFretNum(ord(tab)), n.index, n.getPhysProps()), end='')
+            n, nt, ns, ts = self.getHarmonicNote(s, ord(tab)), 'harmonic note', self.styles['ERROR'], self.styles['H_TABS']
+            print('printTabFretInfo({}) r={}, c={}, tab={}, n.n={}, n.o={}, n.i={}, {}'.format(nt, r, c, tab, n.name, n.getOctaveNum(), n.index, n.getPhysProps()), file=self.dbgFile)
         else:
-            n = self.getNote(r + 1, ord(tab))
-            print('printTabFretInfo() r={}, c={}, tab={}, n.n={}, n.o={}, n.i={}, {}'.format(r, c, tab, n.name, n.getOctaveNum(), n.index, n.getPhysProps()), file=self.dbgFile)
-            print(self.CSI + style + self.CSI + '{};{}H{}{}, '.format(self.lastRow, 1, n.name, n.getOctaveNum()), end='')
-            print(self.CSI + style + 'normal note', end='')
-            print(self.CSI + style + ', fretNum={}, index={}, {}'.format(self.getFretNum(ord(tab)), n.index, n.getPhysProps()), end='')
+            n, nt, ns, ts = self.getNote(s, ord(tab)), 'normal note', self.styles['STATUS'], self.styles['TABS']
+            print('printTabFretInfo({}) r={}, c={}, tab={}, n.n={}, n.o={}, n.i={}, {}'.format(nt, r, c, tab, n.name, n.getOctaveNum(), n.index, n.getPhysProps()), file=self.dbgFile)
+        print(self.CSI + ts + self.CSI + '{};{}H{} '.format(self.lastRow, 1, tab), end='', file=self.outFile)
+        print(self.CSI + self.styles['STATUS'] + '{}{} string, {}{} fret, {}{}, '.format(s, ss, f, fs, n.name, n.getOctaveNum()), end='', file=self.outFile)
+        print(self.CSI + ns + '{}'.format(nt), end='', file=self.outFile)
+        print(self.CSI + self.styles['STATUS'] + ', index={}, {}'.format(n.index, n.getPhysProps()), end='', file=self.outFile)
         self.lastRowDirty = 1
     
-    def printTabModInfo(self, key, r, c):
-        print('printTabModInfo({}, {}) key={}'.format(r, c, key), file=self.dbgFile)
+    def printTabModInfo(self, tab, r, c):
+        s, ss = r + 1, self.getOrdSfx(r + 1)
+        print('printTabModInfo({}, {}) tab={}'.format(r, c, tab), file=self.dbgFile)
         prev, next, dir1, dir2 = None, None, None, None
-        if self.isFret(chr(self.tabs[r][c-1])):
-            prev = chr(self.tabs[r][c-1])
-        if self.isFret(chr(self.tabs[r][c+1])):
-            next = chr(self.tabs[r][c+1])
+        if self.isFret(chr(self.tabs[r][c-1])): prev = self.getFretNum(self.tabs[r][c-1])
+        if self.isFret(chr(self.tabs[r][c+1])): next = self.getFretNum(self.tabs[r][c+1])
         if prev is not None and next is not None:
-            if prev < next:
-                dir1 = 'up'
-                dir2 = 'on'
-            elif prev > next:
-                dir1 = 'down'
-                dir2 = 'off'
+            if   prev < next: dir1, dir2 = 'up',   'on'
+            elif prev > next: dir1, dir2 = 'down', 'off'
         self.modsObj.setMods(dir1=dir1, dir2=dir2, prev=prev, next=next)
-        print(self.CSI + self.styles['STATUS'] + self.CSI + '{};{}H{} {}'.format(self.lastRow, 1, key, self.mods[key]), end='')
+        print(self.CSI + self.styles['TABS'] + self.CSI + '{};{}H{} '.format(self.lastRow, 1, tab), end='', file=self.outFile)
+        print(self.CSI + self.styles['STATUS'] + '{}{} string, {}'.format(s, ss, self.mods[tab]), end='', file=self.outFile)
         self.lastRowDirty = 1
     
-    def printStringInfo(self, s):
-        n = self.getNote(s, 0)
-        s = self.row2Index(self.row) + 1
-        if   s == 1: sfx = 'st'
-        elif s == 2: sfx = 'nd'
-        elif s == 3: sfx = 'rd'
-        else:        sfx = 'th'
-        info = '{}{} string ({}) not played'.format(s, sfx, n.name)
-        print(self.CSI + self.styles['STATUS'] + self.CSI + '{};{}H{}'.format(self.lastRow, 1, info), end='')
+    def printDefTabInfo(self, tab, r, c):
+        s, ss = r + 1, self.getOrdSfx(r + 1)
+        print('printDefTabInfo({}, {}) tab={}'.format(r, c, tab), file=self.dbgFile)
+        print(self.CSI + self.styles['TABS'] + self.CSI + '{};{}H{} '.format(self.lastRow, 1, tab), end='', file=self.outFile)
+        print(self.CSI + self.styles['STATUS'] + '{}{} string, not played'.format(s, ss), end='', file=self.outFile)
         self.lastRowDirty = 1
+    
+    def getOrdSfx(self, n):
+        m = n % 10
+        if   m == 1 and n != 11: return 'st'
+        elif m == 2 and n != 12: return 'nd'
+        elif m == 3 and n != 13: return 'rd'
+        else:                    return 'th'
     
     def prints(self, c, row, col, style):
-        if self.outFile:
-            print(self.CSI + style + self.CSI + '{};{}H{}'.format(row, col, str(c)), end='', file=self.outFile)
-        else:
-            print(self.CSI + style + self.CSI + '{};{}H{}'.format(row, col, str(c)), end='')
+       print(self.CSI + style + self.CSI + '{};{}H{}'.format(row, col, str(c)), end='', file=self.outFile)
 
     def printe(self, info, row=None, col=None, style=None):
         if row is None: row=self.row
@@ -1603,8 +1592,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         self.chordsObj.printChord(c, dbg)
         
     def isTab(self, c):
-        if c == '-' or self.isFret(c) or self.isMod(c):
-            return True
+        if c == '-' or self.isFret(c) or self.isMod(c): return True
         return False
 
     def isMod(self, c):
@@ -1613,8 +1601,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
 
     @classmethod
     def isFret(cls, c):
-        if '0' <= c <= '9' or 'a' <= c <= 'o':
-            return True
+        if '0' <= c <= '9' or 'a' <= c <= 'o': return True
         return False
 
     @staticmethod
