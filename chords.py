@@ -50,7 +50,7 @@ class Chords(object):
                     print('{:>3}/{:<1}'.format(r+1, note.name[0]), end=' ', file=self.tabsObj.dbgFile)
         
         tbs = []
-        for r in range(0, self.tabsObj.numStrings): 
+        for r in range(0, self.tabsObj.numStrings):
             if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][c])):
                 tbs.append(chr(self.tabsObj.tabs[r][c]))
         tbs.reverse()
@@ -59,7 +59,7 @@ class Chords(object):
             for t in range(len(tbs)):
                 print('{:>5}'.format(tbs[t]), end=' ', file=self.tabsObj.dbgFile)
         tbs = []
-        for r in range(0, self.tabsObj.numStrings): 
+        for r in range(0, self.tabsObj.numStrings):
             if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][c])):
                 tbs.append(chr(self.tabsObj.getFretByte(self.tabsObj.getFretNum(self.tabsObj.tabs[r][c]) + self.tabsObj.getFretNum(self.tabsObj.capo))))
         tbs.reverse()
