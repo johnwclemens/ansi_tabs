@@ -17,8 +17,8 @@ class Mods(object):
         '''Internal method to specify tab modifiers that use contextual data.'''
         CSI, pnt, nnt = self.tabsObj.CSI, '', ''
         stStyle, pfStyle, pnStyle, nfStyle, nnStyle = CSI + '32;40m', CSI + '32;40m', CSI + '32;40m', CSI + '32;40m', CSI + '32;40m'
-        if ph: pfStyle, pnStyle, pnt = CSI + '33;40m', CSI + '33;40m', ' Harmonic '
-        if nh: nfStyle, nnStyle, nnt = CSI + '33;40m', CSI + '33;40m', ' Harmonic '
+        if ph: pfStyle, pnStyle, pnt = CSI + '33;40m', CSI + '33;40m', ' Harmonic'
+        if nh: nfStyle, nnStyle, nnt = CSI + '33;40m', CSI + '33;40m', ' Harmonic'
         pfs, pnn, pno, nfs, nnn, nno = '', '', '', '', '', ''
         if isinstance(self.prevFN, int) and pn:
             pfs, pnn, pno = self.tabsObj.getOrdSfx(self.prevFN), ' ' + pn.name, pn.getOctaveNum()
@@ -37,14 +37,15 @@ class Mods(object):
                 if nn.name[1] == '#': nnStyle = CSI + '31;40m'
                 else:                 nnStyle = CSI + '36;40m'
         self.mods['#']  = pfStyle + '{}{}'.format(self.prevFN, pfs) + stStyle + ' fret' + pnStyle + '{}{}{}'.format(pnt, pnn, pno) + stStyle + ' mute'
-        self.mods['~']  = '{}{} fret{}{} vibrato'.format(self.prevFN, pfs, pnn, pno)
-        self.mods['=']  = '{}{} fret{}{} vibrato'.format(self.prevFN, pfs, pnn, pno)
-        self.mods['.']  = '{}{} fret{}{} staccato'.format(self.prevFN, pfs, pnn, pno)
-        self.mods['_']  = '{}{} fret{}{} legato'.format(self.prevFN, pfs, pnn, pno)
+        self.mods['=']  = pfStyle + '{}{}'.format(self.prevFN, pfs) + stStyle + ' fret' + pnStyle + '{}{}{}'.format(pnt, pnn, pno) + stStyle + ' vibrato'
+        self.mods['.']  = pfStyle + '{}{}'.format(self.prevFN, pfs) + stStyle + ' fret' + pnStyle + '{}{}{}'.format(pnt, pnn, pno) + stStyle + ' staccato'
+        self.mods['_']  = pfStyle + '{}{}'.format(self.prevFN, pfs) + stStyle + ' fret' + pnStyle + '{}{}{}'.format(pnt, pnn, pno) + stStyle + ' legato'
         self.mods['\\'] = pfStyle + '{}{}'.format(self.prevFN, pfs) + stStyle + ' fret' + pnStyle + '{}{}{}'.format(pnt, pnn, pno) + stStyle + ' bend {} to '.format(self.dir1) + \
                           nfStyle + '{}{}'.format(self.nextFN, nfs) + stStyle + ' fret' + nnStyle + '{}{}{}'.format(nnt, nnn, nno)
-        self.mods['/']  = '{}{} fret{}{} slide {} to {}{} fret{}{}'.format(self.prevFN, pfs, pnn, pno, self.dir1, self.nextFN, nfs, nnn, nno)
-        self.mods['+']  = '{}{} fret{}{} hammer {} to {}{} fret{}{}'.format(self.prevFN, pfs, pnn, pno, self.dir2, self.nextFN, nfs, nnn, nno)
+        self.mods['/']  = pfStyle + '{}{}'.format(self.prevFN, pfs) + stStyle + ' fret' + pnStyle + '{}{}{}'.format(pnt, pnn, pno) + stStyle + ' slide {} to '.format(self.dir1) + \
+                          nfStyle + '{}{}'.format(self.nextFN, nfs) + stStyle + ' fret' + nnStyle + '{}{}{}'.format(nnt, nnn, nno)
+        self.mods['+']  = pfStyle + '{}{}'.format(self.prevFN, pfs) + stStyle + ' fret' + pnStyle + '{}{}{}'.format(pnt, pnn, pno) + stStyle + ' hammer {} to'.format(self.dir2) + \
+                          nfStyle + '{}{}'.format(self.nextFN, nfs) + stStyle + ' fret' + nnStyle + '{}{}{}'.format(nnt, nnn, nno)
 
     def setMods(self, dir1=None, dir2=None, prevFN=None, prevNote=None, nextNote=None, nextFN=None, ph=0, nh=0):
         '''Specify the contextual data for tab modifiers'''

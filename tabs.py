@@ -1512,20 +1512,6 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         self.clearRow(arg=0, file=self.outFile)
         self.resetPos()
         
-    def printTabFretInfo_OLD(self, tab, r, c):
-        s, ss = r + 1, self.getOrdSfx(r + 1)
-        f, fs = self.getFretNum(ord(tab)), self.getOrdSfx(self.getFretNum(ord(tab)))
-        if self.htabs[r][c] == ord('1'):
-            n, nt, ns, ts = self.getHarmonicNote(s, ord(tab)), 'harmonic note', self.styles['NAT_H_NOTE'], self.styles['H_TABS']
-        else:
-            n, nt, ns, ts = self.getNote(s, ord(tab)), 'normal note', self.styles['NAT_NOTE'], self.styles['TABS']
-        print('printTabFretInfo({}) r={}, c={}, tab={}, n.n={}, n.o={}, n.i={}, {}'.format(nt, r, c, tab, n.name, n.getOctaveNum(), n.index, n.getPhysProps()), file=self.dbgFile)
-        print(self.CSI + ts + self.CSI + '{};{}H{} '.format(self.lastRow, 1, tab), end='', file=self.outFile)
-        if f != 0: print(self.CSI + self.styles['STATUS'] + '{}{} string {}{} fret {}{} '.format(s, ss, f, fs, n.name, n.getOctaveNum()), end='', file=self.outFile)
-        else:      print(self.CSI + self.styles['STATUS'] + '{}{} string open {}{} '.format(s, ss, n.name, n.getOctaveNum()), end='', file=self.outFile)
-        print(self.CSI + ns + '{}'.format(nt), end='', file=self.outFile)
-        print(self.CSI + self.styles['STATUS'] + ' index={} {}'.format(n.index, n.getPhysProps()), end='', file=self.outFile)
-    
     def printTabFretInfo(self, tab, r, c):
         s, ss = r + 1, self.getOrdSfx(r + 1)
         f, fs = self.getFretNum(ord(tab)), self.getOrdSfx(self.getFretNum(ord(tab)))
