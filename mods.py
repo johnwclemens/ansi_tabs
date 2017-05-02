@@ -22,25 +22,31 @@ class Mods(object):
         pfs, pnn, pno, nfs, nnn, nno = '', '', '', '', '', ''
         if isinstance(self.prevFN, int) and pn:
             pfs, pnn, pno = self.tabsObj.getOrdSfx(self.prevFN), ' ' + pn.name, pn.getOctaveNum()
-            if ph and len(pn.name) > 1:
-                if pn.name[1] == '#': pnStyle = CSI + '31;43m'
-                else:                 pnStyle = CSI + '34;43m'
-            elif len(pn.name) > 1:
+#            if ph and len(pn.name) > 1:
+#                if pn.name[1] == '#': pnStyle = CSI + '31;43m'
+#                else:                 pnStyle = CSI + '34;43m'
+#            elif len(pn.name) > 1:
+#                if pn.name[1] == '#': pnStyle = CSI + '31;40m'
+#                else:                 pnStyle = CSI + '36;40m'
+            if len(pn.name) > 1:
                 if pn.name[1] == '#': pnStyle = CSI + '31;40m'
-                else:                 pnStyle = CSI + '36;40m'
+                else:                 pnStyle = CSI + '34;40m'
         if isinstance(self.nextFN, int) and nn:
             nfs, nnn, nno = self.tabsObj.getOrdSfx(self.nextFN), ' ' + nn.name, nn.getOctaveNum()
-            if nh and len(nn.name) > 1:
-                if nn.name[1] == '#': nnStyle = CSI + '31;43m'
-                else:                 nnStyle = CSI + '34;43m'
-            elif len(nn.name) > 1:
+#            if nh and len(nn.name) > 1:
+#                if nn.name[1] == '#': nnStyle = CSI + '31;43m'
+#                else:                 nnStyle = CSI + '34;43m'
+#            elif len(nn.name) > 1:
+#                if nn.name[1] == '#': nnStyle = CSI + '31;40m'
+#                else:                 nnStyle = CSI + '36;40m'
+            if len(nn.name) > 1:
                 if nn.name[1] == '#': nnStyle = CSI + '31;40m'
-                else:                 nnStyle = CSI + '36;40m'
+                else:                 nnStyle = CSI + '34;40m'
         self.mods['#']  = pfStyle + '{}{}'.format(self.prevFN, pfs) + stStyle + ' fret' + pnStyle + '{}{}{}'.format(pnt, pnn, pno) + stStyle + ' mute'
         self.mods['=']  = pfStyle + '{}{}'.format(self.prevFN, pfs) + stStyle + ' fret' + pnStyle + '{}{}{}'.format(pnt, pnn, pno) + stStyle + ' vibrato'
         self.mods['.']  = pfStyle + '{}{}'.format(self.prevFN, pfs) + stStyle + ' fret' + pnStyle + '{}{}{}'.format(pnt, pnn, pno) + stStyle + ' staccato'
         self.mods['_']  = pfStyle + '{}{}'.format(self.prevFN, pfs) + stStyle + ' fret' + pnStyle + '{}{}{}'.format(pnt, pnn, pno) + stStyle + ' legato'
-        self.mods['\\'] = pfStyle + '{}{}'.format(self.prevFN, pfs) + stStyle + ' fret' + pnStyle + '{}{}{}'.format(pnt, pnn, pno) + stStyle + ' bend {} to '.format(self.dir1) + \
+        self.mods['\\'] = pfStyle + '{}{}'.format(self.prevFN, pfs) + stStyle + ' fret' + pfStyle + '{}'.format(pnt) + pnStyle + '{}{}'.format(pnn, pno) + stStyle + ' bend {} to '.format(self.dir1) + \
                           nfStyle + '{}{}'.format(self.nextFN, nfs) + stStyle + ' fret' + nnStyle + '{}{}{}'.format(nnt, nnn, nno)
         self.mods['/']  = pfStyle + '{}{}'.format(self.prevFN, pfs) + stStyle + ' fret' + pnStyle + '{}{}{}'.format(pnt, pnn, pno) + stStyle + ' slide {} to '.format(self.dir1) + \
                           nfStyle + '{}{}'.format(self.nextFN, nfs) + stStyle + ' fret' + nnStyle + '{}{}{}'.format(nnt, nnn, nno)
