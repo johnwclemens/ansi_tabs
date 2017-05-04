@@ -1515,11 +1515,9 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
     def printTabFretInfo(self, tab, r, c):
         s, ss = r + 1, self.getOrdSfx(r + 1)
         f, fs = self.getFretNum(ord(tab)), self.getOrdSfx(self.getFretNum(ord(tab)))
-        statStyle, fretStyle, typeStyle = self.CSI + self.styles['STATUS'], self.CSI + '32;40m', self.CSI + '33;40m'
-        if self.htabs[r][c] == ord('1'):
-            n, noteType, noteStyle, tabStyle = self.getHarmonicNote(s, ord(tab)), 'harmonic', self.CSI + '32;40m', self.CSI + self.styles['H_TABS']
-        else:
-            n, noteType, noteStyle, tabStyle = self.getNote(s, ord(tab)), None, self.CSI + '32;40m', self.CSI + self.styles['TABS']
+        statStyle, fretStyle, typeStyle, noteStyle = self.CSI + self.styles['STATUS'], self.CSI + '32;40m', self.CSI + '33;40m', self.CSI + '32;40m'
+        if self.htabs[r][c] == ord('1'): n, noteType, tabStyle = self.getHarmonicNote(s, ord(tab)), 'harmonic', self.CSI + self.styles['H_TABS']
+        else:                            n, noteType, tabStyle = self.getNote(s, ord(tab)), None, self.CSI + self.styles['TABS']
         if len(n.name) > 1:
             if n.name[1] == '#': noteStyle = self.CSI + '31;40m'
             else:                noteStyle = self.CSI + '36;40m'
@@ -1553,7 +1551,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         if prevFN is not None and nextFN is not None:
             if   prevFN < nextFN: dir1, dir2 = 'up',   'on'
             elif prevFN > nextFN: dir1, dir2 = 'down', 'off'
-#        print('printTabModInfo({}, {}) tab={}, pfn={}, nfn={}, pnn={}, nnn={}'.format(r, c, tab, prevFN, nextFN, prevNote.name, nextNote.name), file=self.dbgFile)
+        print('printTabModInfo({}, {}) tab={}, pfn={}, nfn={}'.format(r, c, tab, prevFN, nextFN), file=self.dbgFile)
         self.modsObj.setMods(dir1=dir1, dir2=dir2, prevFN=prevFN, nextFN=nextFN, prevNote=prevNote, nextNote=nextNote, ph=ph, nh=nh)
         print(self.CSI + self.styles['TABS'] + self.CSI + '{};{}H{} '.format(self.lastRow, 1, tab), end='', file=self.outFile)
         print(self.CSI + self.styles['TABS'] + '{}{}'.format(s, ss) + self.CSI + self.styles['STATUS'] + ' string {}'.format(self.mods[tab]), end='', file=self.outFile)
