@@ -55,11 +55,12 @@ class Note(object):
         return 440.0 * pow(pow(2, 1/12), self.index - self.INDICES['A4'])
     
     def getWaveLenInfo(self, freq=None):
-        if freq is None:
-            freq, freqUnit = self.getFreqInfo()
-            return 343 / freq, freqUnit
-        else:
-            return 343 / freq, 'm'
+        if freq is None: return 343 / self.getFreq(), 'm'
+        else:            return 343 / freq, 'm'
+            
+    def getWaveLen(self, freq=None):
+        if freq is None: return 343 / self.getFreq()
+        else:            return 343 / freq
 
 #    def getPianoIndex(self):
 #        return self.index - 8                      # The lowest piano key is 'A0', INDICES['A0'] = 9, so subtract 8 from our index to yield the 1 based piano index

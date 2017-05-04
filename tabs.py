@@ -1515,27 +1515,26 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
     def printTabFretInfo(self, tab, r, c):
         s, ss = r + 1, self.getOrdSfx(r + 1)
         f, fs = self.getFretNum(ord(tab)), self.getOrdSfx(self.getFretNum(ord(tab)))
+        statStyle, fretStyle, typeStyle = self.CSI + self.styles['STATUS'], self.CSI + '32;40m', self.CSI + '33;40m'
         if self.htabs[r][c] == ord('1'):
-            n, noteType, noteStyle, tabStyle = self.getHarmonicNote(s, ord(tab)), 'harmonic', '33;40m', self.styles['H_TABS']
-            if len(n.name) > 1:
-                if n.name[1] == '#': noteStyle = '31;43m'
-                else:                noteStyle = '34;43m'
+            n, noteType, noteStyle, tabStyle = self.getHarmonicNote(s, ord(tab)), 'harmonic', self.CSI + '32;40m', self.CSI + self.styles['H_TABS']
         else:
-            n, noteType, noteStyle, tabStyle = self.getNote(s, ord(tab)), None, '32;40m', self.styles['TABS']
-            if len(n.name) > 1:
-                if n.name[1] == '#': noteStyle = '31;40m'
-                else:                noteStyle = '36;40m'
+            n, noteType, noteStyle, tabStyle = self.getNote(s, ord(tab)), None, self.CSI + '32;40m', self.CSI + self.styles['TABS']
+        if len(n.name) > 1:
+            if n.name[1] == '#': noteStyle = self.CSI + '31;40m'
+            else:                noteStyle = self.CSI + '36;40m'
         print('printTabFretInfo({}) r={}, c={}, tab={}, n.n={}, n.o={}, n.i={}, {}'.format(noteType, r, c, tab, n.name, n.getOctaveNum(), n.index, n.getPhysProps()), file=self.dbgFile)
-        print(self.CSI + tabStyle + self.CSI + '{};{}H{}'.format(self.lastRow, 1, tab), end='', file=self.outFile)
-        if f != 0: print(self.CSI + self.styles['TABS'] + ' {}{}'.format(s, ss) + self.CSI + self.styles['STATUS'] + ' string {}{} fret '.format(f, fs), end='', file=self.outFile)
-        else:      print(self.CSI + self.styles['TABS'] + ' {}{} string open '.format(s, ss), end='', file=self.outFile)
-        if noteType: print(self.CSI + noteStyle + '{} '.format(noteType), end='', file=self.outFile)
-        print(self.CSI + noteStyle + '{}{}'.format(n.name, n.getOctaveNum()), end='', file=self.outFile)
-        print(self.CSI + self.styles['STATUS'] + ' index={} {}'.format(n.index, n.getPhysProps()), end='', file=self.outFile)
+        print(tabStyle + self.CSI + '{};{}H{}'.format(self.lastRow, 1, tab), end='', file=self.outFile)
+        if f != 0: print(fretStyle + ' {}{}'.format(s, ss) + statStyle + ' string ' + fretStyle + '{}{}'.format(f, fs) + statStyle + ' fret ', end='', file=self.outFile)
+        else:      print(fretStyle + ' {}{}'.format(s, ss) + statStyle + ' string ' + fretStyle + 'open' + statStyle + ' fret ', end='', file=self.outFile)
+        if noteType: print(typeStyle + '{} '.format(noteType), end='', file=self.outFile)
+        print(noteStyle + '{}{}'.format(n.name, n.getOctaveNum()), end='', file=self.outFile)
+        print(statStyle + ' index=' + fretStyle + '{}'.format(n.index), end='', file=self.outFile)
+        print(statStyle + ' freq=' + fretStyle + '{:03.2f}'.format(n.getFreq()) + statStyle + 'Hz', end='', file=self.outFile)
+        print(statStyle + ' wvln=' + fretStyle + '{:04.3f}'.format(n.getWaveLen()) + statStyle + 'm', end='', file=self.outFile)
     
     def printTabModInfo(self, tab, r, c):
         ph, nh, s, ss = 0, 0,  r + 1, self.getOrdSfx(r + 1)
-        print('printTabModInfo({}, {}) tab={}'.format(r, c, tab), file=self.dbgFile)
         prevFN, nextFN, prevNote, nextNote, dir1, dir2 = None, None, None, None, None, None
         if self.isFret(chr(self.tabs[r][c-1])): 
             prevFN = self.getFretNum(self.tabs[r][c-1])
@@ -1554,15 +1553,16 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         if prevFN is not None and nextFN is not None:
             if   prevFN < nextFN: dir1, dir2 = 'up',   'on'
             elif prevFN > nextFN: dir1, dir2 = 'down', 'off'
+#        print('printTabModInfo({}, {}) tab={}, pfn={}, nfn={}, pnn={}, nnn={}'.format(r, c, tab, prevFN, nextFN, prevNote.name, nextNote.name), file=self.dbgFile)
         self.modsObj.setMods(dir1=dir1, dir2=dir2, prevFN=prevFN, nextFN=nextFN, prevNote=prevNote, nextNote=nextNote, ph=ph, nh=nh)
         print(self.CSI + self.styles['TABS'] + self.CSI + '{};{}H{} '.format(self.lastRow, 1, tab), end='', file=self.outFile)
         print(self.CSI + self.styles['TABS'] + '{}{}'.format(s, ss) + self.CSI + self.styles['STATUS'] + ' string {}'.format(self.mods[tab]), end='', file=self.outFile)
     
     def printDefTabInfo(self, tab, r, c):
-        s, ss = r + 1, self.getOrdSfx(r + 1)
+        s, ss, tabStyle, statStyle = r + 1, self.getOrdSfx(r + 1), self.CSI + self.styles['TABS'], self.CSI + self.styles['STATUS']
         print('printDefTabInfo({}, {}) tab={}'.format(r, c, tab), file=self.dbgFile)
-        print(self.CSI + self.styles['TABS'] + self.CSI + '{};{}H{} '.format(self.lastRow, 1, tab), end='', file=self.outFile)
-        print(self.CSI + self.styles['STATUS'] + '{}{} string, not played'.format(s, ss), end='', file=self.outFile)
+        print(tabStyle + self.CSI + '{};{}H{} '.format(self.lastRow, 1, tab), end='', file=self.outFile)
+        print(tabStyle + '{}{}'.format(s, ss) + statStyle + ' string ' + tabStyle + 'muted' + statStyle + ' not played', end='', file=self.outFile)
     
     def prints(self, c, row, col, style):
        print(self.CSI + style + self.CSI + '{};{}H{}'.format(row, col, str(c)), end='', file=self.outFile)
