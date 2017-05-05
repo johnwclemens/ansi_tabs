@@ -175,10 +175,14 @@ class Tabs(object):
                 self.toggleDisplayChords(printTabs=False)      # enable the chords section display
             if 'n' in argMap and len(argMap['n']) == 0:
                 self.toggleDisplayNotes(printTabs=False)       # enable the notes section display
+            if 'l' in argMap and len(argMap['l']) == 0:
+                self.goToLastTab(cs=1)                         # go to last tab on current line of current string
+            if 'L' in argMap and len(argMap['L']) == 0:
+                self.goToLastTab()                             # go to last tab on current line of all strings
             if 'z' in argMap and len(argMap['z']) == 0:
-                self.goToLastTab(lastLine=False)               # go to last tab on current line
-            if 'Z' in argMap and len(argMap['z']) == 0:
-                self.goToLastTab()                             # go to last tab on last line
+                self.goToLastTab(cs=1, ll=1)                   # go to last tab on last line of current string
+            if 'Z' in argMap and len(argMap['Z']) == 0:
+                self.goToLastTab(ll=1)                         # go to last tab on last line of all strings
             if 'h' in argMap and len(argMap['h']) == 0:
                 self.printHelpInfo()                           # display the help info
             self.printTabs()                                   # display all the tabs in the tabs section, optionally display the notes and chords sections and the modes/labels row
@@ -519,6 +523,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         self.registerUiCmd('Ctrl I or Tab',       self.toggleCursorDir)
         self.registerUiCmd('Ctrl J',              self.shiftSelectTabs)
         self.registerUiCmd('Ctrl K',              self.printChord)
+        self.registerUiCmd('Ctrl L',              self.goToLastTab)
         self.registerUiCmd('Ctrl M or Enter',     self.toggleCursorMode)
         self.registerUiCmd('Ctrl N',              self.toggleDisplayNotes)
         self.registerUiCmd('Ctrl P',              self.printTabs)
@@ -531,6 +536,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         self.registerUiCmd('Ctrl Z',              self.goToLastTab)
         self.registerUiCmd('Shift Z',             self.goToLastTab)
         self.registerUiCmd('Shift T',             self.removeLine)
+        self.registerUiCmd('Shift L',             self.goToLastTab)
         self.registerUiCmd('Shift K',             self.setCapo)
         self.registerUiCmd('Shift H',             self.printHelpInfo)
         self.registerUiCmd('Space',               self.moveCursor)
@@ -566,9 +572,13 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
             elif b == 6:   self.uiCmds['Ctrl F']()                # toggleEnharmonic()     # cmd line opt  -F?
             elif b == 7:   self.uiCmds['Ctrl G']()                # goTo()                 #?cmd line opt? -g
             elif b == 8:   self.uiCmds['Ctrl H or Backspace']()   # deletePrevTab()        # N/A
+            elif b == 72:  self.uiCmds['Shift H'](ui=1)           # printHelpInfo()        # cmd line opt -h
             elif b == 9:   self.uiCmds['Ctrl I or Tab']()         # toggleCursorDir()      # cmd line opt  -i
             elif b == 10:  self.uiCmds['Ctrl J']()                # shiftSelectTabs()      # N/A
-            elif b == 11:  self.uiCmds['Ctrl K'](dbg=True)        # printChord()           # N/A
+            elif b == 11:  self.uiCmds['Ctrl K'](dbg=1)           # printChord()           # N/A
+            elif b == 75:  self.uiCmds['Shift K']()               # setCapo()              # cmd line opt -k?
+            elif b == 12:  self.uiCmds['Ctrl L'](cs=1)            # goToLastTab()          # cmd line opt -l
+            elif b == 76:  self.uiCmds['Shift L']()               # goToLastTab()          # cmd line opt -L
             elif b == 13:  self.uiCmds['Ctrl M or Enter']()       # toggleCursorMode()     # cmd line opt  -m
             elif b == 14:  self.uiCmds['Ctrl N']()                # toggleDisplayNotes()   # cmd line opt  -n
             elif b == 16:  self.uiCmds['Ctrl P']()                # printTabs()            # DBG?
@@ -576,13 +586,11 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
             elif b == 18:  self.uiCmds['Ctrl R']()                # resetTabs()            # DBG?
             elif b == 19:  self.uiCmds['Ctrl S']()                # saveTabs()             # DBG?
             elif b == 20:  self.uiCmds['Ctrl T']()                # appendLine()           # DBG?
+            elif b == 84:  self.uiCmds['Shift T']()               # removeLine()           # DBG?
             elif b == 22:  self.uiCmds['Ctrl V']()                # pasteTabs()            # N/A
             elif b == 24:  self.uiCmds['Ctrl X']()                # cutSelectTabs()        # N/A
-            elif b == 26:  self.uiCmds['Ctrl Z']()                # goToLastTab()          # cmd line opt -z
-            elif b == 90:  self.uiCmds['Shift Z'](lastLine=False) # goToLastTab()          # cmd line opt -Z
-            elif b == 84:  self.uiCmds['Shift T']()               # removeLine()           # DBG?
-            elif b == 75:  self.uiCmds['Shift K']()               # setCapo()              # cmd line opt -k?
-            elif b == 72:  self.uiCmds['Shift H'](ui=1)           # printHelpInfo()        # cmd line opt -h
+            elif b == 26:  self.uiCmds['Ctrl Z'](ll=1, cs=1)      # goToLastTab()          # cmd line opt -z
+            elif b == 90:  self.uiCmds['Shift Z'](ll=1)           # goToLastTab()          # cmd line opt -Z
             elif b == 32:  self.uiCmds['Space']()                 # moveCursor()           # N/A
             elif b == 224:                                        # Escape Sequence        # N/A
                 b = ord(getwch())                                    # Read the escaped character
@@ -1091,18 +1099,24 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
             c = int(''.join(tmp))
             self.moveTo(col=c + self.COL_OFF - 1, hi=1)
         
-    def goToLastTab(self, lastLine=True):
-        '''Go to last tab location (on the current line or the last line).'''
+    def goToLastTab(self, cs=0, ll=0):
+        '''Go to last tab position on the current line, ll=0, or the last line, ll=1, of all strings, cs=0, or the current string, cs=1.'''
         rr, cc = 0, 0
-        if lastLine:
+        if ll:
             lineBgn = self.numLines
             lineEnd = 0
         else:
             lineBgn = self.row2Line(self.row) + 1
             lineEnd = lineBgn - 1
-        print('goToLastTab({}, {}) lastLine={}, lineBgn={}, lineEnd={}'.format(self.row, self.col, lastLine, lineBgn, lineEnd), file=self.dbgFile)
+        if cs:
+            rowBgn = self.row2Index(self.row)
+            rowEnd = rowBgn + 1
+        else:
+            rowBgn = 0
+            rowEnd = self.numStrings
+        print('goToLastTab({}, {}) cs={}, ll={}, rowBng={}, rowEnd={}, lineBgn={}, lineEnd={}'.format(self.row, self.col, cs, ll, rowBgn, rowEnd, lineBgn, lineEnd), file=self.dbgFile)
         for line in range(lineBgn, lineEnd, -1):
-            for r in range(0, self.numStrings):
+            for r in range(rowBgn, rowEnd):
                 for c in range(line * self.numTabsPerStringPerLine - 1, (line - 1) * self.numTabsPerStringPerLine - 1, -1):
                     t = chr(self.tabs[r][c])
                     if t != '-' and self.isTab(t):
@@ -1539,15 +1553,13 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
             if self.htabs[r][c-1] == ord('1'): 
                 prevNote = self.getHarmonicNote(s, self.tabs[r][c-1])
                 ph=1
-            else:
-                prevNote = self.getNote(s, self.tabs[r][c-1])
+            else: prevNote = self.getNote(s, self.tabs[r][c-1])
         if self.isFret(chr(self.tabs[r][c+1])): 
             nextFN = self.getFretNum(self.tabs[r][c+1])
             if self.htabs[r][c+1] == ord('1'): 
                 nextNote = self.getHarmonicNote(s, self.tabs[r][c+1])
                 nh=1
-            else:
-                nextNote = self.getNote(s, self.tabs[r][c+1])
+            else: nextNote = self.getNote(s, self.tabs[r][c+1])
         if prevFN is not None and nextFN is not None:
             if   prevFN < nextFN: dir1, dir2 = 'up',   'on'
             elif prevFN > nextFN: dir1, dir2 = 'down', 'off'
@@ -1596,7 +1608,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
 #        print('getNoteIndex() str={}, s={}, f={}, i={}, sk={}, sm={}'.format(str, s, f, i, self.stringKeys[s], self.stringMap[self.stringKeys[s]]), file=self.dbgFile)
         return i
     
-    def printChord(self, c=None, dbg=True):
+    def printChord(self, c=None, dbg=1):
         self.chordsObj.printChord(c, dbg)
         
     def isTab(self, c):

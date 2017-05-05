@@ -1,7 +1,7 @@
-'''mods.py module.  class list: [Mods].  Users are encouraged to modify this module to customize the tabs mods as desired'''
+'''mods.py module.  class list: [Mods].  Users are encouraged to modify this module to customize the tabs mods dictionary as desired'''
 
-'''Note, tab mods are essentially opaque to the tabs application.  However, their values are displayed at the bottom of the tabs console 
-when the cursor is under any of the keys that are displayed in the tabs and notes sections.  Thus they are essentially self documenting.  
+'''Note, tab mods are essentially opaque to the tabs application.  However, the key and value are displayed at the bottom of the tabs console 
+when the cursor is on any of the tab mod keys that are displayed in the tabs section.  Thus they are essentially self documenting.  
 The tab mod characters are assumed to apply to the previous tab or between the previous and the next tab.  Note the lower case letters 
 [a-o] are used to denote tabs [10-24] and some upper case letters are reserved for user interactive commands, thus tab mods should avoid 
 overriding defined alphabetic characters as keys.'''
@@ -14,16 +14,17 @@ class Mods(object):
         self.setMods()
 
     def _setMods(self, pn, nn, ph, nh):
-        '''Internal method to specify tab modifiers that use contextual data.'''
-        self.mods['#']  = self.frmt(' mute ', pn, nn, ph, nh, shrt=1)
-        self.mods['=']  = self.frmt(' vibrato ', pn, nn, ph, nh, shrt=1)
-        self.mods['.']  = self.frmt(' staccato ', pn, nn, ph, nh, shrt=1)
-        self.mods['_']  = self.frmt(' legato ', pn, nn, ph, nh, shrt=1)
-        self.mods['+']  = self.frmt(' hammer {} to '.format(self.dir2), pn, nn, ph, nh)
-        self.mods['/']  = self.frmt(' slide {} to '.format(self.dir1), pn, nn, ph, nh)
-        self.mods['\\'] = self.frmt(' bend {} to '.format(self.dir1), pn, nn, ph, nh)
+        '''Internal method to update tab modifiers dictionary with contextual data.'''
+        self.mods['#']  = self._frmt(' mute ', pn, nn, ph, nh, shrt=1)
+        self.mods['=']  = self._frmt(' vibrato ', pn, nn, ph, nh, shrt=1)
+        self.mods['.']  = self._frmt(' staccato ', pn, nn, ph, nh, shrt=1)
+        self.mods['_']  = self._frmt(' legato ', pn, nn, ph, nh, shrt=1)
+        self.mods['+']  = self._frmt(' hammer {} to '.format(self.dir2), pn, nn, ph, nh)
+        self.mods['/']  = self._frmt(' slide {} to '.format(self.dir1), pn, nn, ph, nh)
+        self.mods['\\'] = self._frmt(' bend {} to '.format(self.dir1), pn, nn, ph, nh)
 
-    def frmt(self, modText, pn, nn, ph, nh, shrt=0):
+    def _frmt(self, modText, pn, nn, ph, nh, shrt=0):
+        '''Internal method to format the tab modifiers dictionary string values.'''
         CSI, pnt, nnt = self.tabsObj.CSI, '', ''
         stStyle, ntStyle, fStyle, pnStyle, nnStyle = CSI + '37;40m', CSI + '33;40m', CSI + '32;40m', CSI + '32;40m', CSI + '32;40m'
         if ph: pnt = ' Harmonic'
