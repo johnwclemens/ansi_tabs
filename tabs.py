@@ -385,8 +385,7 @@ class Tabs(object):
         
     def appendLine(self, printTabs=True):
         '''Append another line of tabs to the display.'''
-        tabs = []
-        htabs = []
+        tabs, htabs = [], []
         print('appendLine(old) numTabsPerString:{} = numLines:{} * numTabsPerStringPerLine:{}, numTabs:{} = numStrings:{} * len(tabs[0]):{}'.format(self.numTabsPerString, self.numLines, self.numTabsPerStringPerLine, self.numTabs, self.numStrings, len(self.tabs[0])), file=self.dbgFile)
         self.numLines += 1
         self.numTabsPerString = self.numLines * self.numTabsPerStringPerLine
@@ -458,7 +457,11 @@ The command line arg -i specifies the automatic cursor advance direction is down
 The command line arg -F specifies the use of flat enharmonic notes instead of sharp enharmonic notes.  
 The command line arg -a enables display of the optional label row and the cursor and edit modes.  
 The command line arg -n enables display of the optional notes section.  
-The command line arg -b enables display of the optional chords section.  
+The command line arg -b enables display of the optional chords section.
+The command line arg -l moves the cursor to the last tab on the current line of the current string  
+The command line arg -L moves the cursor to the last tab on the current line of all strings  
+The command line arg -z moves the cursor to the last tab on the last line of the current string  
+The command line arg -Z moves the cursor to the last tab on the last line of all strings  
 The command line arg -h enables display of this help info.  
 
 Tabs are displayed in the tabs section with an optional row to label and highlight the selected tab column.  
@@ -637,96 +640,72 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         if dbg or self.dbgMove: print('moveLeft({}, {})'.format(self.row, self.col), file=self.dbgFile)
         if self.col == self.bgnCol():
             line = self.row2Line(self.row)
-            if line == 0:
-                self.moveTo(row=self.row + self.lineDelta() * (self.numLines - 1), col=self.endCol(), hi=1)
-            else:
-                self.moveTo(row=self.row - self.lineDelta(), col=self.endCol(), hi=1)
-        else:
-            self.moveTo(col=self.col - 1, hi=1)
+            if line == 0: self.moveTo(row=self.row + self.lineDelta() * (self.numLines - 1), col=self.endCol(), hi=1)
+            else:         self.moveTo(row=self.row - self.lineDelta(), col=self.endCol(), hi=1)
+        else:             self.moveTo(col=self.col - 1, hi=1)
 
     def moveRight(self, dbg=None):
         '''Move cursor right one column on current line, wrapping to beginning of row on next line or first line.'''
         if dbg or self.dbgMove: print('moveRight({}, {})'.format(self.row, self.col), file=self.dbgFile)
         if self.col == self.endCol():
             line = self.row2Line(self.row)
-            if line == self.numLines - 1:
-                self.moveTo(row=self.row - self.lineDelta() * (self.numLines - 1), col=self.bgnCol(), hi=1)
-            else:
-                self.moveTo(row=self.row + self.lineDelta(), col=self.bgnCol(), hi=1)
-        else:
-            self.moveTo(col=self.col + 1, hi=1)
+            if line == self.numLines - 1: self.moveTo(row=self.row - self.lineDelta() * (self.numLines - 1), col=self.bgnCol(), hi=1)
+            else:                         self.moveTo(row=self.row + self.lineDelta(), col=self.bgnCol(), hi=1)
+        else:                             self.moveTo(col=self.col + 1, hi=1)
         
     def moveUp(self, dbg=None):
         '''Move cursor up one row on current line, wrapping to last row on previous line or last line.'''
         if dbg or self.dbgMove: print('moveUp({}, {})'.format(self.row, self.col), file=self.dbgFile)
         line = self.row2Line(self.row)
         if self.row == self.bgnRow(line):
-            if line == 0:
-                self.moveTo(row=self.endRow(self.numLines - 1), hi=1)
-            else:
-                self.moveTo(row=self.endRow(line - 1), hi=1)
-        else:
-            self.moveTo(row=self.row - 1, hi=1)
+            if line == 0: self.moveTo(row=self.endRow(self.numLines - 1), hi=1)
+            else:         self.moveTo(row=self.endRow(line - 1), hi=1)
+        else:             self.moveTo(row=self.row - 1, hi=1)
     
     def moveDown(self, dbg=None):
         '''Move cursor down one row on current line, wrapping to first row on next line or first line.'''
         if dbg or self.dbgMove: print('moveDown({}, {})'.format(self.row, self.col), file=self.dbgFile)
         line = self.row2Line(self.row)
         if self.row == self.endRow(line):
-            if line == self.numLines - 1:
-                self.moveTo(row=self.bgnRow(0), hi=1)
-            else:
-                self.moveTo(row=self.bgnRow(line + 1), hi=1)
-        else:
-            self.moveTo(row=self.row + 1, hi=1)
+            if line == self.numLines - 1: self.moveTo(row=self.bgnRow(0), hi=1)
+            else:                         self.moveTo(row=self.bgnRow(line + 1), hi=1)
+        else:                             self.moveTo(row=self.row + 1, hi=1)
     
     def moveHome(self, dbg=None):
         '''Move cursor to beginning of row on current line, wrapping to end of row on previous line or last line.'''
         if dbg or self.dbgMove: print('moveHome({}, {})'.format(self.row, self.col), file=self.dbgFile)
         if self.col == self.bgnCol():
             line = self.row2Line(self.row)
-            if line == 0:
-                self.moveTo(row=self.row + self.lineDelta() * (self.numLines - 1), col=self.endCol(), hi=1)
-            else:
-                self.moveTo(row=self.row - self.lineDelta(), col=self.endCol(), hi=1)
-        else:
-            self.moveTo(col=self.bgnCol(), hi=1)
+            if line == 0: self.moveTo(row=self.row + self.lineDelta() * (self.numLines - 1), col=self.endCol(), hi=1)
+            else:         self.moveTo(row=self.row - self.lineDelta(), col=self.endCol(), hi=1)
+        else:             self.moveTo(col=self.bgnCol(), hi=1)
             
     def moveEnd(self, dbg=None):
         '''Move cursor to end of row on current line, wrapping to beginning of row on next line or first line.'''
         if dbg or self.dbgMove: print('moveEnd({}, {})'.format(self.row, self.col), file=self.dbgFile)
         if self.col == self.endCol():
             line = self.row2Line(self.row)
-            if line == self.numLines - 1:
-                self.moveTo(row=self.row - self.lineDelta() * (self.numLines - 1), col=self.bgnCol(), hi=1)
-            else:
-                self.moveTo(row=self.row + self.lineDelta(), col=self.bgnCol(), hi=1)
-        else:
-            self.moveTo(col=self.endCol(), hi=1)
+            if line == self.numLines - 1: self.moveTo(row=self.row - self.lineDelta() * (self.numLines - 1), col=self.bgnCol(), hi=1)
+            else:                         self.moveTo(row=self.row + self.lineDelta(), col=self.bgnCol(), hi=1)
+        else:                             self.moveTo(col=self.endCol(), hi=1)
 
     def movePageUp(self, dbg=None):
         '''Move cursor to first row on current line, wrapping to last row on previous line or last line.'''
         if dbg or self.dbgMove: self.printLineInfo('movePageUp({}, {})'.format(self.row, self.col))
         line = self.row2Line(self.row)
         if self.row == self.bgnRow(line):
-            if line == 0:
-                self.moveTo(row=self.endRow(self.numLines - 1), hi=1)
-            else:
-                self.moveTo(row=self.endRow(line - 1), hi=1)
-        else:
-            self.moveTo(row=self.bgnRow(line), hi=1)
+            if line == 0: self.moveTo(row=self.endRow(self.numLines - 1), hi=1)
+            else:         self.moveTo(row=self.endRow(line - 1), hi=1)
+        else:             self.moveTo(row=self.bgnRow(line), hi=1)
 
     def movePageDown(self, dbg=None):
         '''Move cursor to last row on current line, wrapping to first row on next line or first line.'''
         if dbg or self.dbgMove: self.printLineInfo('movePageDown({}, {})'.format(self.row, self.col))
         line = self.row2Line(self.row)
         if self.row == self.endRow(line):
-            if line == self.numLines - 1:
-                self.moveTo(row=self.bgnRow(0), hi=1)
-            else:
-                self.moveTo(row=self.bgnRow(line + 1), hi=1)
-        else:
-            self.moveTo(row=self.endRow(line), hi=1)
+            if line == self.numLines - 1: self.moveTo(row=self.bgnRow(0), hi=1)
+            else:                         self.moveTo(row=self.bgnRow(line + 1), hi=1)
+        else:                             self.moveTo(row=self.endRow(line), hi=1)
 
     def row2Line(self, row):
         for line in range(0, self.numLines):
@@ -846,8 +825,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
             self.row -= 1
         self.setLastRow()
         self.printLineInfo('toggleDisplayLabels({}) row,col=({}, {}), line={},'.format(self.displayLabels, self.row, self.col, line))
-        if printTabs:
-            self.printTabs()
+        if printTabs: self.printTabs()
         
     def toggleDisplayNotes(self, printTabs=True):
         '''Toggle (enable or disable) display of notes section.  [cmd line opt -n]'''
@@ -861,8 +839,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
             self.NOTE_LEN = 0
         self.setLastRow()
         self.printLineInfo('toggleDisplayNotes({}) row,col=({}, {}), line={}'.format(self.displayNotes, self.row, self.col, line))
-        if printTabs:
-            self.printTabs()
+        if printTabs: self.printTabs()
     
     def toggleDisplayChords(self, printTabs=True):
         '''Toggle (enable or disable) display of chords section.  [cmd line opt -b]'''
@@ -879,8 +856,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
             self.CHORD_LEN = 0
         self.setLastRow()
         self.printLineInfo('toggleDisplayChords({}) row,col=({}, {}), line={}'.format(self.displayChords, self.row, self.col, line))
-        if printTabs:
-            self.printTabs()
+        if printTabs: self.printTabs()
 
     def printCursorAndEditModes(self, r):
         print('printCursorAndEditModes()'.format(), file=self.dbgFile)
@@ -894,7 +870,6 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
             self.prints('C', r, self.cursorModeCol, self.styles['MODES'])
         elif self.cursorMode == self.CURSOR_MODES['ARPEGGIO']:
             self.prints('A', r, self.cursorModeCol, self.styles['MODES'])
-#        self.moveTo()
 
     def printPageAndLine(self, r, line):
         self.prints('1', r, self.editModeCol, self.styles['MODES'])
@@ -904,7 +879,6 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         print('printColNums({})'.format(row), file=self.dbgFile)
         for c in range(0, self.numTabsPerStringPerLine):
             self.printColNum(row, c + 1, self.styles['NORMAL'])
-#        self.moveTo()
 
     def printColNum(self, row, c, style):
         '''Print 1 based tab col index c as a single decimal digit.  
@@ -926,7 +900,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         print('selectCol({}) (row,col)=({},{})'.format(c, self.row, self.col), file=self.dbgFile)
         self.setColStyle(c, self.styles['BRIGHT'])
         if right: self.moveRight()
-        else: self.moveLeft()
+        else:     self.moveLeft()
 
     def unselectCol(self, right=True):
         if len(self.selectCols):
@@ -938,16 +912,13 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
                 self.setColStyle(c, self.styles['NORMAL'])
                 print('unselectCol({}) after removing {} selectCols = {}'.format(c, c, self.selectCols), file=self.dbgFile)
                 if right: self.moveRight()
-                else: self.moveLeft()
+                else:     self.moveLeft()
 
     def unselectAllCols(self):
         self.printLineInfo('unselectAllCols({}, {})'.format(self.row, self.col))
         for c in range(0, len(self.selectCols)):
             self.setColStyle(self.selectCols[c], self.styles['NORMAL'])
-        self.selectCols = []
-        self.selectTabs = []
-        self.selectHTabs = []
-        self.numSelectCols = 0
+        self.selectCols, self.selectTabs, self.selectHTabs, self.numSelectCols = [], [], [], 0
         self.resetPos()
             
     def setColStyle(self, c, style):
@@ -1102,18 +1073,10 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
     def goToLastTab(self, cs=0, ll=0):
         '''Go to last tab position on the current line, ll=0, or the last line, ll=1, of all strings, cs=0, or the current string, cs=1.'''
         rr, cc = 0, 0
-        if ll:
-            lineBgn = self.numLines
-            lineEnd = 0
-        else:
-            lineBgn = self.row2Line(self.row) + 1
-            lineEnd = lineBgn - 1
-        if cs:
-            rowBgn = self.row2Index(self.row)
-            rowEnd = rowBgn + 1
-        else:
-            rowBgn = 0
-            rowEnd = self.numStrings
+        if ll: lineBgn, lineEnd = self.numLines,               0
+        else:  lineBgn, lineEnd = self.row2Line(self.row) + 1, self.row2Line(self.row)      # lineBgn - 1
+        if cs: rowBgn,  rowEnd = self.row2Index(self.row),     self.row2Index(self.row) + 1 # rowBgn + 1
+        else:  rowBgn,  rowEnd = 0,                            self.numStrings
         print('goToLastTab({}, {}) cs={}, ll={}, rowBng={}, rowEnd={}, lineBgn={}, lineEnd={}'.format(self.row, self.col, cs, ll, rowBgn, rowEnd, lineBgn, lineEnd), file=self.dbgFile)
         for line in range(lineBgn, lineEnd, -1):
             for r in range(rowBgn, rowEnd):
@@ -1121,9 +1084,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
                     t = chr(self.tabs[r][c])
                     if t != '-' and self.isTab(t):
                         if c > cc:
-                            rr = r
-                            cc = c
-                            ll = line
+                            rr, cc, ll = r, c, line
                             print('goToLastTab(updating col) t={}, line={}, r={}, c={}'.format(t, line, r, c), file=self.dbgFile)
                         break
         if cc > 0:
@@ -1189,7 +1150,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         if self.editMode == self.EDIT_MODES['INSERT']:
             for cc in range(c, len(self.tabs[r])):
                 if len(self.tabs[r]) > cc + 1:
-                    self.tabs[r][cc] = self.tabs[r][cc + 1]
+                    self.tabs[r][cc]  = self.tabs[r][cc + 1]
                     self.htabs[r][cc] = self.htabs[r][cc + 1]
             self.printTabs()
         elif self.editMode == self.EDIT_MODES['REPLACE']:
@@ -1379,13 +1340,10 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
                         else:
                             self.prints(chr(tab), row + r, col + c, self.styles['TABS'])
             self.resetPos()
-        self.numSelectCols = 0
         del self.selectTabs
-        self.selectTabs = []
         del self.selectHTabs
-        self.selectHTabs = []
         del self.selectCols
-        self.selectCols = []
+        self.selectTabs, self.selectHTabs, self.selectCols, self.numSelectCols = [], [], [], 0
         if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
             self.chordsObj.printChords()
         self.resetPos()
