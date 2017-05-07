@@ -95,8 +95,8 @@ class Tabs(object):
         
         self.ROW_OFF = 1                                       # offset between cursor row    number and tabs row    index
         self.COL_OFF = 3                                       # offset between cursor column number and tabs column index
-        self.CHORD_LEN = 0                                     # number of rows used to display chords
-        self.NOTE_LEN = 0                                      # number of rows used to display notes
+        self.CHORDS_LEN = 0                                    # number of rows used to display chords
+        self.NOTES_LEN = 0                                     # number of rows used to display notes
         self.NUM_FRETS = 24                                    # number of frets, (might make this a list for all the strings)?
       
         self.hiliteCount = 0                                   # statistic for measuring efficiency
@@ -596,20 +596,22 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
             elif b == 90:  self.uiCmds['Shift Z'](ll=1)           # goToLastTab()          # cmd line opt -Z
             elif b == 32:  self.uiCmds['Space']()                 # moveCursor()           # N/A
             elif b == 224:                                        # Escape Sequence        # N/A
-                b = ord(getwch())                                    # Read the escaped character
-                if   b == 75:  self.uiCmds['Arrow Left']()           # moveLeft()             # N/A
-                elif b == 77:  self.uiCmds['Arrow Right']()          # moveRight()            # N/A
-                elif b == 72:  self.uiCmds['Arrow Up']()             # moveUp()               # N/A
-                elif b == 80:  self.uiCmds['Arrow Down']()           # moveDown()             # N/A
-                elif b == 71:  self.uiCmds['Home']()                 # moveHome()             #?cmd line opt?
-                elif b == 79:  self.uiCmds['End']()                  # moveEnd()              #?cmd line opt?
-                elif b == 73:  self.uiCmds['Page Up']()              # movePageUp()           #?cmd line opt?
-                elif b == 81:  self.uiCmds['Page Down']()            # movePageDown()         #?cmd line opt?
-                elif b == 82:  self.uiCmds['Insert']()               # toggleEditMode()       # cmd line opt
-                elif b == 83:  self.uiCmds['Delete']()               # deleteTab()            # N/A
-                elif b == 115: self.uiCmds['Ctrl Arrow Left'](False) # selectCol()            # N/A
-                elif b == 116: self.uiCmds['Ctrl Arrow Right']()     # selectCol()            # N/A
-                elif b == 145: self.uiCmds['Ctrl Arrow Down']()      # toggleHarmonicNote()   # N/A
+                b = ord(getwch())                                      # Read the escaped character
+                if   b == 75:  self.uiCmds['Arrow Left']()             # moveLeft()             # N/A
+                elif b == 77:  self.uiCmds['Arrow Right']()            # moveRight()            # N/A
+                elif b == 72:  self.uiCmds['Arrow Up']()               # moveUp()               # N/A
+                elif b == 80:  self.uiCmds['Arrow Down']()             # moveDown()             # N/A
+                elif b == 71:  self.uiCmds['Home']()                   # moveHome()             #?cmd line opt?
+                elif b == 79:  self.uiCmds['End']()                    # moveEnd()              #?cmd line opt?
+                elif b == 73:  self.uiCmds['Page Up']()                # movePageUp()           #?cmd line opt?
+                elif b == 81:  self.uiCmds['Page Down']()              # movePageDown()         #?cmd line opt?
+                elif b == 82:  self.uiCmds['Insert']()                 # toggleEditMode()       # cmd line opt
+                elif b == 83:  self.uiCmds['Delete']()                 # deleteTab()            # N/A
+                elif b == 115: self.uiCmds['Ctrl Arrow Left'](left=1)  # selectCol()            # N/A
+                elif b == 116: self.uiCmds['Ctrl Arrow Right']()       # selectCol()            # N/A
+                elif b == 145: self.uiCmds['Ctrl Arrow Down']()        # toggleHarmonicNote()   # N/A
+                elif b == 155: self.uiCmds['Shift Arrow Left'](left=1) # selectRowCol()         # N/A
+                elif b == 157: self.uiCmds['Shift Arrow Right']()      # selectRowCol()         # N/A
                 else:          self.unknown(b, 'Unknown Escape')
             else:              self.unknown(b, 'Unknown Key')
         
@@ -617,8 +619,8 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         if b == 0:            return
         elif b < 128:                                                self.printe('{:<17}:{}:{}'.format(reason, chr(b), b))
         elif b == 141:        self.unselectAllCols()               # self.printe('Ctrl Up Arrow  :{}:{}'.format(c, ord(c)), self.row, self.col) # 145
-        elif b == 155:        self.unselectCol(False)              # self.printe('Alt Left Arrow   :{}:{}'.format(c, ord(c)), self.row, self.col) # 155
-        elif b == 157:        self.unselectCol()                   # self.printe('Alt Right Arrow  :{}:{}'.format(c, ord(c)), self.row, self.col) # 157
+#        elif b == 155:        self.unselectCol(1)                  # self.printe('Alt Left Arrow   :{}:{}'.format(c, ord(c)), self.row, self.col) # 155
+#        elif b == 157:        self.unselectCol()                   # self.printe('Alt Right Arrow  :{}:{}'.format(c, ord(c)), self.row, self.col) # 157
         else: # down = 160, up = 152
             self.printe('{:<17}: :{}'.format(reason, b))
 
@@ -755,7 +757,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         return self.COL_OFF + self.numTabsPerStringPerLine - 1
         
     def lineDelta(self):
-        return self.numStrings + self.NOTE_LEN + self.CHORD_LEN + 1
+        return self.numStrings + self.NOTES_LEN + self.CHORDS_LEN + 1
         
     def bgnRow(self, line):
         return self.ROW_OFF + line * self.lineDelta()
@@ -800,11 +802,11 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         for line in range(0, self.numLines):
             for r in range(0, self.numStrings):
                 if self.cursorDir == self.CURSOR_DIRS['DOWN']:
-                    self.prints(chr(self.capo), r + self.bgnRow(line), self.COL_OFF - 1, self.styles['NUT_DN'])
-                    self.prints(chr(self.capo), r + self.endRow(line), self.COL_OFF - 1, self.styles['NUT_DN'])
+                    self.prints(chr(self.capo), r + self.bgnRow(line), self.cursorModeCol, self.styles['NUT_DN'])
+                    self.prints(chr(self.capo), r + self.endRow(line), self.cursorModeCol, self.styles['NUT_DN'])
                 elif self.cursorDir == self.CURSOR_DIRS['UP']:
-                    self.prints(chr(self.capo), r + self.bgnRow(line), self.COL_OFF - 1, self.styles['NUT_UP'])
-                    self.prints(chr(self.capo), r + self.endRow(line), self.COL_OFF - 1, self.styles['NUT_UP'])
+                    self.prints(chr(self.capo), r + self.bgnRow(line), self.cursorModeCol, self.styles['NUT_UP'])
+                    self.prints(chr(self.capo), r + self.endRow(line), self.cursorModeCol, self.styles['NUT_UP'])
         if dbg: self.printLineInfo('toggleCursorDir({}, {}, {}, {})'.format(self.row, self.col, self.cursorDir, self.CURSOR_DIR_INDS[self.cursorDir]))
         self.resetPos()
 
@@ -832,11 +834,11 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         self.displayNotes = (self.displayNotes + 1) % len(self.DISPLAY_NOTES)
         line = self.row2Line(self.row)
         if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
-            self.NOTE_LEN = self.numStrings
-            self.row += line * self.NOTE_LEN
+            self.NOTES_LEN = self.numStrings
+            self.row += line * self.NOTES_LEN
         elif self.displayNotes == self.DISPLAY_NOTES['DISABLED']:
-            self.row -= line * self.NOTE_LEN
-            self.NOTE_LEN = 0
+            self.row -= line * self.NOTES_LEN
+            self.NOTES_LEN = 0
         self.setLastRow()
         self.printLineInfo('toggleDisplayNotes({}) row,col=({}, {}), line={}'.format(self.displayNotes, self.row, self.col, line))
         if printTabs: self.printTabs()
@@ -849,11 +851,11 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
             if self.chordsObj is None:
                 self.chordsObj = chords.Chords(self)
                 print('toggleDisplayChords() loaded chords module and Chords class, chordsObj={}, getChordName={}'.format(self.chordsObj, self.chordsObj.getChordName), file=self.dbgFile)
-            self.CHORD_LEN = 5
-            self.row += line * self.CHORD_LEN
+            self.CHORDS_LEN = 5
+            self.row += line * self.CHORDS_LEN
         elif self.displayChords == self.DISPLAY_CHORDS['DISABLED']:
-            self.row -= line * self.CHORD_LEN
-            self.CHORD_LEN = 0
+            self.row -= line * self.CHORDS_LEN
+            self.CHORDS_LEN = 0
         self.setLastRow()
         self.printLineInfo('toggleDisplayChords({}) row,col=({}, {}), line={}'.format(self.displayChords, self.row, self.col, line))
         if printTabs: self.printTabs()
@@ -893,16 +895,16 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         else: 
             self.prints('{}'.format((c - 100) // 10), row, c + self.COL_OFF - 1, style + self.styles['MAJ_COL_NUM'])
     
-    def selectCol(self, right=True):
-        '''Select columns and hilite tabs with bright colors.  Columns need not be adjacent and the order is preserved.'''
+    def selectCol(self, left=0):
+        '''Select column and append it to list of selected columns, hilite tabs with bright colors.  Columns need not be adjacent, repetition is allowed, and the order is preserved.'''
         c = self.col2Index(self.col)
         self.selectCols.append(c)
         print('selectCol({}) (row,col)=({},{})'.format(c, self.row, self.col), file=self.dbgFile)
         self.setColStyle(c, self.styles['BRIGHT'])
-        if right: self.moveRight()
-        else:     self.moveLeft()
+        if left: self.moveLeft()
+        else:    self.moveRight()
 
-    def unselectCol(self, right=True):
+    def unselectCol(self, left=1):
         if len(self.selectCols):
             c = self.col2Index(self.col)
             self.printLineInfo('unselectCol({}) (row,col)=({},{})'.format(c, self.row, self.col))
@@ -911,8 +913,8 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
                 self.selectCols.remove(c)
                 self.setColStyle(c, self.styles['NORMAL'])
                 print('unselectCol({}) after removing {} selectCols = {}'.format(c, c, self.selectCols), file=self.dbgFile)
-                if right: self.moveRight()
-                else:     self.moveLeft()
+                if left: self.moveLeft()
+                else:    self.moveRight()
 
     def unselectAllCols(self):
         self.printLineInfo('unselectAllCols({}, {})'.format(self.row, self.col))
@@ -922,28 +924,28 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         self.resetPos()
             
     def setColStyle(self, c, style):
-        col = c
+        col = c + self.COL_OFF
         for r in range(0, self.numStrings):
             tab = self.tabs[r][c]
             line = self.colIndex2Line(c)
-            row = r + line * self.lineDelta()
+            row = r + line * self.lineDelta() + self.ROW_OFF
             if r == 0:
                 col -= line * self.numTabsPerStringPerLine
                 print('setColStyle({}) c={}, col={}, tab={}'.format(style, c, col, tab), file=self.dbgFile)
             if self.htabs[r][c] == ord('1'):
-                self.prints(chr(tab), row + self.ROW_OFF, col + self.COL_OFF, style + self.styles['H_TABS'])
+                self.prints(chr(tab), row, col, style + self.styles['H_TABS'])
             else:
-                self.prints(chr(tab), row + self.ROW_OFF, col + self.COL_OFF, style + self.styles['TABS'])
+                self.prints(chr(tab), row, col, style + self.styles['TABS'])
             if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
                 if self.isFret(chr(tab)):
                     if self.htabs[r][c] == ord('1'):
                         n = self.getHarmonicNote(r + 1, tab)
-                        self.printNote(row + self.ROW_OFF + self.numStrings, col + self.COL_OFF, n, style, hn=1)
+                        self.printNote(row + self.numStrings, col, n, style, hn=1)
                     else:
                         n = self.getNote(r + 1, tab)
-                        self.printNote(row + self.ROW_OFF + self.numStrings, col + self.COL_OFF, n, style)
+                        self.printNote(row + self.numStrings, col, n, style)
                 else:
-                    self.prints(chr(tab), row + self.ROW_OFF + self.numStrings, col + self.COL_OFF, style + self.styles['NAT_NOTE'])
+                    self.prints(chr(tab), row + self.numStrings, col, style + self.styles['NAT_NOTE'])
 
     def toggleHarmonicNote(self):
         '''Toggle between normal and harmonic note.  Modify note modelling the closest natural harmonic note in the tab fret number.  Note these modifications are not currently saved to the data file.'''
@@ -1131,11 +1133,11 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
                 self.printColNum(row, self.hiliteColNum, self.styles['BRIGHT'])
                 
         if self.hiliteRowNum != 0:
-            self.prints(self.hiliteRowNum, self.hilitePrevRowPos, 1, self.styles['NORMAL'] + self.styles['TABS'])
+            self.prints(self.hiliteRowNum, self.hilitePrevRowPos, self.editModeCol, self.styles['NORMAL'] + self.styles['TABS'])
         self.hiliteRowNum = self.row - self.row2Line(self.row) *  self.lineDelta() - 1
         self.hilitePrevRowPos = self.row
         print('hiliteRowColNum({}, {}) hilitePrevRowPos={}, hiliteRowNum={}, hiliteColNum={}, hiliteCount={}'.format(self.row, self.col, self.hilitePrevRowPos, self.hiliteRowNum, self.hiliteColNum, self.hiliteCount), file=self.dbgFile)
-        self.prints(self.hiliteRowNum, self.row, 1, self.styles['BRIGHT'] + self.styles['TABS'])
+        self.prints(self.hiliteRowNum, self.row, self.editModeCol, self.styles['BRIGHT'] + self.styles['TABS'])
         self.resetPos()
 
     def deleteTab(self, row=None, col=None):
@@ -1383,11 +1385,11 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
                     if chr(self.htabs[r][c + line * self.numTabsPerStringPerLine]) == '1':
                         style = self.styles['H_TABS']
                     if c == 0:
-                        self.prints('{}'.format(r + 1), row, 1, style)
+                        self.prints('{}'.format(r + 1), row, self.editModeCol, style)
                         if self.cursorDir == self.CURSOR_DIRS['DOWN']:
-                            self.prints(chr(self.capo), row, 2, self.styles['NUT_DN'])
+                            self.prints(chr(self.capo), row, self.cursorModeCol, self.styles['NUT_DN'])
                         elif self.cursorDir == self.CURSOR_DIRS['UP']:
-                            self.prints(chr(self.capo), row, 2, self.styles['NUT_UP'])
+                            self.prints(chr(self.capo), row, self.cursorModeCol, self.styles['NUT_UP'])
                     self.prints(chr(tab), row, c + self.COL_OFF, style)
                 print(file=self.outFile)
             print()
@@ -1403,11 +1405,11 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
                             capTab = self.getFretByte(self.getFretNum(tab) + self.getFretNum(self.capo))
                         if c == 0:
                             n = self.getNote(r + 1, ord('0'))
-                            self.printNote(row, 1, n)
+                            self.printNote(row, self.editModeCol, n)
                             if self.cursorDir == self.CURSOR_DIRS['DOWN']:
-                                self.prints(chr(self.capo), row, 2, self.styles['NUT_DN'])
+                                self.prints(chr(self.capo), row, self.cursorModeCol, self.styles['NUT_DN'])
                             elif self.cursorDir == self.CURSOR_DIRS['UP']:
-                                self.prints(chr(self.capo), row, 2, self.styles['NUT_UP'])
+                                self.prints(chr(self.capo), row, self.cursorModeCol, self.styles['NUT_UP'])
                         if self.isFret(chr(capTab)):
                             if chr(self.htabs[r][c + line * self.numTabsPerStringPerLine]) == '1':
                                 print('printTabs() tab={}, capTab={}, chr(tab)={}, chr(capTab)={}, tabFN={}, capoFN={}'.format(tab, capTab, chr(tab), chr(capTab), self.getFretNum(tab), self.getFretNum(capTab)), file=self.dbgFile)

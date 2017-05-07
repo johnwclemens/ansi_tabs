@@ -16,9 +16,9 @@ class Chords(object):
         return '-'.join(keys)
 
     def eraseChord(self, cc):
-        row, col = self.tabsObj.indices2RowCol(self.tabsObj.numStrings + self.tabsObj.NOTE_LEN, cc)
+        row, col = self.tabsObj.indices2RowCol(self.tabsObj.numStrings + self.tabsObj.NOTES_LEN, cc)
 #        print('eraseChord({}) (row,col)=({},{}) bgn: '.format(cc, row, col), file=self.tabsObj.dbgFile)
-        for r in range(0, self.tabsObj.CHORD_LEN):
+        for r in range(0, self.tabsObj.CHORDS_LEN):
             self.tabsObj.prints(' ', r + row, col, self.tabsObj.styles['NAT_CHORD'])
             
     def printChords(self):
@@ -40,7 +40,7 @@ class Chords(object):
         if c is None:
             c = self.tabsObj.col - self.tabsObj.COL_OFF
         self.eraseChord(c)
-        row, col = self.tabsObj.indices2RowCol(self.tabsObj.numStrings + self.tabsObj.NOTE_LEN, c)
+        row, col = self.tabsObj.indices2RowCol(self.tabsObj.numStrings + self.tabsObj.NOTES_LEN, c)
         if dbg:
             print('printChord({}) (row,col)=({},{}) bgn: '.format(c, row, col), file=self.tabsObj.dbgFile)
             print('Strings     [', end='', file=self.tabsObj.dbgFile)
