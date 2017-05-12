@@ -83,6 +83,7 @@ class Tabs(object):
         self.tabs = []                                         # list of bytearrays, one for each string; for all the tabs
         self.selectTabs = []                                   # list of bytearrays, one for each string; for selected tabs
         self.selectHTabs = []                                  # list of bytearrays, one for each string; for selected tabs
+        self.selectRows = []                                   # list of row    indices, one for each selected row;    for selected rows
         self.selectCols = []                                   # list of column indices, one for each selected column; for selected columns
         self.numSelectCols = 0                                 # count of selected columns - NOTE: column selection honers order and repetition
         self.stringMap = {}                                    # dict of string note name -> note index
@@ -555,9 +556,11 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         self.registerUiCmd('Arrow Right',         self.moveRight)
         self.registerUiCmd('Ctrl Arrow Left',     self.selectCol)
         self.registerUiCmd('Ctrl Arrow Right',    self.selectCol)
-        self.registerUiCmd('Ctrl Arrow Down',     self.toggleHarmonicNote)
+        self.registerUiCmd('Ctrl Arrow Up',       self.selectRow)
+        self.registerUiCmd('Ctrl Arrow Down',     self.selectRow)
         self.registerUiCmd('Alt Arrow Left',      self.selectCol)
         self.registerUiCmd('Alt Arrow Right',     self.selectCol)
+        self.registerUiCmd('ESC',                 self.toggleHarmonicNote)
         
     def registerUiCmd(self, key, method):
         if key not in self.uiKeys:
@@ -596,8 +599,9 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
             elif b == 24:  self.uiCmds['Ctrl X']()                # cutSelectTabs()        # N/A
             elif b == 26:  self.uiCmds['Ctrl Z'](ll=1, cs=1)      # goToLastTab()          # cmd line opt -z
             elif b == 90:  self.uiCmds['Shift Z'](ll=1)           # goToLastTab()          # cmd line opt -Z
-            elif b == 155: self.uiCmds['Alt Arrow Left'](left=1, r=0) # selectCol()        # N/A
-            elif b == 157: self.uiCmds['Alt Arrow Right'](r=0)        # selectCol()        # N/A
+            elif b == 27:  self.uiCmds['ESC']()                   # toggleHarmonicNote()   # cmd line opt -z
+            elif b == 155: self.uiCmds['Alt Arrow Left'](left=1)  # unselectCol()        # N/A
+            elif b == 157: self.uiCmds['Alt Arrow Right']()       # unselectCol()        # N/A
             elif b == 32:  self.uiCmds['Space']()                 # moveCursor()           # N/A
             elif b == 224:                                        # Escape Sequence        # N/A
                 b = ord(getwch())                                      # Read the escaped character
@@ -613,14 +617,15 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
                 elif b == 83:  self.uiCmds['Delete']()                 # deleteTab()            # N/A
                 elif b == 115: self.uiCmds['Ctrl Arrow Left'](left=1)  # selectCol()            # N/A
                 elif b == 116: self.uiCmds['Ctrl Arrow Right']()       # selectCol()            # N/A
-                elif b == 145: self.uiCmds['Ctrl Arrow Down']()        # toggleHarmonicNote()   # N/A
+                elif b == 141: self.uiCmds['Ctrl Arrow Up'](up=1)      # selectRow()            # N/A
+                elif b == 145: self.uiCmds['Ctrl Arrow Down']()        # selectRow()            # N/A
                 else:          self.unknown(b, 'Unknown Escape')
             else:              self.unknown(b, 'Unknown Key')
         
     def unknown(self, b, reason):
         if b == 0:            return
         elif b < 128:                                                self.printe('{:<17}:{}:{}'.format(reason, chr(b), b))
-        elif b == 141:        self.unselectAllCols()               # self.printe('Ctrl Up Arrow  :{}:{}'.format(c, ord(c)), self.row, self.col) # 145
+#        elif b == 141:        self.unselectAllCols()               # self.printe('Ctrl Up Arrow  :{}:{}'.format(c, ord(c)), self.row, self.col) # 145
 #        elif b == 155:        self.unselectCol(1)                  # self.printe('Alt Left Arrow   :{}:{}'.format(c, ord(c)), self.row, self.col) # 155
 #        elif b == 157:        self.unselectCol()                   # self.printe('Alt Right Arrow  :{}:{}'.format(c, ord(c)), self.row, self.col) # 157
         else: # down = 160, up = 152
@@ -735,12 +740,20 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         c += self.row2Line(self.row) * self.numTabsPerStringPerLine
         return c
     
+#    def index2Row(self, r):
+#        return r + self.ROW_OFF + self.colIndex2Line(c) * self.lineDelta()
+    
+    def index2Col(self, c):
+        return c + self.COL_OFF - self.colIndex2Line(c) * self.numTabsPerStringPerLine
+    
     def indices2RowCol(self, r, c):
-        row = r + self.ROW_OFF
-        col = c + self.COL_OFF
-        row += self.colIndex2Line(c) * self.lineDelta()
-        col -= self.colIndex2Line(c) * self.numTabsPerStringPerLine
-        return row, col
+#        return self.index2Row(r), self.index2Col(c)
+        return r + self.ROW_OFF + self.colIndex2Line(c) * self.lineDelta(), self.index2Col(c)
+#        row = r + self.ROW_OFF
+#        col = c + self.COL_OFF
+#        row += self.colIndex2Line(c) * self.lineDelta()
+#        col -= self.colIndex2Line(c) * self.numTabsPerStringPerLine
+#        return row, col
     
 #    def foldRow(self, row):
 #        line = self.row2Line(row)
@@ -896,15 +909,39 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
             self.prints('{}'.format(c // 10), row, c + self.COL_OFF - 1, style + self.styles['MAJ_COL_NUM'])
         else: 
             self.prints('{}'.format((c - 100) // 10), row, c + self.COL_OFF - 1, style + self.styles['MAJ_COL_NUM'])
+
+    def calcDispCol(self, c):
+        if c % 10:    return c % 10
+        elif c < 100: return c // 10
+        else:         return ((c - 100) // 10)
     
-    def selectCol(self, left=0, r=None):
+    def selectRow(self, up=0):
+        '''Select Row and append it to list of selected rows.'''
+        r = self.row2Index(self.row)
+        c = self.col2Index(self.col)
+        self.selectRows.append(r)
+        print('selectRow({},{}) row={},col={}, selectRows={}'.format(r, c, self.row, self.col, self.selectRows), file=self.dbgFile)
+#        self.setColStyle(c, self.styles['BRIGHT'], rr=r)
+        self.selectStyle(self.selectRows, c, self.styles['BRIGHT'])
+        if up: self.moveUp()
+        else:  self.moveDown()
+                
+    def selectCol_OLD(self, left=0, r=None):
         '''Select column and append it to list of selected columns.  Columns need not be adjacent, repetition allowed, order preserved.'''
         if r is not None: r = self.row2Index(self.row)
         c = self.col2Index(self.col)
         self.selectCols.append([r, c])
-#        self.selectCols.append(c)
         print('selectCol({},{}) row={},col={}, selectCols={}'.format(r, c, self.row, self.col, self.selectCols), file=self.dbgFile)
         self.setColStyle(c, self.styles['BRIGHT'], rr=r)
+        if left: self.moveLeft()
+        else:    self.moveRight()
+
+    def selectCol(self, left=0):
+        '''Select column and append it to list of selected columns.  Columns need not be adjacent, repetition allowed, order preserved.'''
+        c = self.col2Index(self.col)
+        self.selectCols.append(c)
+        print('selectCol({}) c={}, row={}, col={}, selectCols={}'.format(left, c, self.row, self.col, self.selectCols), file=self.dbgFile)
+        self.selectStyle(self.selectRows, c, self.styles['BRIGHT'])
         if left: self.moveLeft()
         else:    self.moveRight()
 
@@ -939,6 +976,28 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
             if r == rBgn:
                 col -= line * self.numTabsPerStringPerLine
                 print('setColStyle({}) c={}, col={}, tab={}={}'.format(style, c, col, tab, chr(tab)), file=self.dbgFile)
+            if self.htabs[r][c] == ord('1'):
+                self.prints(chr(tab), row, col, style + self.styles['H_TABS'])
+            else:
+                self.prints(chr(tab), row, col, style + self.styles['TABS'])
+            if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
+                if self.isFret(chr(tab)):
+                    if self.htabs[r][c] == ord('1'):
+                        n = self.getHarmonicNote(r + 1, tab)
+                        self.printNote(row + self.numStrings, col, n, style, hn=1)
+                    else:
+                        n = self.getNote(r + 1, tab)
+                        self.printNote(row + self.numStrings, col, n, style)
+                else:
+                    self.prints(chr(tab), row + self.numStrings, col, style + self.styles['NAT_NOTE'])
+
+    def selectStyle(self, rList, c, style):
+        print('selectStyle({}) rList={}, c={}'.format(style, rList, c), file=self.dbgFile)
+        for rr in range(0, len(rList)):
+            r = rList[rr]
+            tab = self.tabs[r][c]
+            row, col = self.indices2RowCol(r, c)
+            print('selectStyle({}) rr={}, r={}, c={}, row={}, col={}, tab={}={}'.format(style, rr, r, c, row, col, tab, chr(tab)), file=self.dbgFile)
             if self.htabs[r][c] == ord('1'):
                 self.prints(chr(tab), row, col, style + self.styles['H_TABS'])
             else:
@@ -1239,7 +1298,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         for c in range(0, len(self.selectCols)):
             self.copyTabs(self.selectCols[c])
         
-    def copySelectTabs(self):
+    def copySelectTabs_OLD2(self):
         '''Copy selected tabs.'''
         rr = self.selectCols[0][0]
         if rr is None: rBgn, rEnd = 0, self.numStrings
@@ -1252,6 +1311,23 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         for c in range(0, len(self.selectCols)):
             self.copyTabs(self.selectCols[c][1])
         
+    def copySelectTabs(self):
+        '''Copy selected tabs.'''
+        print('copySelectTabs() row={}, col={}'.format(self.row, self.col), file=self.dbgFile)
+        self.printSelectTabs(cols=1)
+        for r in range(0, len(self.selectRows)):
+            self.selectTabs.append(bytearray([ord(' ')] * len(self.selectCols)))
+            self.selectHTabs.append(bytearray([ord('0')] * len(self.selectCols)))
+        for c in range(0, len(self.selectCols)):
+            cc = self.selectCols[c]
+            for r in range(0, len(self.selectRows)):
+                rr = self.selectRows[r]
+                self.selectTabs[r][c] = self.tabs[rr][cc]
+                self.selectHTabs[r][c] = self.htabs[rr][cc]
+            self.numSelectCols += 1
+            print('copySelectTabs() row={}, col={}, numSelectCols={}, len(selectTabs)={}'.format(self.row, self.col, self.numSelectCols, len(self.selectTabs)), file=self.dbgFile)
+            self.printSelectTabs()
+            
     def deleteSelectTabs(self, delSel=True):
         '''Delete selected tabs.'''
 #        print('deleteSelectTabs(): {', end='', file=self.dbgFile)
@@ -1400,7 +1476,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         self.resetPos()
         self.dumpTabs('pasteTabs({}, {}) end: '.format(self.row, self.col))
         
-    def pasteTabs(self):
+    def pasteTabs_OLD2(self):
         '''Paste tabs.'''
         self.dumpTabs('pasteTabs({}, {}) bgn: '.format(self.row, self.col))
         col = self.col
@@ -1453,19 +1529,73 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         self.resetPos()
         self.dumpTabs('pasteTabs({}, {}) end: '.format(self.row, self.col))
         
+    def pasteTabs(self):
+        '''Paste tabs.'''
+        self.dumpTabs('pasteTabs({}, {}) bgn: '.format(self.row, self.col))
+        col = self.col
+        row = self.row
+        cc = self.col2Index(col)
+        rr = self.row2Index(row)
+        print('pasteTabs(init) row={}, col={}, rr={}, cc={}'.format(row, col, rr, cc), file=self.dbgFile)
+#        if self.editMode == self.EDIT_MODES['INSERT']:
+#            for r in range(0, self.numStrings):
+#                for c in range(len(self.tabs[r]) - 1, cc, -1):
+#                    self.tabs[r][c] = self.tabs[r][c - self.numSelectCols]
+#                    self.htabs[r][c] = self.htabs[r][c - self.numSelectCols]
+        for c in range(0, len(self.selectCols)):
+            for r in range(0, len(self.selectRows)):
+                self.tabs[r + rr][c + cc] = self.selectTabs[r][c]
+                self.htabs[r + rr][c + cc] = self.selectHTabs[r][c]
+                print('    tabs[{}][{}]={}'.format(r + rr, c + cc, chr(self.tabs[r + rr][c + cc])), file=self.dbgFile)
+            print('pasteTabs(loop1) c={}, sc={}'.format(c, self.selectCols[c]), file=self.dbgFile)
+            self.selectStyle(self.selectRows, self.selectCols[c], self.styles['NORMAL'])
+        if self.editMode == self.EDIT_MODES['INSERT']:
+            self.printTabs()
+        elif self.editMode == self.EDIT_MODES['REPLACE']:
+            for c in range(0, self.numSelectCols):
+                for r in range(0, len(self.selectRows)):
+                    tab = self.tabs[r + rr][c + cc]
+                    print('pasteTabs(loop2) row={}, col={}, r={}, c={}, rr={}, cc={}, tab[{}][{}]={}'.format(row, col, r, c, rr, cc, r + rr, c + cc, chr(tab)), file=self.dbgFile)
+                    if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
+                        if self.isFret(chr(tab)):
+                            if self.htabs[r][c + cc] == ord('1'):
+                                note = self.getHarmonicNote(r + 1, tab)
+                                self.printNote(row + r + self.numStrings, col + c, note, hn=1)
+                            else:
+                                note = self.getNote(r + 1, tab)
+                                self.printNote(row + r + self.numStrings, col + c, note)
+                        else:
+                            self.prints(chr(tab), row + r + self.numStrings, col + c, self.styles['NAT_NOTE'])
+                    if self.htabs[r][c + cc] == ord('1'):
+                        self.prints(chr(tab), row + r, col + c, self.styles['H_TABS'])
+                    else:
+                        self.prints(chr(tab), row + r, col + c, self.styles['TABS'])
+            self.resetPos()
+        del self.selectTabs
+        del self.selectHTabs
+        del self.selectCols
+        self.selectTabs, self.selectHTabs, self.selectCols, self.numSelectCols = [], [], [], 0
+        if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
+            self.chordsObj.printChords()
+        self.resetPos()
+        self.dumpTabs('pasteTabs({}, {}) end: '.format(self.row, self.col))
+        
     def dumpTabs(self, reason='', h=None):
-        print('dumpTabs({}) [ Line 0:'.format(reason), file=self.dbgFile)
+        print('dumpTabs({})'.format(reason), file=self.dbgFile)
         for line in range(0, self.numLines):
             for r in range(0, self.numStrings): #len(self.tabs)):
+                if r == 0:
+                    print('L={}: '.format(line), end='', file=self.dbgFile)
+                    for c in range(0, self.numTabsPerStringPerLine):
+                        print('{}'.format(self.calcDispCol(c)), end='', file=self.dbgFile)
+                    print(file=self.dbgFile)
+                print('R={}: '.format(r), end='', file=self.dbgFile)
                 for c in range(0, self.numTabsPerStringPerLine):
                     if h is None:
                         print(chr(self.tabs[r][c + line * self.numTabsPerStringPerLine]), end='', file=self.dbgFile)
                     else:
                         print(chr(self.htabs[r][c + line * self.numTabsPerStringPerLine]), end='', file=self.dbgFile)
                 print('', file=self.dbgFile)
-            if line < self.numLines - 1:
-                print('] [ Line {}:'.format(line + 1), file=self.dbgFile)
-        print(']', file=self.dbgFile)
     
     def printLineInfo(self, reason):
         print('{} numStrings={}, numLines={}, lineDelta={},'.format(reason, self.numStrings, self.numLines, self.lineDelta()), end='', file=self.dbgFile)
