@@ -447,63 +447,6 @@ class Tabs(object):
         if ui:
             self.printTabs()
 
-    def printHelpSummary(self):
-        summary = '''
-Note the console window should be at least as wide as the number of tabs + 2.  Window resizing is not supported.  
-The command line arg -t specifies the number of tabs per string per line.  
-The command line arg -f specifies the file name to read from and write to.  
-The command line arg -s specifies the spelling of the string names e.g. -s 'E2A2D3G3B3E4' is 6 string standard guitar tuning.  
-The command line arg -S specifies the spelling of the string names via an alias e.g. -s 'GUITAR' is 6 string standard guitar tuning.  
-The command line arg -k specifies the fret to place the capo at [0-9], [a-o].  
-The command line arg -i specifies the automatic cursor advance direction is downward rather than upward.  
-The command line arg -F specifies the use of flat enharmonic notes instead of sharp enharmonic notes.  
-The command line arg -a enables display of the optional label row and the cursor and edit modes.  
-The command line arg -n enables display of the optional notes section.  
-The command line arg -b enables display of the optional chords section.
-The command line arg -l moves the cursor to the last tab on the current line of the current string  
-The command line arg -L moves the cursor to the last tab on the current line of all strings  
-The command line arg -z moves the cursor to the last tab on the last line of the current string  
-The command line arg -Z moves the cursor to the last tab on the last line of all strings  
-The command line arg -h enables display of this help info.  
-
-Tabs are displayed in the tabs section with an optional row to label and highlight the selected tab column.  
-An optional notes section and an optional chords section can also be displayed below the tabs section.  
-A number of lines can be displayed where each line has its own tabs, notes, and chords sections.  
-''' + self.hilite('Tabs section:') + ''' 
-Tabs are displayed using rows and columns of ASCII characters, essentially one character per tab.  
-Tabs are represented by the single digits [0-9] and the letters [a-o], rather than [10-24].  
-The value '0' represents the open string.  The minus character '-' is used for padding and represents an unplayed string.  
-The value '2' represents playing the string 1 full step above the nut, 'c' represents 12 half steps above the nut or an octave higher.  
-
-Optional tab modification characters are used to denote tonal expression such as bending, sliding, hammer on/off, vibrato etc...  
-Tab modifications are implemented as a customizable dictionary in the ''' + self.hilite('mods.py') + ''' module.  
-You can change or add tab modifications by simply editing the ''' + self.hilite('mods.py') + ''' file. 
-The dictionary keys are the modification characters and the values describe how to interpret the characters.  
-When the cursor occupies the same row and column as a tab modifier the dictionary value is printed on the last row.  
-
-Each row has a number of columns that represent the tab characters for a particular string as they are played sequentially in time from left to right.  
-Rows are labelled using 1 based string numbers (increasing in the downward direction) in the first display column.  
-The nut and capo are displayed in the 2nd column with the string label to the left and all the tabs to the right.  
-The capo can have values corresponding to the fret numbers [0-9], [a-o], where 0 denotes no capo.  
-To enter a tab simply navigate to the desired row and column using the arrow, Home, End, PageUp, or PageDown keys and then enter the character.  
-Note the cursor will automatically advance to the right, up, down, up and right, or down and right depending on the cursor mode.  
-Also note the tabs section is the only section that is editable.  The navigation keys will automatically skip over the notes and or chords sections.  
-''' + self.hilite('Notes section:  \'Ctrl N\'') + ''' 
-The notes section has the same number of rows and columns as the tabs section and displays the note names corresponding to the tabs in the tabs section.  
-The notes section uses the color red to indicate a sharp note and blue to represent a flat note.  
-Note any optional tab modification characters present in the tabs section are also displayed in the notes section.  
-''' + self.hilite('Chords section:  \'Ctrl B\'') + ''' 
-Chords are spelled vertically so that they line up with the tabs and notes and potentially every column can display a chord.  
-Chord names are automatically calculated and recalculated whenever the number of tabs in a given column is greater than one.  
-The maximum chord name length is set to 5 and is not currently configurable.
-The chords section also uses red to indicate a sharp chord and blue to represent a flat chord, but only on the first character, the root note.  
-Minor and diminished chords use the color blue for the 'm' or the 'dim' characters.  
-
-Note the tabs, notes, and chords can be saved to a file and if you 'cat' the file you can see the ANSI colors.  
-        '''
-        print(summary, file=self.dbgFile)
-        print(summary)
-        
     def printHelpUiCmds(self):
         print('{:>20} : {}'.format('User Interactive Cmd', 'Description'))
         print('{:>20} : {}'.format('User Interactive Cmd', 'Description'), file=self.dbgFile)
@@ -925,6 +868,7 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
             self.selectFlag = 1
             for c in range(0, len(self.selectCols)):
                 self.selectStyle(self.selectRows, c, self.styles['NORMAL'])
+                self.selectCols = []
         c = self.col2Index(self.col)
         self.selectCols.append(c)
         print('selectCol({}) c={}, row={}, col={}, selectRows={}, selectCols={}'.format(left, c, self.row, self.col, self.selectRows, self.selectCols), file=self.dbgFile)
@@ -1571,6 +1515,9 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
         self.clearRow(arg=0, file=self.outFile)
         self.resetPos()
         
+    def hilite(self, text):
+        return self.CSI + self.styles['ERROR'] + text + self.CSI + self.styles['CONS']
+        
     def getNote(self, str, tab):
         '''Return note object given string number and tab fret number byte.'''
         fret = self.getFretNum(tab)
@@ -1637,8 +1584,63 @@ Note the tabs, notes, and chords can be saved to a file and if you 'cat' the fil
     def clearRow(arg=2, file=None):
         print(Tabs.CSI + '{}K'.format(arg), end='', file=file)
         
-    def hilite(self, text):
-        return self.CSI + self.styles['ERROR'] + text + self.CSI + self.styles['CONS']
+    def printHelpSummary(self):
+        summary = \
+        '''
+Note the console window should be at least as wide as the number of tabs + 2.  Window resizing is not supported.  
+The command line arg -t specifies the number of tabs per string per line.  
+The command line arg -f specifies the file name to read from and write to.  
+The command line arg -s specifies the spelling of the string names e.g. -s 'E2A2D3G3B3E4' is 6 string standard guitar tuning.  
+The command line arg -S specifies the spelling of the string names via an alias e.g. -s 'GUITAR' is 6 string standard guitar tuning.  
+The command line arg -k specifies the fret to place the capo at [0-9], [a-o].  
+The command line arg -i specifies the automatic cursor advance direction is downward rather than upward.  
+The command line arg -F specifies the use of flat enharmonic notes instead of sharp enharmonic notes.  
+The command line arg -a enables display of the optional label row and the cursor and edit modes.  
+The command line arg -n enables display of the optional notes section.  
+The command line arg -b enables display of the optional chords section.
+The command line arg -l moves the cursor to the last tab on the current line of the current string  
+The command line arg -L moves the cursor to the last tab on the current line of all strings  
+The command line arg -z moves the cursor to the last tab on the last line of the current string  
+The command line arg -Z moves the cursor to the last tab on the last line of all strings  
+The command line arg -h enables display of this help info.  
+
+Tabs are displayed in the tabs section with an optional row to label and highlight the selected tab column.  
+An optional notes section and an optional chords section can also be displayed below the tabs section.  
+A number of lines can be displayed where each line has its own tabs, notes, and chords sections.  
+''' + self.hilite('Tabs section:') + ''' 
+Tabs are displayed using rows and columns of ASCII characters, essentially one character per tab.  
+Tabs are represented by the single digits [0-9] and the letters [a-o], rather than [10-24].  
+The value '0' represents the open string.  The minus character '-' is used for padding and represents an unplayed string.  
+The value '2' represents playing the string 1 full step above the nut, 'c' represents 12 half steps above the nut or an octave higher.  
+
+Optional tab modification characters are used to denote tonal expression such as bending, sliding, hammer on/off, vibrato etc...  
+Tab modifications are implemented as a customizable dictionary in the ''' + self.hilite('mods.py') + ''' module.  
+You can change or add tab modifications by simply editing the ''' + self.hilite('mods.py') + ''' file. 
+The dictionary keys are the modification characters and the values describe how to interpret the characters.  
+When the cursor occupies the same row and column as a tab modifier the dictionary value is printed on the last row.  
+
+Each row has a number of columns that represent the tab characters for a particular string as they are played sequentially in time from left to right.  
+Rows are labelled using 1 based string numbers (increasing in the downward direction) in the first display column.  
+The nut and capo are displayed in the 2nd column with the string label to the left and all the tabs to the right.  
+The capo can have values corresponding to the fret numbers [0-9], [a-o], where 0 denotes no capo.  
+To enter a tab simply navigate to the desired row and column using the arrow, Home, End, PageUp, or PageDown keys and then enter the character.  
+Note the cursor will automatically advance to the right, up, down, up and right, or down and right depending on the cursor mode.  
+Also note the tabs section is the only section that is editable.  The navigation keys will automatically skip over the notes and or chords sections.  
+''' + self.hilite('Notes section:  \'Ctrl N\'') + ''' 
+The notes section has the same number of rows and columns as the tabs section and displays the note names corresponding to the tabs in the tabs section.  
+The notes section uses the color red to indicate a sharp note and blue to represent a flat note.  
+Note any optional tab modification characters present in the tabs section are also displayed in the notes section.  
+''' + self.hilite('Chords section:  \'Ctrl B\'') + ''' 
+Chords are spelled vertically so that they line up with the tabs and notes and potentially every column can display a chord.  
+Chord names are automatically calculated and recalculated whenever the number of tabs in a given column is greater than one.  
+The maximum chord name length is set to 5 and is not currently configurable.
+The chords section also uses red to indicate a sharp chord and blue to represent a flat chord, but only on the first character, the root note.  
+Minor and diminished chords use the color blue for the 'm' or the 'dim' characters.  
+
+Note the tabs, notes, and chords can be saved to a file and if you 'cat' the file you can see the ANSI colors.  
+        '''
+        print(summary, file=self.dbgFile)
+        print(summary)
         
 def main():
     Tabs()
