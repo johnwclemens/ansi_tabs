@@ -574,12 +574,8 @@ class Tabs(object):
         
     def unknown(self, b, reason):
         if b == 0:            return
-        elif b < 128:                                                self.printe('{:<17}:{}:{}'.format(reason, chr(b), b))
-#        elif b == 141:        self.unselectAllCols()               # self.printe('Ctrl Up Arrow  :{}:{}'.format(c, ord(c)), self.row, self.col) # 145
-#        elif b == 155:        self.unselectCol(1)                  # self.printe('Alt Left Arrow   :{}:{}'.format(c, ord(c)), self.row, self.col) # 155
-#        elif b == 157:        self.unselectCol()                   # self.printe('Alt Right Arrow  :{}:{}'.format(c, ord(c)), self.row, self.col) # 157
-        else: # down = 160, up = 152
-            self.printe('{:<17}: :{}'.format(reason, b))
+        elif b < 128:         self.printe('{:<17}:{}:{}'.format(reason, chr(b), b))
+        else:                 self.printe('{:<17}: :{}'.format(reason, b))
 
     def resetPos(self):
         print(self.CSI + '{};{}H'.format(self.row, self.col), end='')
@@ -1309,11 +1305,11 @@ class Tabs(object):
         cc = self.col2Index(col)
         rr = self.row2Index(row)
         print('pasteSelectTabs() row={}, col={}, rr={}, cc={}'.format(row, col, rr, cc), file=self.dbgFile)
-#        if self.editMode == self.EDIT_MODES['INSERT']:
-#            for r in range(0, self.numStrings):
-#                for c in range(len(self.tabs[r]) - 1, cc, -1):
-#                    self.tabs[r][c] = self.tabs[r][c - len(self.selectCols)]
-#                    self.htabs[r][c] = self.htabs[r][c - len(self.selectCols)]
+        if self.editMode == self.EDIT_MODES['INSERT']:
+            for r in range(0, self.numStrings):
+                for c in range(len(self.tabs[r]) - 1, cc, -1):
+                    self.tabs[r][c] = self.tabs[r][c - len(self.selectCols)]
+                    self.htabs[r][c] = self.htabs[r][c - len(self.selectCols)]
         for c in range(0, len(self.selectCols)):
             for r in range(0, len(self.selectRows)):
                 self.tabs[r + rr][c + cc] = self.selectTabs[r][c]
@@ -1373,7 +1369,7 @@ class Tabs(object):
         print(' lastRow={}, bgnCol={}, endCol={}'.format(self.lastRow, self.bgnCol(), self.endCol()), file=self.dbgFile)
     
     def printTabs(self):
-        '''Print tabs using ANSI escape sequences to control the cursor x and y position, foreground and background color, and brightness'''
+        '''Print tabs using ANSI escape sequences to control the cursor position, foreground and background colors, and brightness'''
         self.printLineInfo('printTabs({}, {}) bgn'.format(self.row, self.col))
         if self.outFile == None: self.clearScreen()
         self.printFileMark('<BGN_TABS_SECTION>')
