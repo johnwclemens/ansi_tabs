@@ -223,7 +223,6 @@ class Tabs(object):
 #        self.MAJ_INDICES = [ 0, 2, 4, 5, 7, 9, 11, 12 ]                                   # for key signatures and or chords?
 #        self.MIN_INDICES = [ 0, 2, 3, 5, 7, 9, 10, 12 ]                                   # for key signatures and or chords?
         self.CURSOR_DIRS = { 'DOWN':0, 'UP':1 }
-        self.CURSOR_DIR_INDS = { 0:'|', 1:'^' }
         self.CURSOR_MODES = { 'MELODY':0, 'CHORD':1, 'ARPEGGIO':2 }
         self.EDIT_MODES = { 'REPLACE':0, 'INSERT':1 }
         self.ENHARMONIC = { 'SHARP':0, 'FLAT':1 }
@@ -766,7 +765,7 @@ class Tabs(object):
                 elif self.cursorDir == self.CURSOR_DIRS['UP']:
                     self.prints(chr(self.capo), r + self.bgnRow(line), self.cursorModeCol, self.styles['NUT_UP'])
                     self.prints(chr(self.capo), r + self.endRow(line), self.cursorModeCol, self.styles['NUT_UP'])
-        if dbg: self.printLineInfo('toggleCursorDir({}, {}, {}, {})'.format(self.row, self.col, self.cursorDir, self.CURSOR_DIR_INDS[self.cursorDir]))
+        if dbg: self.printLineInfo('toggleCursorDir({}, {}, {}, {})'.format(self.row, self.col, self.cursorDir, self.CURSOR_DIRS[self.cursorDir]))
         self.resetPos()
 
     def toggleEnharmonic(self):
@@ -1230,7 +1229,7 @@ class Tabs(object):
         if shifted:
             self.printTabs()
 
-    def arpeggiateSelectTabs_OLD(self): # this is wrong, adjacent chords transform to overlapped arpeggios
+    def arpeggiateSelectTabs_OVERLAP(self): # this is wrong, adjacent chords transform to overlapped arpeggios
         '''Transform selected tabs from a chord to an arpeggio.'''
         print('arpeggiateSelectTabs() row={}, col={}'.format(self.row, self.col), file=self.dbgFile)
         self.printSelectTabs(cols=1)
@@ -1249,7 +1248,7 @@ class Tabs(object):
             print('arpeggiateSelectTabs() row={}, col={}, len(selectTabs)={}, len(selectTabs[0])={}'.format(self.row, self.col, len(self.selectTabs), len(self.selectTabs[0])), file=self.dbgFile)
             self.printSelectTabs()
     
-    def arpeggiateSelectTabs(self):
+    def arpeggiateSelectTabs_DOWN(self):
         '''Transform selected tabs from a chord to an arpeggio.'''
         print('arpeggiateSelectTabs() row={}, col={}'.format(self.row, self.col), file=self.dbgFile)
         self.printSelectTabs(cols=1)
@@ -1266,6 +1265,29 @@ class Tabs(object):
                 rr = self.selectRows[r]
                 self.selectTabs[r][c * lsr + r]  = self.tabs[rr][cc]
                 self.selectHTabs[r][c * lsr + r] = self.htabs[rr][cc]
+            print('arpeggiateSelectTabs() row={}, col={}, len(selectTabs)={}, len(selectTabs[0])={}'.format(self.row, self.col, len(self.selectTabs), len(self.selectTabs[0])), file=self.dbgFile)
+            self.printSelectTabs()
+            
+    def arpeggiateSelectTabs(self):
+        '''Transform selected tabs from a chord to an arpeggio.'''
+        print('arpeggiateSelectTabs() row={}, col={}, cursorDir={}'.format(self.row, self.col, self.cursorDir), file=self.dbgFile)
+        self.printSelectTabs(cols=1)
+        for r in range(0, len(self.selectRows)):
+#            self.selectTabs.append(bytearray([ord(' ')] * len(self.selectRows) * len(self.selectCols)))
+#            self.selectHTabs.append(bytearray([ord('0')] * len(self.selectRows) * len(self.selectCols)))
+            size = len(self.selectRows) * len(self.selectCols)
+            self.selectTabs.append(bytearray([ord(' ')] * size))
+            self.selectHTabs.append(bytearray([ord('0')] * size))
+        lsr = len(self.selectRows)
+        for c in range(0, len(self.selectCols)):
+            cc = self.selectCols[c]
+            for r in range(0, lsr):
+                rr = self.selectRows[r]
+                if self.cursorDir == self.CURSOR_DIRS['DOWN']: ccc = c * lsr + r
+                elif self.cursorDir == self.CURSOR_DIRS['UP']: ccc = (c + 1) * lsr - r - 1
+                self.selectTabs[r][ccc]  = self.tabs[rr][cc]
+                self.selectHTabs[r][ccc] = self.htabs[rr][cc]
+                print('arpeggiateSelectTabs() c*lsr={}, selectTabs[{}][{}]={}, tabs[{}][{}]={}'.format(c*lsr, r, c*lsr+r, chr(self.selectTabs[r][c * lsr + r]), rr, cc, chr(self.tabs[rr][cc])), file=self.dbgFile)
             print('arpeggiateSelectTabs() row={}, col={}, len(selectTabs)={}, len(selectTabs[0])={}'.format(self.row, self.col, len(self.selectTabs), len(self.selectTabs[0])), file=self.dbgFile)
             self.printSelectTabs()
     
