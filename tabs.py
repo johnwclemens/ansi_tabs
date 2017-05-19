@@ -432,7 +432,7 @@ class Tabs(object):
     def quit(self, reason, code=0):
         '''Quit with reason and exit code.'''
         self.printLineInfo('quit(ExitCode={}, reason=\'{}\')'.format(code, reason))
-        print(self.CSI + self.styles['CONS'] + self.CSI + '{};{}HExitCode={}, reason=\'{}\''.format(self.lastRow + 1, 1, code, reason))
+        print(self.CSI + self.styles['CONS'] + self.CSI + '{};{}HExitCode={}, reason=\'{}\''.format(self.lastRow, 1, code, reason))
         self.dbgFile.close()
         exit(code)
      
@@ -1258,9 +1258,9 @@ class Tabs(object):
             size = len(self.selectRows) * len(self.selectCols)
             self.selectTabs.append(bytearray([ord(' ')] * size))
             self.selectHTabs.append(bytearray([ord('0')] * size))
+        lsr = len(self.selectRows)
         for c in range(0, len(self.selectCols)):
             cc = self.selectCols[c]
-            lsr = len(self.selectRows)
             for r in range(0, lsr):
                 rr = self.selectRows[r]
                 self.selectTabs[r][c * lsr + r]  = self.tabs[rr][cc]
@@ -1283,11 +1283,11 @@ class Tabs(object):
             cc = self.selectCols[c]
             for r in range(0, lsr):
                 rr = self.selectRows[r]
-                if self.cursorDir == self.CURSOR_DIRS['DOWN']: ccc = c * lsr + r
-                elif self.cursorDir == self.CURSOR_DIRS['UP']: ccc = (c + 1) * lsr - r - 1
+                if   self.cursorDir == self.CURSOR_DIRS['DOWN']: ccc = c * lsr + r
+                elif self.cursorDir == self.CURSOR_DIRS['UP']:   ccc = (c + 1) * lsr - r - 1
                 self.selectTabs[r][ccc]  = self.tabs[rr][cc]
                 self.selectHTabs[r][ccc] = self.htabs[rr][cc]
-                print('arpeggiateSelectTabs() c*lsr={}, selectTabs[{}][{}]={}, tabs[{}][{}]={}'.format(c*lsr, r, c*lsr+r, chr(self.selectTabs[r][c * lsr + r]), rr, cc, chr(self.tabs[rr][cc])), file=self.dbgFile)
+                print('arpeggiateSelectTabs() c={}, lsr={}, selectTabs[{}][{}]={}, tabs[{}][{}]={}'.format(c, lsr, r, ccc, chr(self.selectTabs[r][ccc]), rr, cc, chr(self.tabs[rr][cc])), file=self.dbgFile)
             print('arpeggiateSelectTabs() row={}, col={}, len(selectTabs)={}, len(selectTabs[0])={}'.format(self.row, self.col, len(self.selectTabs), len(self.selectTabs[0])), file=self.dbgFile)
             self.printSelectTabs()
     
@@ -1475,14 +1475,16 @@ class Tabs(object):
         if self.editMode == self.EDIT_MODES['INSERT']:
             for r in range(0, self.numStrings):
                 for c in range(len(self.tabs[r]) - 1, cc, -1):
-                    self.tabs[r][c] = self.tabs[r][c - len(self.selectCols)]
-                    self.htabs[r][c] = self.htabs[r][c - len(self.selectCols)]
+                    self.tabs[r][c] = self.tabs[r][c - len(self.selectTabs[0])]
+                    self.htabs[r][c] = self.htabs[r][c - len(self.selectTabs[0])]
         lsr = len(self.selectRows)
         for c in range(0, len(self.selectCols)):
             for r in range(0, len(self.selectRows)):
-                self.tabs[r + rr][c * lsr + cc + r] = self.selectTabs[r][c * lsr + r]
-                self.htabs[r + rr][c * lsr + cc + r] = self.selectHTabs[r][c * lsr + r]
-                print('    tabs[{}][{}]={}'.format(r + rr, c * lsr + cc + r, chr(self.tabs[r + rr][c * lsr + cc + r])), file=self.dbgFile)
+                if   self.cursorDir == self.CURSOR_DIRS['DOWN']: ccc = c * lsr + r
+                elif self.cursorDir == self.CURSOR_DIRS['UP']:   ccc = (c + 1) * lsr - r - 1
+                self.tabs[r + rr][cc + ccc] = self.selectTabs[r][ccc]
+                self.htabs[r + rr][cc + ccc] = self.selectHTabs[r][ccc]
+                print('    tabs[{}][{}]={}'.format(r + rr, cc + ccc, chr(self.tabs[r + rr][cc + ccc])), file=self.dbgFile)
             print('pasteSelectTabsArpeg(loop1) c={}, sc={}'.format(c, self.selectCols[c]), file=self.dbgFile)
             self.selectStyle(self.selectCols[c], self.styles['NORMAL'], rList=self.selectRows)
         if self.editMode == self.EDIT_MODES['INSERT']:
@@ -1490,22 +1492,24 @@ class Tabs(object):
         elif self.editMode == self.EDIT_MODES['REPLACE']:
             for c in range(0, len(self.selectCols)):
                 for r in range(0, len(self.selectRows)):
-                    tab = self.tabs[r + rr][c * lsr + cc + r]
-                    print('pasteSelectTabsArpeg(loop2) row={}, col={}, r={}, c={}, rr={}, cc={}, tab[{}][{}]={}'.format(row, col, r, c, rr, cc, r + rr, c * lsr + cc + r, chr(tab)), file=self.dbgFile)
+                    if   self.cursorDir == self.CURSOR_DIRS['DOWN']: ccc = c * lsr + r
+                    elif self.cursorDir == self.CURSOR_DIRS['UP']:   ccc = (c + 1) * lsr - r - 1
+                    tab = self.tabs[r + rr][cc + ccc]
+                    print('pasteSelectTabsArpeg(loop2) row={}, col={}, r={}, c={}, rr={}, cc={}, tab[{}][{}]={}'.format(row, col, r, c, rr, cc, r + rr, cc + ccc, chr(tab)), file=self.dbgFile)
                     if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
                         if self.isFret(chr(tab)):
-                            if self.htabs[r][c * lsr + cc + r] == ord('1'):
+                            if self.htabs[r][cc + ccc] == ord('1'):
                                 note = self.getHarmonicNote(r + 1, tab)
-                                self.printNote(row + r + self.numStrings, col + c * lsr + r, note, hn=1)
+                                self.printNote(row + r + self.numStrings, col + ccc, note, hn=1)
                             else:
                                 note = self.getNote(r + 1, tab)
-                                self.printNote(row + r + self.numStrings, col + c * lsr + r, note)
+                                self.printNote(row + r + self.numStrings, col + ccc, note)
                         else:
-                            self.prints(chr(tab), row + r + self.numStrings, col + c * lsr + r, self.styles['NAT_NOTE'])
-                    if self.htabs[r][c * lsr + cc + r] == ord('1'):
-                        self.prints(chr(tab), row + r, col + c * lsr + r, self.styles['H_TABS'])
+                            self.prints(chr(tab), row + r + self.numStrings, col + ccc, self.styles['NAT_NOTE'])
+                    if self.htabs[r][cc + ccc] == ord('1'):
+                        self.prints(chr(tab), row + r, col + ccc, self.styles['H_TABS'])
                     else:
-                        self.prints(chr(tab), row + r, col + c * lsr + r, self.styles['TABS'])
+                        self.prints(chr(tab), row + r, col + ccc, self.styles['TABS'])
             self.resetPos()
         self.selectTabs, self.selectHTabs, self.selectCols, self.selectRows = [], [], [], []
         if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
