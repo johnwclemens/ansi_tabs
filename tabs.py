@@ -1386,6 +1386,10 @@ class Tabs(object):
             self.printTabs()
         elif self.editMode == self.EDIT_MODES['REPLACE']:
             for c in range(0, len(self.selectCols)):
+                col = self.index2Col(c + cc)
+                if (c + cc) % self.numTabsPerStringPerLine == 0:
+                    row += self.lineDelta()
+                    print('pasteSelectTabs(wrap) row={}, col={}, c={}, c+cc={}'.format(row, col, c, c + cc), file=self.dbgFile)
                 for r in range(0, len(self.selectRows)):
                     tab = self.tabs[r + rr][c + cc]
                     print('pasteSelectTabs(loop2) row={}, col={}, r={}, c={}, rr={}, cc={}, tab[{}][{}]={}'.format(row, col, r, c, rr, cc, r + rr, c + cc, chr(tab)), file=self.dbgFile)
@@ -1393,16 +1397,16 @@ class Tabs(object):
                         if self.isFret(chr(tab)):
                             if self.htabs[r][c + cc] == ord('1'):
                                 note = self.getHarmonicNote(r + 1, tab)
-                                self.printNote(row + r + self.numStrings, col + c, note, hn=1)
+                                self.printNote(row + r + self.numStrings, col, note, hn=1)
                             else:
                                 note = self.getNote(r + 1, tab)
-                                self.printNote(row + r + self.numStrings, col + c, note)
+                                self.printNote(row + r + self.numStrings, col, note)
                         else:
-                            self.prints(chr(tab), row + r + self.numStrings, col + c, self.styles['NAT_NOTE'])
+                            self.prints(chr(tab), row + r + self.numStrings, col, self.styles['NAT_NOTE'])
                     if self.htabs[r][c + cc] == ord('1'):
-                        self.prints(chr(tab), row + r, col + c, self.styles['H_TABS'])
+                        self.prints(chr(tab), row + r, col, self.styles['H_TABS'])
                     else:
-                        self.prints(chr(tab), row + r, col + c, self.styles['TABS'])
+                        self.prints(chr(tab), row + r, col, self.styles['TABS'])
             self.resetPos()
         self.selectTabs, self.selectHTabs, self.selectCols, self.selectRows = [], [], [], []
         if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
@@ -1501,22 +1505,27 @@ class Tabs(object):
             self.printTabs()
         elif self.editMode == self.EDIT_MODES['REPLACE']:
             for c in range(0, lst):
+                col = self.index2Col(c + cc)
+                if (c + cc) % self.numTabsPerStringPerLine == 0:
+                    row += self.lineDelta()
+                    print('pasteSelectTabsArpeg(wrap) row={}, col={}, c={}, c+cc={}'.format(row, col, c, c + cc), file=self.dbgFile)
                 for r in range(0, lsr):
                     tab = self.tabs[r + rr][c + cc]
+                    print('pasteSelectTabsArpeg(loop2) row={}, col={}, r={}, c={}, rr={}, cc={}, tab[{}][{}]={}'.format(row, col, r, c, rr, cc, r + rr, c + cc, chr(tab)), file=self.dbgFile)
                     if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
                         if self.isFret(chr(tab)):
                             if self.htabs[r][c + cc] == ord('1'):
                                 note = self.getHarmonicNote(r + 1, tab)
-                                self.printNote(row + r + self.numStrings, col + c, note, hn=1)
+                                self.printNote(row + r + self.numStrings, col, note, hn=1)
                             else:
                                 note = self.getNote(r + 1, tab)
-                                self.printNote(row + r + self.numStrings, col + c, note)
+                                self.printNote(row + r + self.numStrings, col, note)
                         else:
-                            self.prints(chr(tab), row + r + self.numStrings, col + c, self.styles['NAT_NOTE'])
+                            self.prints(chr(tab), row + r + self.numStrings, col, self.styles['NAT_NOTE'])
                     if self.htabs[r][cc + c] == ord('1'):
-                        self.prints(chr(tab), row + r, col + c, self.styles['H_TABS'])
+                        self.prints(chr(tab), row + r, col, self.styles['H_TABS'])
                     else:
-                        self.prints(chr(tab), row + r, col + c, self.styles['TABS'])
+                        self.prints(chr(tab), row + r, col, self.styles['TABS'])
             self.resetPos()
         self.selectTabs, self.selectHTabs, self.selectCols, self.selectRows = [], [], [], []
         if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
