@@ -1361,22 +1361,21 @@ class Tabs(object):
     
     def pasteSelectTabs(self):
         '''Paste selected tabs.'''
-        col = self.col
-        row = self.row
+        col, row = self.col, self.row
+        lsr, lsc, lst = len(self.selectRows), len(self.selectCols), len(self.selectTabs[0])
         print('pasteSelectTabs(bgn) row={}, col={}, selRowLen={}, endRow={}'.format(row, col, len(self.selectRows), self.endRow(self.row2Line(row))), file=self.dbgFile)
         while len(self.selectRows) > self.endRow(self.row2Line(row)) - row + 1:
             row -= 1
             print('pasteSelectTabs(--row) selRowLen={}, endRow={}, row={}'.format(len(self.selectRows), self.endRow(self.row2Line(row)), row), file=self.dbgFile)
-        cc = self.col2Index(col)
-        rr = self.row2Index(row)
+        rr, cc = self.rowCol2Indices(row, col)
         print('pasteSelectTabs() row={}, col={}, rr={}, cc={}'.format(row, col, rr, cc), file=self.dbgFile)
         if self.editMode == self.EDIT_MODES['INSERT']:
             for r in range(0, self.numStrings):
                 for c in range(len(self.tabs[r]) - 1, cc, -1):
-                    self.tabs[r][c] = self.tabs[r][c - len(self.selectCols)]
-                    self.htabs[r][c] = self.htabs[r][c - len(self.selectCols)]
-        for c in range(0, len(self.selectCols)):
-            for r in range(0, len(self.selectRows)):
+                    self.tabs[r][c] = self.tabs[r][c - lsc]
+                    self.htabs[r][c] = self.htabs[r][c - lsc]
+        for c in range(0, lsc):
+            for r in range(0, lsr):
                 self.tabs[r + rr][c + cc] = self.selectTabs[r][c]
                 self.htabs[r + rr][c + cc] = self.selectHTabs[r][c]
                 print('    tabs[{}][{}]={}'.format(r + rr, c + cc, chr(self.tabs[r + rr][c + cc])), file=self.dbgFile)
@@ -1385,17 +1384,17 @@ class Tabs(object):
         if self.editMode == self.EDIT_MODES['INSERT']:
             self.printTabs()
         elif self.editMode == self.EDIT_MODES['REPLACE']:
-            for c in range(0, len(self.selectCols)):
-                col = self.index2Col(c + cc)
-                if (c + cc) % self.numTabsPerStringPerLine == 0:
+            for c in range(cc, cc + lsc):
+                col = self.index2Col(c)
+                if c % self.numTabsPerStringPerLine == 0:
                     row += self.lineDelta()
-                    print('pasteSelectTabs(wrap) row={}, col={}, c={}, c+cc={}'.format(row, col, c, c + cc), file=self.dbgFile)
-                for r in range(0, len(self.selectRows)):
-                    tab = self.tabs[r + rr][c + cc]
-                    print('pasteSelectTabs(loop2) row={}, col={}, r={}, c={}, rr={}, cc={}, tab[{}][{}]={}'.format(row, col, r, c, rr, cc, r + rr, c + cc, chr(tab)), file=self.dbgFile)
+                    print('pasteSelectTabs(wrap) row={}, col={}, c={}'.format(row, col, c), file=self.dbgFile)
+                for r in range(rr, rr + lsr):
+                    tab = self.tabs[r][c]
+                    print('pasteSelectTabs(loop2) row={}, col={}, r={}, c={}, tab[{}][{}]={}'.format(row, col, r, c, r, c, chr(tab)), file=self.dbgFile)
                     if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
                         if self.isFret(chr(tab)):
-                            if self.htabs[r][c + cc] == ord('1'):
+                            if self.htabs[r][c] == ord('1'):
                                 note = self.getHarmonicNote(r + 1, tab)
                                 self.printNote(row + r + self.numStrings, col, note, hn=1)
                             else:
@@ -1403,7 +1402,7 @@ class Tabs(object):
                                 self.printNote(row + r + self.numStrings, col, note)
                         else:
                             self.prints(chr(tab), row + r + self.numStrings, col, self.styles['NAT_NOTE'])
-                    if self.htabs[r][c + cc] == ord('1'):
+                    if self.htabs[r][c] == ord('1'):
                         self.prints(chr(tab), row + r, col, self.styles['H_TABS'])
                     else:
                         self.prints(chr(tab), row + r, col, self.styles['TABS'])
@@ -1473,7 +1472,7 @@ class Tabs(object):
         while lsr > self.endRow(self.row2Line(row)) - row + 1:
             row -= 1
             print('pasteSelectTabsArpeg(--row) lsr={}, endRow={}, row={}'.format(lsr, self.endRow(self.row2Line(row)), row), file=self.dbgFile)
-        cc, rr = self.col2Index(col), self.row2Index(row)
+        rr, cc = self.rowCol2Indices(row, col)
         print('pasteSelectTabsArpeg() row={}, col={}, rr={}, cc={}'.format(row, col, rr, cc), file=self.dbgFile)
         if self.editMode == self.EDIT_MODES['INSERT']:
             for c in range(len(self.tabs[0]) - 1, cc - 1, -1):
@@ -1487,45 +1486,46 @@ class Tabs(object):
                         self.htabs[r][c] = ord('-')
                         print('pasteSelectTabsArpeg(INSERT) c={} < cc={} + lst={}, tabs[{}][{}]={}'.format(c, cc, lst, r, c, chr(self.tabs[r][c])), file=self.dbgFile)
         elif self.editMode == self.EDIT_MODES['REPLACE']:
-            for c in range(0, lst):
+            for c in range(cc, cc + lst):
                 for r in range(0, lsr):
-                    self.tabs[r][c + cc] = ord('-')
-                    self.htabs[r][c + cc] = ord('-')
+                    self.tabs[r][c] = ord('-')
+                    self.htabs[r][c] = ord('-')
                     print('pasteSelectTabsArpeg(REPLACE) tabs[{}][{}]={}'.format(r, c, chr(self.tabs[r][c])), file=self.dbgFile)
         for c in range(0, lsc):
             for r in range(0, lsr):
                 if   self.cursorDir == self.CURSOR_DIRS['DOWN']: ccc = c * lsr + r
                 elif self.cursorDir == self.CURSOR_DIRS['UP']:   ccc = (c + 1) * lsr - r - 1
-                self.tabs[r + rr][cc + ccc] = self.selectTabs[r][ccc]
-                self.htabs[r + rr][cc + ccc] = self.selectHTabs[r][ccc]
+                self.tabs[r + rr][ccc + cc] = self.selectTabs[r][ccc]
+                self.htabs[r + rr][ccc + cc] = self.selectHTabs[r][ccc]
                 print('    tabs[{}][{}]={}'.format(r + rr, cc + ccc, chr(self.tabs[r + rr][cc + ccc])), file=self.dbgFile)
             print('pasteSelectTabsArpeg(loop1) c={}, sc={}'.format(c, self.selectCols[c]), file=self.dbgFile)
             self.selectStyle(self.selectCols[c], self.styles['NORMAL'], rList=self.selectRows)
         if self.editMode == self.EDIT_MODES['INSERT']:
             self.printTabs()
         elif self.editMode == self.EDIT_MODES['REPLACE']:
-            for c in range(0, lst):
-                col = self.index2Col(c + cc)
-                if (c + cc) % self.numTabsPerStringPerLine == 0:
+            for c in range(cc, cc + lst):
+                col = self.index2Col(c)
+                if c % self.numTabsPerStringPerLine == 0:
                     row += self.lineDelta()
-                    print('pasteSelectTabsArpeg(wrap) row={}, col={}, c={}, c+cc={}'.format(row, col, c, c + cc), file=self.dbgFile)
-                for r in range(0, lsr):
-                    tab = self.tabs[r + rr][c + cc]
-                    print('pasteSelectTabsArpeg(loop2) row={}, col={}, r={}, c={}, rr={}, cc={}, tab[{}][{}]={}'.format(row, col, r, c, rr, cc, r + rr, c + cc, chr(tab)), file=self.dbgFile)
+                    print('pasteSelectTabsArpeg(wrap) row={}, col={}, c={}'.format(row, col, c), file=self.dbgFile)
+                for r in range(rr, rr + lsr):
+                    row = self.indices2Row(r, c)
+                    tab = self.tabs[r][c]
+                    print('pasteSelectTabsArpeg(loop2) row={}, col={}, r={}, c={}, tab[{}][{}]={}'.format(row, col, r, c, r, c, chr(tab)), file=self.dbgFile)
                     if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
                         if self.isFret(chr(tab)):
-                            if self.htabs[r][c + cc] == ord('1'):
+                            if self.htabs[r][c] == ord('1'):
                                 note = self.getHarmonicNote(r + 1, tab)
-                                self.printNote(row + r + self.numStrings, col, note, hn=1)
+                                self.printNote(row + self.numStrings, col, note, hn=1)
                             else:
                                 note = self.getNote(r + 1, tab)
-                                self.printNote(row + r + self.numStrings, col, note)
+                                self.printNote(row + self.numStrings, col, note)
                         else:
-                            self.prints(chr(tab), row + r + self.numStrings, col, self.styles['NAT_NOTE'])
-                    if self.htabs[r][cc + c] == ord('1'):
-                        self.prints(chr(tab), row + r, col, self.styles['H_TABS'])
+                            self.prints(chr(tab), row + self.numStrings, col, self.styles['NAT_NOTE'])
+                    if self.htabs[r][c] == ord('1'):
+                        self.prints(chr(tab), row, col, self.styles['H_TABS'])
                     else:
-                        self.prints(chr(tab), row + r, col, self.styles['TABS'])
+                        self.prints(chr(tab), row, col, self.styles['TABS'])
             self.resetPos()
         self.selectTabs, self.selectHTabs, self.selectCols, self.selectRows = [], [], [], []
         if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
