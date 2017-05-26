@@ -1219,55 +1219,13 @@ class Tabs(object):
         if shifted:
             self.printTabs()
 
-    def arpeggiateSelectTabs_OVERLAP(self): # this is wrong, adjacent chords transform to overlapped arpeggios
-        '''Transform selected tabs from a chord to an arpeggio.'''
-        print('arpeggiateSelectTabs() row={}, col={}'.format(self.row, self.col), file=self.dbgFile)
-        self.printSelectTabs(cols=1)
-        for r in range(0, len(self.selectRows)):
-#            self.selectTabs.append(bytearray([ord(' ')] * (len(self.selectRows) + len(self.selectCols) - 1)))
-#            self.selectHTabs.append(bytearray([ord('0')] * (len(self.selectRows) + len(self.selectCols) - 1)))
-            size = len(self.selectRows) + len(self.selectCols) - 1
-            self.selectTabs.append(bytearray([ord(' ')] * size))
-            self.selectHTabs.append(bytearray([ord('0')] * size))
-        for c in range(0, len(self.selectCols)):
-            cc = self.selectCols[c]
-            for r in range(0, len(self.selectRows)):
-                rr = self.selectRows[r]
-                self.selectTabs[r][c + r] = self.tabs[rr][cc]
-                self.selectHTabs[r][c + r] = self.htabs[rr][cc]
-            print('arpeggiateSelectTabs() row={}, col={}, len(selectTabs)={}, len(selectTabs[0])={}'.format(self.row, self.col, len(self.selectTabs), len(self.selectTabs[0])), file=self.dbgFile)
-            self.printSelectTabs()
-    
-    def arpeggiateSelectTabs_DOWN(self):
-        '''Transform selected tabs from a chord to an arpeggio.'''
-        print('arpeggiateSelectTabs() row={}, col={}'.format(self.row, self.col), file=self.dbgFile)
-        self.printSelectTabs(cols=1)
-        for r in range(0, len(self.selectRows)):
-#            self.selectTabs.append(bytearray([ord(' ')] * len(self.selectRows) * len(self.selectCols)))
-#            self.selectHTabs.append(bytearray([ord('0')] * len(self.selectRows) * len(self.selectCols)))
-            size = len(self.selectRows) * len(self.selectCols)
-            self.selectTabs.append(bytearray([ord(' ')] * size))
-            self.selectHTabs.append(bytearray([ord('0')] * size))
-        lsr = len(self.selectRows)
-        for c in range(0, len(self.selectCols)):
-            cc = self.selectCols[c]
-            for r in range(0, lsr):
-                rr = self.selectRows[r]
-                self.selectTabs[r][c * lsr + r]  = self.tabs[rr][cc]
-                self.selectHTabs[r][c * lsr + r] = self.htabs[rr][cc]
-            print('arpeggiateSelectTabs() row={}, col={}, len(selectTabs)={}, len(selectTabs[0])={}'.format(self.row, self.col, len(self.selectTabs), len(self.selectTabs[0])), file=self.dbgFile)
-            self.printSelectTabs()
-            
     def arpeggiateSelectTabs(self):
         '''Transform selected tabs from a chord to an arpeggio.'''
         print('arpeggiateSelectTabs() row={}, col={}, cursorDir={}'.format(self.row, self.col, self.cursorDir), file=self.dbgFile)
         self.printSelectTabs(cols=1)
         for r in range(0, len(self.selectRows)):
-#            self.selectTabs.append(bytearray([ord(' ')] * len(self.selectRows) * len(self.selectCols)))
-#            self.selectHTabs.append(bytearray([ord('0')] * len(self.selectRows) * len(self.selectCols)))
-            size = len(self.selectRows) * len(self.selectCols)
-            self.selectTabs.append(bytearray([ord(' ')] * size))
-            self.selectHTabs.append(bytearray([ord('0')] * size))
+            self.selectTabs.append(bytearray([ord(' ')] * len(self.selectRows) * len(self.selectCols)))
+            self.selectHTabs.append(bytearray([ord('0')] * len(self.selectRows) * len(self.selectCols)))
         lsr = len(self.selectRows)
         for c in range(0, len(self.selectCols)):
             cc = self.selectCols[c]
@@ -1408,57 +1366,6 @@ class Tabs(object):
             self.chordsObj.printChords()
         self.resetPos()
         self.dumpTabs('pasteSelectTabs(end) row={}, col={}'.format(row, col))
-        
-    def pasteSelectTabsArpeg_OLD(self):
-        '''Paste selected tabs.'''
-        col = self.col
-        row = self.row
-        print('pasteSelectTabsArpeg(bgn) row={}, col={}, selRowLen={}, endRow={}'.format(row, col, len(self.selectRows), self.endRow(self.row2Line(row))), file=self.dbgFile)
-        while len(self.selectRows) > self.endRow(self.row2Line(row)) - row + 1:
-            row -= 1
-            print('pasteSelectTabsArpeg(--row) selRowLen={}, endRow={}, row={}'.format(len(self.selectRows), self.endRow(self.row2Line(row)), row), file=self.dbgFile)
-        cc = self.col2Index(col)
-        rr = self.row2Index(row)
-        print('pasteSelectTabsArpeg() row={}, col={}, rr={}, cc={}'.format(row, col, rr, cc), file=self.dbgFile)
-        if self.editMode == self.EDIT_MODES['INSERT']:
-            for r in range(0, self.numStrings):
-                for c in range(len(self.tabs[r]) - 1, cc, -1):
-                    self.tabs[r][c] = self.tabs[r][c - len(self.selectCols)]
-                    self.htabs[r][c] = self.htabs[r][c - len(self.selectCols)]
-        for c in range(0, len(self.selectCols)):
-            for r in range(0, len(self.selectRows)):
-                self.tabs[r + rr][c + cc + r] = self.selectTabs[r][c + r]
-                self.htabs[r + rr][c + cc + r] = self.selectHTabs[r][c + r]
-                print('    tabs[{}][{}]={}'.format(r + rr, c + cc + r, chr(self.tabs[r + rr][c + cc + r])), file=self.dbgFile)
-            print('pasteSelectTabsArpeg(loop1) c={}, sc={}'.format(c, self.selectCols[c]), file=self.dbgFile)
-            self.selectStyle(self.selectCols[c], self.styles['NORMAL'], rList=self.selectRows)
-        if self.editMode == self.EDIT_MODES['INSERT']:
-            self.printTabs()
-        elif self.editMode == self.EDIT_MODES['REPLACE']:
-            for c in range(0, len(self.selectCols)):
-                for r in range(0, len(self.selectRows)):
-                    tab = self.tabs[r + rr][c + cc + r]
-                    print('pasteSelectTabsArpeg(loop2) row={}, col={}, r={}, c={}, rr={}, cc={}, tab[{}][{}]={}'.format(row, col, r, c, rr, cc, r + rr, c + cc + r, chr(tab)), file=self.dbgFile)
-                    if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
-                        if self.isFret(chr(tab)):
-                            if self.htabs[r][c + cc + r] == ord('1'):
-                                note = self.getHarmonicNote(r + 1, tab)
-                                self.printNote(row + r + self.numStrings, col + c + r, note, hn=1)
-                            else:
-                                note = self.getNote(r + 1, tab)
-                                self.printNote(row + r + self.numStrings, col + c + r, note)
-                        else:
-                            self.prints(chr(tab), row + r + self.numStrings, col + c + r, self.styles['NAT_NOTE'])
-                    if self.htabs[r][c + cc + r] == ord('1'):
-                        self.prints(chr(tab), row + r, col + c + r, self.styles['H_TABS'])
-                    else:
-                        self.prints(chr(tab), row + r, col + c + r, self.styles['TABS'])
-            self.resetPos()
-        self.selectTabs, self.selectHTabs, self.selectCols, self.selectRows = [], [], [], []
-        if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
-            self.chordsObj.printChords()
-        self.resetPos()
-        self.dumpTabs('pasteSelectTabsArpeg(end) row={}, col={}'.format(row, col))
         
     def pasteSelectTabsArpeg(self):
         '''Paste selected tabs as arpeggio.'''
