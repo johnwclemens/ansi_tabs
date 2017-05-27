@@ -462,7 +462,8 @@ class Tabs(object):
         self.registerUiCmd('Ctrl A',              self.toggleDisplayLabels)
         self.registerUiCmd('Ctrl B',              self.toggleDisplayChords)
         self.registerUiCmd('Ctrl C',              self.copySelectTabs)
-        self.registerUiCmd('Shift C',             self.arpeggiateSelectTabs)
+        self.registerUiCmd('Shift C',             self.copySelectTabs)
+#        self.registerUiCmd('Shift C',             self.arpeggiateSelectTabs)
         self.registerUiCmd('Ctrl D',              self.deleteSelectTabs)
         self.registerUiCmd('Ctrl E',              self.eraseTabs)
         self.registerUiCmd('Ctrl F',              self.toggleEnharmonic)
@@ -524,7 +525,8 @@ class Tabs(object):
             elif b == 1:   self.uiCmds['Ctrl A']()                # toggleDisplayLabels()  # cmd line opt  -a
             elif b == 2:   self.uiCmds['Ctrl B']()                # toggleDisplayChords()  # cmd line opt  -b
             elif b == 3:   self.uiCmds['Ctrl C']()                # copySelectTabs()       # N/A
-            elif b == 67:  self.uiCmds['Shift C']()               # arpeggiateSelectTabs() # N/A
+            elif b == 67:  self.uiCmds['Shift C'](arpg=1)         # copySelectTabs()       # N/A
+#            elif b == 67:  self.uiCmds['Shift C']()               # arpeggiateSelectTabs() # N/A
             elif b == 4:   self.uiCmds['Ctrl D']()                # deleteSelectTabs()     # N/A
             elif b == 5:   self.uiCmds['Ctrl E']()                # eraseTabs()            #?cmd line opt?
             elif b == 6:   self.uiCmds['Ctrl F']()                # toggleEnharmonic()     # cmd line opt  -F?
@@ -1241,8 +1243,32 @@ class Tabs(object):
                 print('arpeggiateSelectTabs() c={}, lsr={}, selectTabs[{}][{}]={}, tabs[{}][{}]={}'.format(c, lsr, r, ccc, chr(self.selectTabs[r][ccc]), rr, cc, chr(self.tabs[rr][cc])), file=self.dbgFile)
             print('arpeggiateSelectTabs() row={}, col={}, len(selectTabs)={}, len(selectTabs[0])={}'.format(self.row, self.col, len(self.selectTabs), len(self.selectTabs[0])), file=self.dbgFile)
             self.printSelectTabs()
-    
-    def copySelectTabs(self):
+            
+    def copySelectTabs(self, arpg=0):
+        '''Copy selected tabs.  If arpg, transform selected tabs from a chord to an arpeggio.'''
+        if arpg: self.arpeggiate, size = 1, len(self.selectRows) * len(self.selectCols)
+        else:    size = len(self.selectCols)
+        print('copySelectTabs({}) row={}, col={}, cursorDir={}'.format(arpg, self.row, self.col, self.cursorDir), file=self.dbgFile)
+        self.printSelectTabs(cols=1)
+        for r in range(0, len(self.selectRows)):
+            self.selectTabs.append(bytearray([ord(' ')] * size))
+            self.selectHTabs.append(bytearray([ord('0')] * size))
+        lsr = len(self.selectRows)
+        for c in range(0, len(self.selectCols)):
+            cc = self.selectCols[c]
+            for r in range(0, lsr):
+                rr = self.selectRows[r]
+                if arpg:
+                    if   self.cursorDir == self.CURSOR_DIRS['DOWN']: ccc = c * lsr + r
+                    elif self.cursorDir == self.CURSOR_DIRS['UP']:   ccc = (c + 1) * lsr - r - 1
+                else: ccc = c
+                self.selectTabs[r][ccc]  = self.tabs[rr][cc]
+                self.selectHTabs[r][ccc] = self.htabs[rr][cc]
+                print('arpeggiateSelectTabs() c={}, lsr={}, selectTabs[{}][{}]={}, tabs[{}][{}]={}'.format(c, lsr, r, ccc, chr(self.selectTabs[r][ccc]), rr, cc, chr(self.tabs[rr][cc])), file=self.dbgFile)
+            print('arpeggiateSelect() row={}, col={}, len(selectTabs)={}, len(selectTabs[0])={}'.format(self.row, self.col, len(self.selectTabs), len(self.selectTabs[0])), file=self.dbgFile)
+            self.printSelectTabs()
+            
+    def copySelectTabs_OLD(self):
         '''Copy selected tabs.'''
         print('copySelectTabs() row={}, col={}'.format(self.row, self.col), file=self.dbgFile)
         self.printSelectTabs(cols=1)
