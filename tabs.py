@@ -68,7 +68,7 @@ class Tabs(object):
         '''Initialize class instance, enable automatic reset of console after each call via implicit print(colorama.Style.RESET_ALL).'''
         colorama.init(autoreset=True)
         self.clearScreen()
-
+        
         self.initFiles(inName, outName, dbgName)
         self.initConsts()
         self.registerUiCmds()                                  # register the dictionary for all the user interactive commands
@@ -82,6 +82,7 @@ class Tabs(object):
         self.tabCount = 0                                      # used by appendTabs() 
         self.tabs = []                                         # list of bytearrays, one for each string; for all the tabs
         
+        self.arpeggiate = 0                                    # used to transform chords to arpeggios
         self.selectFlag = 0                                    # used to un-hilite selected rows
         self.selectTabs = []                                   # list of bytearrays, one for each string; for selected tabs
         self.selectHTabs = []                                  # list of bytearrays, one for each string; for selected tabs
@@ -90,7 +91,7 @@ class Tabs(object):
         self.stringMap = {}                                    # dict of string note name -> note index
         self.stringKeys = []                                   # list of keys; stringMap keys sorted by note index
         self.numStrings = 1                                    # number of strings on the musical instrument, set here in case initStrings() fails
-
+        
         self.numLines = 1                                      # number of music lines to display
         self.numTabsPerStringPerLine = 10                      # number of tabs to display on each line (for each string)
         self.numTabsPerString = self.numLines * self.numTabsPerStringPerLine  # total number of tabs per string
@@ -100,7 +101,7 @@ class Tabs(object):
         self.CHORDS_LEN = 0                                    # number of rows used to display chords
         self.NOTES_LEN = 0                                     # number of rows used to display notes
         self.NUM_FRETS = 24                                    # number of frets, (might make this a list for all the strings)?
-      
+        
         self.hiliteCount = 0                                   # statistic for measuring efficiency
         self.hiliteColNum = 0                                  # used to hilite the current cursor column and unhilite the previous cursor column
         self.hiliteRowNum = 0                                  # used to hilite the current cursor row    and unhilite the previous cursor row
@@ -481,8 +482,8 @@ class Tabs(object):
         self.registerUiCmd('Ctrl T',              self.appendLine)
         self.registerUiCmd('Ctrl U',              self.unselectAll)
         self.registerUiCmd('Ctrl V',              self.pasteSelectTabs)
-        self.registerUiCmd('Shift V',             self.pasteSelectTabs)
         self.registerUiCmd('Ctrl X',              self.cutSelectTabs)
+        self.registerUiCmd('Shift X',             self.cutSelectTabs)
         self.registerUiCmd('Ctrl Z',              self.goToLastTab)
         self.registerUiCmd('Shift Z',             self.goToLastTab)
         self.registerUiCmd('Shift T',             self.removeLine)
@@ -546,8 +547,8 @@ class Tabs(object):
             elif b == 84:  self.uiCmds['Shift T']()               # removeLine()           # DBG?
             elif b == 21:  self.uiCmds['Ctrl U']()                # unselectAll()          # N/A
             elif b == 22:  self.uiCmds['Ctrl V']()                # pasteSelectTabs()      # N/A
-            elif b == 86:  self.uiCmds['Shift V']()               # pasteSelectTabs()      # N/A
             elif b == 24:  self.uiCmds['Ctrl X']()                # cutSelectTabs()        # N/A
+            elif b == 88:  self.uiCmds['Shift X'](arpg=1)         # cutSelectTabs()        # N/A
             elif b == 26:  self.uiCmds['Ctrl Z'](ll=1, cs=1)      # goToLastTab()          # cmd line opt -z
             elif b == 90:  self.uiCmds['Shift Z'](ll=1)           # goToLastTab()          # cmd line opt -Z
             elif b == 27:  self.uiCmds['ESC']()                   # toggleHarmonicNote()   # N/A
@@ -1260,9 +1261,9 @@ class Tabs(object):
         self.maxFret = self.findMaxFret()
         self.resetPos()
 
-    def cutSelectTabs(self):
+    def cutSelectTabs(self, arpg=0):
         '''Cut selected tabs.'''
-        self.copySelectTabs()
+        self.copySelectTabs(arpg=arpg)
         self.deleteSelectTabs(delSel=False)
     
     def printSelectTabs(self, cols=0):
@@ -1296,7 +1297,7 @@ class Tabs(object):
 #        self.dumpTabs('deleteTabs({}, {}) col={} end: '.format(self.row, self.col, col))
     
     def pasteSelectTabs(self):
-        '''Paste selected tabs as arpeggio.'''
+        '''Paste selected tabs as chords or stretched into arpeggios.'''
         col, row = self.col, self.row
         lsr, lsc, lst = len(self.selectRows), len(self.selectCols), len(self.selectTabs[0])
         print('pasteSelectTabs(bgn) arpeggiate={}, row={}, col={}, lsr={}, endRow={}'.format(self.arpeggiate, row, col, lsr, self.endRow(self.row2Line(row))), file=self.dbgFile)
@@ -1380,7 +1381,8 @@ class Tabs(object):
         if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
             self.chordsObj.printChords()
         self.resetPos()
-        self.dumpTabs('pasteSelectTabs(end) row={}, col={}'.format(row, col))
+        self.arpeggiate = 0
+        self.dumpTabs('pasteSelectTabs(end) arpeggiate={}, row={}, col={}'.format(self.arpeggiate, row, col))
 
     def dumpTabs(self, reason='', h=None):
         print('dumpTabs({})'.format(reason), file=self.dbgFile)
@@ -1732,7 +1734,7 @@ D0------------------------------------------------------------------------------
 A0----------------------------------------------------------------------------------------------------------------------------------------------------------------
 E0----------------------------------------------------------------------------------------------------------------------------------------------------------------
 ||
-| -- Capo fret number (0 means no capo)
+| -- Capo fret numbers (0 means no capo)
 ---- String numbers and String note names
  
 Desired new features list:
