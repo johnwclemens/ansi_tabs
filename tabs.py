@@ -1222,15 +1222,18 @@ class Tabs(object):
 
     def copySelectTabs(self, arpg=0):
         '''Copy selected tabs.  If arpg, transform selected tabs from a chord to an arpeggio.'''
-        if arpg: self.arpeggiate, size = 1, len(self.selectRows) * len(self.selectCols)
-        else:    size = len(self.selectCols)
+        lsr, lsc = len(self.selectRows), len(self.selectCols)
+        if lsr == 0 or lsc == 0:
+            self.printe('ERROR copySelectTabs(), lsr={}, lsc={}, use the CTRL ARROW keys to select rows and or columns'.format(lsr, lsc))
+            return
+        if arpg: self.arpeggiate, size = 1, lsr * lsc
+        else:    size = lsc
         print('copySelectTabs({}) row={}, col={}, cursorDir={}'.format(arpg, self.row, self.col, self.cursorDir), file=self.dbgFile)
         self.printSelectTabs(cols=1)
-        for r in range(0, len(self.selectRows)):
+        for r in range(0, lsr):
             self.selectTabs.append(bytearray([ord(' ')] * size))
             self.selectHTabs.append(bytearray([ord('0')] * size))
-        lsr = len(self.selectRows)
-        for c in range(0, len(self.selectCols)):
+        for c in range(0, lsc):
             cc = self.selectCols[c]
             for r in range(0, lsr):
                 rr = self.selectRows[r]
@@ -1298,8 +1301,11 @@ class Tabs(object):
     
     def pasteSelectTabs(self):
         '''Paste selected tabs as chords or stretched into arpeggios.'''
-        col, row = self.col, self.row
-        lsr, lsc, lst = len(self.selectRows), len(self.selectCols), len(self.selectTabs[0])
+        lsr, lsc, lst = len(self.selectRows), len(self.selectCols), len(self.selectTabs)
+        if lst == 0:
+            self.printe('ERROR pasteSelectTabs() no tabs selected, lsr={}, lsc={}, lst={}, use CTRL/SHIFT C or X to copy or cut tabs'.format(lsr, lsc, lst))
+            return
+        col, row, lst = self.col, self.row, len(self.selectTabs[0])
         print('pasteSelectTabs(bgn) arpeggiate={}, row={}, col={}, lsr={}, endRow={}'.format(self.arpeggiate, row, col, lsr, self.endRow(self.row2Line(row))), file=self.dbgFile)
         while lsr > self.endRow(self.row2Line(row)) - row + 1:
             row -= 1
