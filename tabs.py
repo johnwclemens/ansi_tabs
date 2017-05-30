@@ -1,4 +1,4 @@
-'''tabs.py module.  Main entry point, class list: [Tabs].  Note the user simply instantiates this object and this object handles the entire tabs session.'''
+'''tabs.py module.  Main entry point, class list: [Tabs].  Note main simply instantiates an instance of the Tabs class which handles the entire session.'''
 
 '''Thus all methods are essentially private.  Note some functionality is deemed customizable by the user and is thus factored out into a separate module.  
 e.g. The tab modifications are in mods.py, the string tunings and aliases are in strings.py, and the chord discovery and name calculations are in chords.py.'''
@@ -983,7 +983,7 @@ class Tabs(object):
             maxFN = self.getFretNum(self.maxFret)
             print('setCapo() c={}, ord(c)={}, chr(mf)={}, maxFret={}, check capFN:{} + maxFN:{} <= {}?'.format(c, ord(c), chr(self.maxFret), self.maxFret, capFN, maxFN, self.NUM_FRETS), file=self.dbgFile)
             if capFN + maxFN > self.NUM_FRETS:
-                info = 'setCapo() ERROR! capFN:{} + maxFN:{} > {}!  c={}, ord(c)={}, capo={}, chr(mf)={}, maxFret={}'.format(capFN, maxFN, self.NUM_FRETS, c, ord(c), self.capo, chr(self.maxFret), self.maxFret)
+                info = 'setCapo() capFN:{} + maxFN:{} > {}!  c={}, ord(c)={}, capo={}, chr(mf)={}, maxFret={}'.format(capFN, maxFN, self.NUM_FRETS, c, ord(c), self.capo, chr(self.maxFret), self.maxFret)
                 self.printe(info)
             else:
                 self.capo = ord(c)            
@@ -1025,7 +1025,7 @@ class Tabs(object):
                 capFN = self.getFretNum(self.capo)
                 print('setTab() chr(tab)={}, tab={}, chr(capo)={}, capo={}, check tabFN:{} + capFN:{} > {}?'.format(chr(tab), tab, chr(self.capo), self.capo, tabFN, capFN, self.NUM_FRETS), file=self.dbgFile)
                 if tabFN + capFN > self.NUM_FRETS:
-                    info = 'setTab() ERROR! capFN:{} + tabFN:{} > {}! chr(tab)={}, tab={}, chr(capo)={}, capo={}'.format(capFN, tabFN, self.NUM_FRETS, chr(tab), tab, chr(self.capo), self.capo)
+                    info = 'setTab() capFN:{} + tabFN:{} > {}! chr(tab)={}, tab={}, chr(capo)={}, capo={}'.format(capFN, tabFN, self.NUM_FRETS, chr(tab), tab, chr(self.capo), self.capo)
                     self.printe(info)
                     return
                 print('setTab() check tabFn:{} > maxFn:{}? chr(tab)={}, tab={}, chr(mf)={}, maxFret={}'.format(tabFN, maxFN, chr(tab), tab, chr(self.maxFret), self.maxFret), file=self.dbgFile)
@@ -1056,7 +1056,7 @@ class Tabs(object):
                                 break
             self.moveCursor()
         else:
-            info = 'row/col ERROR in setTab({},{},{})'.format(self.row, self.col, tab)
+            info = 'row/col setTab({},{},{})'.format(self.row, self.col, tab)
             self.printe(info)
 
     def goTo(self):
@@ -1216,7 +1216,7 @@ class Tabs(object):
                         self.tabs[r][c] = self.tabs[r][c] + shift
                         shifted = True
                         print('shiftSelectTabs() r,c,tab=({},{},{})'.format(r, c, chr(self.tabs[r][c])), file=self.dbgFile)
-                    else: self.printe('Error! shiftSelectTabs() Lower than open string! r,c,tab=({},{},{})'.format(self.row, self.col, chr(self.tabs[r][c])))
+                    else: self.printe('shiftSelectTabs() Lower than open string! r,c,tab=({},{},{})'.format(self.row, self.col, chr(self.tabs[r][c])))
         if shifted:
             self.printTabs()
 
@@ -1224,7 +1224,7 @@ class Tabs(object):
         '''Copy selected tabs.  If arpg, transform selected tabs from a chord to an arpeggio.'''
         lsr, lsc = len(self.selectRows), len(self.selectCols)
         if lsr == 0 or lsc == 0:
-            self.printe('ERROR copySelectTabs(), lsr={}, lsc={}, use the CTRL ARROW keys to select rows and or columns'.format(lsr, lsc))
+            self.printe('copySelectTabs() no tabs selected, lsr={}, lsc={}, use the CTRL ARROW keys to select rows and or columns'.format(lsr, lsc))
             return
         if arpg: self.arpeggiate, size = 1, lsr * lsc
         else:    size = lsc
@@ -1303,7 +1303,7 @@ class Tabs(object):
         '''Paste selected tabs as chords or stretched into arpeggios.'''
         lsr, lsc, lst = len(self.selectRows), len(self.selectCols), len(self.selectTabs)
         if lst == 0:
-            self.printe('ERROR pasteSelectTabs() no tabs selected, lsr={}, lsc={}, lst={}, use CTRL/SHIFT C or X to copy or cut tabs'.format(lsr, lsc, lst))
+            self.printe('pasteSelectTabs() no tabs to paste, lsr={}, lsc={}, lst={}, use CTRL/SHIFT C or X to copy or cut selected tabs'.format(lsr, lsc, lst))
             return
         col, row, lst = self.col, self.row, len(self.selectTabs[0])
         print('pasteSelectTabs(bgn) arpeggiate={}, row={}, col={}, lsr={}, endRow={}'.format(self.arpeggiate, row, col, lsr, self.endRow(self.row2Line(row))), file=self.dbgFile)
@@ -1333,7 +1333,7 @@ class Tabs(object):
                         self.htabs[r][c] = ord('-')
                         print('pasteSelectTabs(REPLACE) tabs[{}][{}]={}'.format(r, c, chr(self.tabs[r][c])), file=self.dbgFile)
                 else:
-                    self.printe('ERROR pasteSelectTabs() c={} >= len(tabs[0])={} skip remaining columns'.format(c, len(self.tabs[0])))
+                    self.printe('pasteSelectTabs() c={} >= len(tabs[0])={} skip remaining columns'.format(c, len(self.tabs[0])))
                     break
         range_error = 0
         for c in range(0, lsc):
@@ -1348,7 +1348,7 @@ class Tabs(object):
                     self.htabs[r + rr][ccc + cc] = self.selectHTabs[r][ccc]
                     print('    tabs[{}][{}]={}'.format(r + rr, ccc + cc, chr(self.tabs[r + rr][ccc + cc])), file=self.dbgFile)
                 else:
-                    self.printe('ERROR pasteSelectTabs() ccc={} + cc={} >= len(tabs[0])={} skip remaining rows and columns'.format(ccc, cc, len(self.tabs[0])))
+                    self.printe('pasteSelectTabs() ccc={} + cc={} >= len(tabs[0])={} skip remaining rows and columns'.format(ccc, cc, len(self.tabs[0])))
                     range_error = 1
                     break
             print('pasteSelectTabs(loop1) c={}, sc={}'.format(c, self.selectCols[c]), file=self.dbgFile)
@@ -1358,7 +1358,7 @@ class Tabs(object):
         elif self.editMode == self.EDIT_MODES['REPLACE']:
             for c in range(cc, cc + ls):
                 if c >= len(self.tabs[0]):
-                    self.printe('ERROR pasteSelectTabs() c={} + ls={} >= len(tabs[0])={} skip remaining columns'.format(c, ls, len(self.tabs[0])))
+                    self.printe('pasteSelectTabs() c={} + ls={} >= len(tabs[0])={} skip remaining columns'.format(c, ls, len(self.tabs[0])))
                     break
                 col = self.index2Col(c)
                 if c % self.numTabsPerStringPerLine == 0:
@@ -1583,7 +1583,8 @@ class Tabs(object):
         if row is None: row=self.row
         if col is None: col=self.col
         if style == None: style = self.styles['ERROR']
-        print('printe({}, {}) {}'.format(row, col, info), file=self.dbgFile)
+        info = 'ERROR! printe({}, {}) {}'.format(row, col, info)
+        print(info, file=self.dbgFile)
         print(self.CSI + style + self.CSI + '{};{}H{}'.format(self.lastRow, 1, info), end='')
         self.clearRow(arg=0, file=self.outFile)
         self.resetPos()
