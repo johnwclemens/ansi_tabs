@@ -462,6 +462,7 @@ class Tabs(object):
         self.registerUiCmd('Tablature',           self.setTab)
         self.registerUiCmd('Ctrl A',              self.toggleDisplayLabels)
         self.registerUiCmd('Ctrl B',              self.toggleDisplayChords)
+        self.registerUiCmd('Shift B',             self.copySelectTabs)
         self.registerUiCmd('Ctrl C',              self.copySelectTabs)
         self.registerUiCmd('Shift C',             self.copySelectTabs)
         self.registerUiCmd('Ctrl D',              self.deleteSelectTabs)
@@ -523,6 +524,7 @@ class Tabs(object):
             if self.isTab(chr(b)): self.uiCmds['Tablature'](b)    # setTab()               # N/A
             elif b == 1:   self.uiCmds['Ctrl A']()                # toggleDisplayLabels()  # cmd line opt  -a
             elif b == 2:   self.uiCmds['Ctrl B']()                # toggleDisplayChords()  # cmd line opt  -b
+            elif b == 66:  self.uiCmds['Shift B'](arpg=0)         # copySelectTabs()       # N/A
             elif b == 3:   self.uiCmds['Ctrl C']()                # copySelectTabs()       # N/A
             elif b == 67:  self.uiCmds['Shift C'](arpg=1)         # copySelectTabs()       # N/A
             elif b == 4:   self.uiCmds['Ctrl D']()                # deleteSelectTabs()     # N/A
@@ -698,7 +700,11 @@ class Tabs(object):
     
     def indices2RowCol(self, r, c):
         return self.indices2Row(r, c), self.index2Col(c)
-    
+
+    def foldColIndex(self, c):
+        c -= self.colIndex2Line(c) * self.numTabsPerStringPerLine
+        return c
+        
     def bgnCol(self):
         return self.COL_OFF
         
@@ -1220,31 +1226,41 @@ class Tabs(object):
         if shifted:
             self.printTabs()
 
-    def copySelectTabs(self, arpg=0):
+    def copySelectTabs(self, arpg=None):
         '''Copy selected tabs.  If arpg, transform selected tabs from a chord to an arpeggio.'''
-        lsr, lsc = len(self.selectRows), len(self.selectCols)
+        self.arpeggiate, ns, lsr, lsc, lt = arpg, self.numStrings, len(self.selectRows), len(self.selectCols), len(self.tabs[0])
         if lsr == 0 or lsc == 0:
             self.printe('copySelectTabs() no tabs selected, lsr={}, lsc={}, use the CTRL ARROW keys to select rows and or columns'.format(lsr, lsc))
             return
-        if arpg: self.arpeggiate, size = 1, lsr * lsc
-        else:    size = lsc
-        print('copySelectTabs({}) row={}, col={}, cursorDir={}'.format(arpg, self.row, self.col, self.cursorDir), file=self.dbgFile)
+        if   arpg == 1: size, lc = lsc * lsr,     lsc
+        elif arpg == 0: size, lc = int(lsc / ns), int(lsc / ns)
+        else:           size, lc = lsc,           lsc
         self.printSelectTabs(cols=1)
         for r in range(0, lsr):
             self.selectTabs.append(bytearray([ord(' ')] * size))
             self.selectHTabs.append(bytearray([ord('0')] * size))
-        for c in range(0, lsc):
+        lst = len(self.selectTabs[0])
+        print('copySelectTabs({}) row={}, col={}, ns={}, lsr={}, lsc={}, lt={}, lst={}, lc={}, cursorDir={}'.format(arpg, self.row, self.col, ns, lsr, lsc, lt, lst, lc, self.cursorDir), file=self.dbgFile)
+        for c in range(0, lc):
             cc = self.selectCols[c]
             for r in range(0, lsr):
                 rr = self.selectRows[r]
-                if arpg:
-                    if   self.cursorDir == self.CURSOR_DIRS['DOWN']: ccc = c * lsr + r
-                    elif self.cursorDir == self.CURSOR_DIRS['UP']:   ccc = (c + 1) * lsr - r - 1
-                else: ccc = c
-                self.selectTabs[r][ccc]  = self.tabs[rr][cc]
-                self.selectHTabs[r][ccc] = self.htabs[rr][cc]
-                print('arpeggiateSelectTabs() c={}, lsr={}, selectTabs[{}][{}]={}, tabs[{}][{}]={}'.format(c, lsr, r, ccc, chr(self.selectTabs[r][ccc]), rr, cc, chr(self.tabs[rr][cc])), file=self.dbgFile)
-            print('arpeggiateSelect() row={}, col={}, len(selectTabs)={}, len(selectTabs[0])={}'.format(self.row, self.col, len(self.selectTabs), len(self.selectTabs[0])), file=self.dbgFile)
+                if arpg == 0:
+                    if   self.cursorDir == self.CURSOR_DIRS['DOWN']: ccc = c * ns + r + cc - c
+                    elif self.cursorDir == self.CURSOR_DIRS['UP']:   ccc = (c + 1) * ns - r - 1 + cc - c
+                    print('copySelectTabs({}) r={}, rr={}, c={}, cc={}, ccc={}, '.format(arpg, r, rr, c, cc, ccc), end='', file=self.dbgFile)
+                    self.selectTabs[r][c]  = self.tabs[rr][ccc]
+                    self.selectHTabs[r][c] = self.htabs[rr][ccc]
+                    print('selectTabs[{}][{}]={}, tabs[{}][{}]={}'.format(r, c, chr(self.selectTabs[r][c]), rr, ccc, chr(self.tabs[rr][ccc])), file=self.dbgFile)
+                else:
+                    if arpg == 1:
+                        if   self.cursorDir == self.CURSOR_DIRS['DOWN']: ccc = c * lsr + r
+                        elif self.cursorDir == self.CURSOR_DIRS['UP']:   ccc = (c + 1) * lsr - r - 1
+                    elif arpg is None: ccc = c
+                    print('copySelectTabs({}) r={}, rr={}, c={}, cc={}, ccc={}, '.format(arpg, r, rr, c, cc, ccc), end='', file=self.dbgFile)
+                    self.selectTabs[r][ccc]  = self.tabs[rr][cc]
+                    self.selectHTabs[r][ccc] = self.htabs[rr][cc]
+                    print('selectTabs[{}][{}]={}, tabs[{}][{}]={}'.format(r, ccc, chr(self.selectTabs[r][ccc]), rr, cc, chr(self.tabs[rr][cc])), file=self.dbgFile)
             self.printSelectTabs()
             
     def deleteSelectTabs(self, delSel=True):
@@ -1301,64 +1317,67 @@ class Tabs(object):
     
     def pasteSelectTabs(self):
         '''Paste selected tabs as chords or stretched into arpeggios.'''
-        lsr, lsc, lst = len(self.selectRows), len(self.selectCols), len(self.selectTabs)
+        ns, lt, lsr, lsc, lst = self.numStrings, len(self.tabs[0]), len(self.selectRows), len(self.selectCols), len(self.selectTabs)
         if lst == 0:
             self.printe('pasteSelectTabs() no tabs to paste, lsr={}, lsc={}, lst={}, use CTRL/SHIFT C or X to copy or cut selected tabs'.format(lsr, lsc, lst))
             return
         col, row, lst = self.col, self.row, len(self.selectTabs[0])
-        print('pasteSelectTabs(bgn) arpeggiate={}, row={}, col={}, lsr={}, endRow={}'.format(self.arpeggiate, row, col, lsr, self.endRow(self.row2Line(row))), file=self.dbgFile)
+        print('pasteSelectTabs({},{}) BGN row={}, col={}, ns={}, lt={}, lsr={}, lsc={}, lst={}, endRow={}'.format(self.arpeggiate, self.cursorDir, row, col, ns, lt, lsr, lsc, lst, self.endRow(self.row2Line(row))), file=self.dbgFile)
         while lsr > self.endRow(self.row2Line(row)) - row + 1:
             row -= 1
             print('pasteSelectTabs(--row) lsr={}, endRow={}, row={}'.format(lsr, self.endRow(self.row2Line(row)), row), file=self.dbgFile)
         rr, cc = self.rowCol2Indices(row, col)
-        if self.arpeggiate: ls = lst
-        else:               ls = lsc
-        print('pasteSelectTabs() row={}, col={}, rr={}, cc={}'.format(row, col, rr, cc), file=self.dbgFile)
+        if self.arpeggiate is None: lc = lsc
+        else:                       lc = lst
+        print('pasteSelectTabs({},{}) row={}, col={}, rr={}, cc={}, lc={}'.format(self.arpeggiate, self.cursorDir, row, col, rr, cc, lc), file=self.dbgFile)
         if self.editMode == self.EDIT_MODES['INSERT']:
-            for c in range(len(self.tabs[0]) - 1, cc - 1, -1):
+            for c in range(len(lt - 1, cc - 1, -1)):
                 for r in range(0, lsr):
-                    if c >= ls + cc:
-                        self.tabs[r][c] = self.tabs[r][c - ls]
-                        self.htabs[r][c] = self.htabs[r][c - ls]
-                        print('pasteSelectTabs(INSERT) c={} >= cc={} + ls={}, tabs[{}][{}]={}'.format(c, cc, ls, r, c, chr(self.tabs[r][c])), file=self.dbgFile)
+                    if c >= lc + cc:
+                        self.tabs[r][c] = self.tabs[r][c - lc]
+                        self.htabs[r][c] = self.htabs[r][c - lc]
+                        print('pasteSelectTabs(INSERT) c={} >= cc={} + lc={}, tabs[{}][{}]={}'.format(c, cc, lc, r, c, chr(self.tabs[r][c])), file=self.dbgFile)
                     elif self.arpeggiate:
                         self.tabs[r][c] = ord('-')
                         self.htabs[r][c] = ord('-')
                         print('pasteSelectTabs(INSERT) c={} < cc={} + lst={}, tabs[{}][{}]={}'.format(c, cc, lst, r, c, chr(self.tabs[r][c])), file=self.dbgFile)
         elif self.arpeggiate and self.editMode == self.EDIT_MODES['REPLACE']:
             for c in range(cc, cc + lst):
-                if c < len(self.tabs[0]):
+                if c < lt:
                     for r in range(0, lsr):
                         self.tabs[r][c] = ord('-')
                         self.htabs[r][c] = ord('-')
                         print('pasteSelectTabs(REPLACE) tabs[{}][{}]={}'.format(r, c, chr(self.tabs[r][c])), file=self.dbgFile)
                 else:
-                    self.printe('pasteSelectTabs() c={} >= len(tabs[0])={} skip remaining columns'.format(c, len(self.tabs[0])))
+                    self.printe('pasteSelectTabs() c={} >= len(tabs[0])={} skip remaining columns'.format(c, lt))
                     break
-        range_error = 0
+        rangeError = 0
         for c in range(0, lsc):
-            if range_error: break
+            if rangeError: break
             for r in range(0, lsr):
-                if self.arpeggiate:
+                if self.arpeggiate == 1:
                     if   self.cursorDir == self.CURSOR_DIRS['DOWN']: ccc = c * lsr + r
                     elif self.cursorDir == self.CURSOR_DIRS['UP']:   ccc = (c + 1) * lsr - r - 1
                 else: ccc = c
-                if ccc + cc < len(self.tabs[0]):
-                    self.tabs[r + rr][ccc + cc] = self.selectTabs[r][ccc]
-                    self.htabs[r + rr][ccc + cc] = self.selectHTabs[r][ccc]
-                    print('    tabs[{}][{}]={}'.format(r + rr, ccc + cc, chr(self.tabs[r + rr][ccc + cc])), file=self.dbgFile)
-                else:
-                    self.printe('pasteSelectTabs() ccc={} + cc={} >= len(tabs[0])={} skip remaining rows and columns'.format(ccc, cc, len(self.tabs[0])))
-                    range_error = 1
-                    break
+                print('pasteSelectTabs(check) r={}, rr={}, c={}, cc={}, ccc={}, lt={}, lst={}'.format(r, rr, c, cc, ccc, lt, lst), end='', file=self.dbgFile)
+                if c < lst:
+                    if ccc + cc < len(self.tabs[0]):
+                        self.tabs[r + rr][ccc + cc] = self.selectTabs[r][ccc]
+                        self.htabs[r + rr][ccc + cc] = self.selectHTabs[r][ccc]
+                        print(', selectTabs[{}][{}]={}, tabs[{}][{}]={}'.format(r, ccc, chr(self.selectTabs[r][ccc]), r + rr, ccc + cc, chr(self.tabs[r + rr][ccc + cc])), file=self.dbgFile)
+                    else:
+                        print(file=self.dbgFile)
+                        self.printe('pasteSelectTabs() ccc={} + cc={} >= len(tabs[0])={} skip remaining rows and columns'.format(ccc, cc, len(self.tabs[0])))
+                        rangeError = 1
+                        break
             print('pasteSelectTabs(loop1) c={}, sc={}'.format(c, self.selectCols[c]), file=self.dbgFile)
             self.selectStyle(self.selectCols[c], self.styles['NORMAL'], rList=self.selectRows)
         if self.editMode == self.EDIT_MODES['INSERT']:
             self.printTabs()
         elif self.editMode == self.EDIT_MODES['REPLACE']:
-            for c in range(cc, cc + ls):
+            for c in range(cc, cc + lc):
                 if c >= len(self.tabs[0]):
-                    self.printe('pasteSelectTabs() c={} + ls={} >= len(tabs[0])={} skip remaining columns'.format(c, ls, len(self.tabs[0])))
+                    self.printe('pasteSelectTabs() c={} + lc={} >= len(tabs[0])={} skip remaining columns'.format(c, lc, len(self.tabs[0])))
                     break
                 col = self.index2Col(c)
                 if c % self.numTabsPerStringPerLine == 0:
