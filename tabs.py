@@ -1232,35 +1232,30 @@ class Tabs(object):
         if nsr == 0 or nsc == 0:
             self.printe('copySelectTabs() no tabs selected, nsr={}, nsc={}, use the CTRL ARROW keys to select rows and or columns'.format(nsr, nsc))
             return
-        if   arpg == 1: size, nc = nsc * nsr,     nsc
-        elif arpg == 0: size, nc = int(nsc / ns), int(nsc / ns)
-        else:           size, nc = nsc,           nsc
+        if arpg is None: size, nc = nsc,           nsc
+        elif  arpg == 1: size, nc = nsc * nsr,     nsc
+        elif  arpg == 0: size, nc = int(nsc / ns), int(nsc / ns)
         self.printSelectTabs(cols=1)
         for r in range(0, nsr):
             self.selectTabs.append(bytearray([ord(' ')] * size))
             self.selectHTabs.append(bytearray([ord('0')] * size))
         nst = len(self.selectTabs[0])
-        print('copySelectTabs({}) row={}, col={}, ns={}, nsr={}, nsc={}, nt={}, nst={}, nc={}, cursorDir={}'.format(arpg, self.row, self.col, ns, nsr, nsc, nt, nst, nc, self.cursorDir), file=self.dbgFile)
+        print('copySelectTabs({},{}) row={}, col={}, ns={}, nsr={}, nsc={}, nt={}, nst={}, nc={}'.format(arpg, self.cursorDir, self.row, self.col, ns, nsr, nsc, nt, nst, nc), file=self.dbgFile)
         for c in range(0, nc):
             cc = self.selectCols[c]
             for r in range(0, nsr):
                 rr = self.selectRows[r]
-                if arpg == 0:
-                    if   self.cursorDir == self.CURSOR_DIRS['DOWN']: ccc = c * ns + r + cc - c
-                    elif self.cursorDir == self.CURSOR_DIRS['UP']:   ccc = (c + 1) * ns - r - 1 + cc - c
-                    print('copySelectTabs({}) r={}, rr={}, c={}, cc={}, ccc={}, '.format(arpg, r, rr, c, cc, ccc), end='', file=self.dbgFile)
-                    self.selectTabs[r][c]  = self.tabs[rr][ccc]
-                    self.selectHTabs[r][c] = self.htabs[rr][ccc]
-                    print('selectTabs[{}][{}]={}, tabs[{}][{}]={}'.format(r, c, chr(self.selectTabs[r][c]), rr, ccc, chr(self.tabs[rr][ccc])), file=self.dbgFile)
-                else:
-                    if arpg == 1:
-                        if   self.cursorDir == self.CURSOR_DIRS['DOWN']: ccc = c * nsr + r
-                        elif self.cursorDir == self.CURSOR_DIRS['UP']:   ccc = (c + 1) * nsr - r - 1
-                    elif arpg is None: ccc = c
-                    print('copySelectTabs({}) r={}, rr={}, c={}, cc={}, ccc={}, '.format(arpg, r, rr, c, cc, ccc), end='', file=self.dbgFile)
-                    self.selectTabs[r][ccc]  = self.tabs[rr][cc]
-                    self.selectHTabs[r][ccc] = self.htabs[rr][cc]
-                    print('selectTabs[{}][{}]={}, tabs[{}][{}]={}'.format(r, ccc, chr(self.selectTabs[r][ccc]), rr, cc, chr(self.tabs[rr][cc])), file=self.dbgFile)
+                if arpg is None: cst, ct = c, c
+                elif arpg == 0:
+                    if   self.cursorDir == self.CURSOR_DIRS['DOWN']: cst, ct = c, c * ns + r + cc - c
+                    elif self.cursorDir == self.CURSOR_DIRS['UP']:   cst, ct = c, (c + 1) * ns - r - 1 + cc - c
+                elif arpg == 1:
+                    if   self.cursorDir == self.CURSOR_DIRS['DOWN']: cst, ct = c * nsr + r, cc
+                    elif self.cursorDir == self.CURSOR_DIRS['UP']:   cst, ct = (c + 1) * nsr - r - 1, cc
+                print('copySelectTabs({},{}) r={}, rr={}, c={}, cc={}, cst={}, ct={}, '.format(arpg, self.cursorDir, r, rr, c, cc, cst, ct), end='', file=self.dbgFile)
+                self.selectTabs[r][cst]  = self.tabs[rr][ct]
+                self.selectHTabs[r][cst] = self.htabs[rr][ct]
+                print('selectTabs[{}][{}]={}, tabs[{}][{}]={}'.format(r, cst, chr(self.selectTabs[r][cst]), rr, ct, chr(self.tabs[rr][ct])), file=self.dbgFile)
             self.printSelectTabs()
             
     def deleteSelectTabs(self, delSel=True):
@@ -1765,7 +1760,6 @@ E0------------------------------------------------------------------------------
  
 Desired new features list:
     Optimize printTabs?
-    Compress arpeggio -> chord; Expand chord -> arpeggio?
     Print arpeggio chord names?
     Analysis for scale and key signature calculation
     Improve file I/O and usage
