@@ -851,13 +851,19 @@ class Tabs(object):
     
     def selectRow(self, up=0):
         '''Select row, append to selected rows list, hilite current tab, and advance (up or down) to next tab.'''
-        r = self.row2Index(self.row)
-        c = self.col2Index(self.col)
-        print('selectRow({},{}) befor appending r={}, c={}, selectRows={}, selectCols={}'.format(self.row, self.col, r, c, self.selectRows, self.selectCols), file=self.dbgFile)
-        self.selectRows.append(r)
-        self.selectCols.append(c)
-        print('selectRow({},{}) after appending r={}, c={}, selectRows={}, selectCols={}'.format(self.row, self.col, r, c, self.selectRows, self.selectCols), file=self.dbgFile)
-        self.selectStyle(c, self.styles['BRIGHT'], rList=self.selectRows)
+        row, col, r, c, br, er = self.row, self.col, self.row2Index(self.row), self.col2Index(self.col), self.bgnRow(self.row2Line(self.row)), self.endRow(self.row2Line(self.row))
+        print('selectRow(up={}) ({},{}) bgn r={}, c={}, selectRows={}, selectCols={}, br={}, er={}'.format(up, row, col, r, c, self.selectRows, self.selectCols, br, er), file=self.dbgFile)
+        if len(self.selectRows) < self.numStrings:
+            self.selectRows.append(r)
+            self.selectCols.append(c)
+            print('selectRow(up={}) ({},{}) after appending r={}, c={}, selectRows={}, selectCols={}'.format(up, row, col, r, c, self.selectRows, self.selectCols), file=self.dbgFile)
+            self.selectStyle(c, self.styles['BRIGHT'], rList=self.selectRows)
+        if up == 1 and row == br or up == 0 and row == er:
+            if up: dir, pos = 'up', 'bgn'
+            else:  dir, pos = 'down', 'end'
+            print('selectRow(up={}) ignoring cursor movement, because dir={} and row={} == {}Row'.format(up, dir, row, pos), file=self.dbgFile)
+            self.resetPos()
+            return
         if up: self.moveUp()
         else:  self.moveDown()
 
@@ -865,38 +871,37 @@ class Tabs(object):
         '''Unselect row, remove it from selected rows list, un-hilite the current tab, and advance (up or down) to the next tab.'''
         if len(self.selectRows):
             r = self.row2Index(self.row)
-            print('unselectRow({},{}) checking if r={} in selectRows={}'.format(self.row, self.col, r, self.selectRows), file=self.dbgFile)
+            c = self.col2Index(self.col)
+            print('unselectRow(up={}) ({},{}) checking if r={}, c={}, in selectRows={}, selectCols={}'.format(up, self.row, self.col, r, c, self.selectRows, self.selectCols), file=self.dbgFile)
             if r in self.selectRows:
-                print('unselectRow({},{}) before removing r={} from selectRows={}'.format(self.row, self.col, r, self.selectRows), file=self.dbgFile)
+                print('unselectRow(up={}) ({},{}) before removing r={}, c={}, from selectRows={}, selectCols={}'.format(up, self.row, self.col, r, c, self.selectRows, self.selectCols), file=self.dbgFile)
                 self.selectRows.remove(r)
-                print('unselectRow({},{}) after removing r={} from selectRows={}'.format(self.row, self.col, r, self.selectRows), file=self.dbgFile)
-                c = self.col2Index(self.col)
+                print('unselectRow(up={}) ({},{}) after removing r={}, c={}, from selectRows={}, selectCols={}'.format(up, self.row, self.col, r, c, self.selectRows, self.selectCols), file=self.dbgFile)
+#                aqq = self.col2Index(self.col)
                 self.selectStyle(c, self.styles['NORMAL'], r=r)
                 if up: self.moveUp()
                 else:  self.moveDown()
-            else: print('unselectRow({},{}) r={} not in selectRows={}, nothing to unselect'.format(self.row, self.col, r, self.selectRows), file=self.dbgFile)
-        else: print('unselectRow({},{}) selectRows={}, empty list, nothing to unselect'.format(self.row, self.col, self.selectRows), file=self.dbgFile)
+            else: print('unselectRow(up={}) ({},{}) nothing to unselect, r={} not in selectRows={}, selectCols={}'.format(up, self.row, self.col, r, self.selectRows, self.selectCols), file=self.dbgFile)
+        else: print('unselectRow(up={}) ({},{}) empty list, nothing to unselect, r={} selectRows={}, selectCols={}'.format(up, self.row, self.col, r, self.selectRows, self.selectCols), file=self.dbgFile)
         
     def selectCol(self, left=0):
         '''Select column, append to selected columns list, hilite current tab, and advance (left or right) to next tab.'''
+        cc = self.col2Index(self.col)
+        print('selectCol(left={}) ({}{}), cc={} selectFlag={}, selectRows={}, selectCols={}'.format(left, self.row, self.col, cc, self.selectFlag, self.selectRows, self.selectCols), file=self.dbgFile)
         if len(self.selectRows) == 0:
             self.selectFlag = 1
-            print('selectCol({},{}) before appending all rows, selectCols={}, selectRows={}'.format(self.row, self.col, self.selectCols, self.selectRows), file=self.dbgFile)
             for r in range(0, self.numStrings):
                 self.selectRows.append(r)
-            print('selectCol({},{}) after appending all rows, selectCols={}, selectRows={}'.format(self.row, self.col, self.selectCols, self.selectRows), file=self.dbgFile)
+            print('selectCol(left={}) ({}{}) appended all rows, cc={}, selectFlag={}, selectRows={}, selectCols={}'.format(left, self.row, self.col, cc, self.selectFlag, self.selectRows, self.selectCols), file=self.dbgFile)
         elif self.selectFlag == 0:
             self.selectFlag = 1
-            print('selectCol({},{}) before removing all cols, selectCols={}, selectRows={}'.format(self.row, self.col, self.selectCols, self.selectRows), file=self.dbgFile)
             for c in range(0, len(self.selectCols)):
                 self.selectStyle(c, self.styles['NORMAL'], rList=self.selectRows)
             self.selectCols = []
-            print('selectCol({},{}) after removing all cols, selectCols={}, selectRows={}'.format(self.row, self.col, self.selectCols, self.selectRows), file=self.dbgFile)
-        c = self.col2Index(self.col)
-        print('selectCol({},{}) before appending c={}, selectCols={}, selectRows={}'.format(self.row, self.col, c, self.selectCols, self.selectRows), file=self.dbgFile)
-        self.selectCols.append(c)
-        print('selectCol({},{}) after appending c={}, selectCols={}, selectRows={}'.format(self.row, self.col, c, self.selectCols, self.selectRows), file=self.dbgFile)
-        self.selectStyle(c, self.styles['BRIGHT'], rList=self.selectRows)
+            print('selectCol(left={}) ({},{}) removed all cols, cc={}, selectFlag={}, selectRows={}, selectCols={}'.format(left, self.row, self.col, cc, self.selectFlag, self.selectRows, self.selectCols), file=self.dbgFile)
+        self.selectCols.append(cc)
+        print('selectCol(left={}) ({},{}) appended cc={}, selectFlag={}, selectRows={}, selectCols={}'.format(left, self.row, self.col, cc, self.selectFlag, self.selectRows, self.selectCols), file=self.dbgFile)
+        self.selectStyle(cc, self.styles['BRIGHT'], rList=self.selectRows)
         if left: self.moveLeft()
         else:    self.moveRight()
 
@@ -904,24 +909,25 @@ class Tabs(object):
         '''Unselect column, remove it from selected columns list, un-hilite the current tab, and advance (left or right) to the next tab.'''
         if len(self.selectCols):
             c = self.col2Index(self.col)
-            print('unselectCol({},{}) checking if c={} in selectCols={}'.format(self.row, self.col, c, self.selectCols), file=self.dbgFile)
+            print('unselectCol(left={}) ({},{}) checking if c={} in selectCols={}'.format(left, self.row, self.col, c, self.selectCols), file=self.dbgFile)
             if c in self.selectCols:
-                print('unselectCol({},{}) before removing c={} from selectCols={}'.format(self.row, self.col, c, self.selectCols), file=self.dbgFile)
+                print('unselectCol(left={}) ({},{}) before removing c={} from selectCols={}'.format(left, self.row, self.col, c, self.selectCols), file=self.dbgFile)
                 self.selectCols.remove(c)
-                print('unselectCol({},{}) after removing c={} from selectCols={}'.format(self.row, self.col, c, self.selectCols), file=self.dbgFile)
+                print('unselectCol(left={}) ({},{}) after removing c={} from selectCols={}'.format(left, self.row, self.col, c, self.selectCols), file=self.dbgFile)
                 self.selectStyle(c, self.styles['NORMAL'], rList=self.selectRows)
                 if left: self.moveLeft()
                 else:    self.moveRight()
-            else: print('unselectCol({},{}) c={} not in selectCols={}, nothing to unselect'.format(self.row, self.col, c, self.selectCols), file=self.dbgFile)
-        else: print('unselectCol({},{}) selectCols={}, empty list, nothing to unselect'.format(self.row, self.col, self.selectCols), file=self.dbgFile)
+            else: print('unselectCol(left={}) ({},{}) c={} not in selectCols={}, nothing to unselect'.format(left, self.row, self.col, c, self.selectCols), file=self.dbgFile)
+        else: print('unselectCol(left={}) ({},{}) selectCols={}, empty list, nothing to unselect'.format(left, self.row, self.col, self.selectCols), file=self.dbgFile)
 
     def unselectAll(self):
         '''Unselect all rows and columns.'''
-        self.printLineInfo('unselectAll({}, {})'.format(self.row, self.col))
+        print('unselectAll({},{}) bgn selectFlag={}, selectRows={}, selectCols={}, selectTabs={}'.format(self.row, self.col, self.selectFlag, self.selectRows, self.selectCols, self.selectTabs), file=self.dbgFile)
         for c in range(0, len(self.selectCols)):
             self.selectStyle(self.selectCols[c], self.styles['NORMAL'], rList=self.selectRows)
-        self.selectRows, self.selectCols, self.selectTabs, self.selectHTabs = [], [], [], []
+        self.selectRows, self.selectCols, self.selectTabs, self.selectHTabs, self.selectFlag = [], [], [], [], 0
         self.resetPos()
+        print('unselectAll({},{}) end selectFlag={}, selectRows={}, selectCols={}, selectTabs={}'.format(self.row, self.col, self.selectFlag, self.selectRows, self.selectCols, self.selectTabs), file=self.dbgFile)
             
     def selectStyle(self, c, style, rList=None, r=None):
         print('selectStyle({}) c={}, rList={}, r={}'.format(style, c, rList, r), file=self.dbgFile)
@@ -1227,7 +1233,7 @@ class Tabs(object):
             self.printTabs()
 
     def copySelectTabs(self, arpg=None):
-        '''Copy selected tabs.  If arpg, transform selected tabs from a chord to an arpeggio.'''
+        '''Copy selected tabs.  If arpg==1, transform selected tabs from a chord to an arpeggio, elif arpg==0, transform selected tabs from an arpeggio to a chord.'''
         self.arpeggiate, ns, nt, nsr, nsc = arpg, self.numStrings, len(self.tabs[0]), len(self.selectRows), len(self.selectCols)
         if nsr == 0 or nsc == 0:
             self.printe('copySelectTabs() no tabs selected, nsr={}, nsc={}, use the CTRL ARROW keys to select rows and or columns'.format(nsr, nsc))
@@ -1235,7 +1241,7 @@ class Tabs(object):
         if arpg is None: size, nc = nsc,           nsc
         elif  arpg == 1: size, nc = nsc * nsr,     nsc
         elif  arpg == 0: size, nc = int(nsc / ns), int(nsc / ns)
-        self.printSelectTabs(cols=1)
+        self.printSelectTabs(info='copySelectTabs()', cols=1)
         for r in range(0, nsr):
             self.selectTabs.append(bytearray([ord(' ')] * size))
             self.selectHTabs.append(bytearray([ord('0')] * size))
@@ -1245,18 +1251,18 @@ class Tabs(object):
             cc = self.selectCols[c]
             for r in range(0, nsr):
                 rr = self.selectRows[r]
-                if arpg is None: cst, ct = c, c
+                if arpg is None: cst, ct = c, cc
                 elif arpg == 0:
                     if   self.cursorDir == self.CURSOR_DIRS['DOWN']: cst, ct = c, c * ns + r + cc - c
                     elif self.cursorDir == self.CURSOR_DIRS['UP']:   cst, ct = c, (c + 1) * ns - r - 1 + cc - c
                 elif arpg == 1:
                     if   self.cursorDir == self.CURSOR_DIRS['DOWN']: cst, ct = c * nsr + r, cc
                     elif self.cursorDir == self.CURSOR_DIRS['UP']:   cst, ct = (c + 1) * nsr - r - 1, cc
-                print('copySelectTabs({},{}) r={}, rr={}, c={}, cc={}, cst={}, ct={}, '.format(arpg, self.cursorDir, r, rr, c, cc, cst, ct), end='', file=self.dbgFile)
+                print('copySelectTabs({},{}) r={},  ={}, c={}, cc={}, cst={}, ct={}, '.format(arpg, self.cursorDir, r, rr, c, cc, cst, ct), end='', file=self.dbgFile)
                 self.selectTabs[r][cst]  = self.tabs[rr][ct]
                 self.selectHTabs[r][cst] = self.htabs[rr][ct]
                 print('selectTabs[{}][{}]={}, tabs[{}][{}]={}'.format(r, cst, chr(self.selectTabs[r][cst]), rr, ct, chr(self.tabs[rr][ct])), file=self.dbgFile)
-            self.printSelectTabs()
+            self.printSelectTabs(info='copySelectTabs()')
             
     def deleteSelectTabs(self, delSel=True):
         '''Delete selected tabs.'''
@@ -1280,13 +1286,13 @@ class Tabs(object):
         self.copySelectTabs(arpg=arpg)
         self.deleteSelectTabs(delSel=False)
     
-    def printSelectTabs(self, cols=0):
-        print('printSelectTabs() len(selectCols)={}, len(selectTabs)={}'.format(len(self.selectCols), len(self.selectTabs)), file=self.dbgFile)
+    def printSelectTabs(self, info='', cols=0):
+        print('printSelectTabs(cols={}, info={}) len(selectCols)={}, len(selectTabs)={}'.format(cols, info, len(self.selectCols), len(self.selectTabs)), file=self.dbgFile)
         if cols:
-            for d in range(0, len(self.selectCols)):
-                print('    selectCols[{}]={}'.format(d, self.selectCols[d]), file=self.dbgFile)
-        for d in range(0, len(self.selectTabs)):
-            print('    selectTabs[{}]={}'.format(d, self.selectTabs[d]), file=self.dbgFile)
+            for c in range(0, len(self.selectCols)):
+                print('    selectCols[{}]={}'.format(c, self.selectCols[c]), file=self.dbgFile)
+        for c in range(0, len(self.selectTabs)):
+            print('    selectTabs[{}]={}'.format(c, self.selectTabs[c]), file=self.dbgFile)
 
     def deleteTabs(self, cc):
         row, col = self.indices2RowCol(0, cc)
@@ -1309,18 +1315,19 @@ class Tabs(object):
                         self.prints(chr(tab), r + row + self.numStrings, col, self.styles['NAT_NOTE'])
                 self.prints(chr(tab), r + row, col, self.styles['TABS'])
 #        self.dumpTabs('deleteTabs({}, {}) col={} end: '.format(self.row, self.col, col))
-    
+
     def pasteSelectTabs(self):
         '''Paste selected tabs as chords or stretched into arpeggios.'''
-        ns, nt, nsr, nsc, nst = self.numStrings, len(self.tabs[0]), len(self.selectRows), len(self.selectCols), len(self.selectTabs)
+        ns, nt, nsr, nsc, nst, line = self.numStrings, len(self.tabs[0]), len(self.selectRows), len(self.selectCols), len(self.selectTabs), self.row2Line(self.row)
         if nst == 0:
             self.printe('pasteSelectTabs() no tabs to paste, nsr={}, nsc={}, nst={}, use CTRL/SHIFT C or X to copy or cut selected tabs'.format(nsr, nsc, nst))
             return
-        col, row, nst = self.col, self.row, len(self.selectTabs[0])
-        print('pasteSelectTabs({},{}) BGN row={}, col={}, ns={}, nt={}, nsr={}, nsc={}, nst={}, endRow={}'.format(self.arpeggiate, self.cursorDir, row, col, ns, nt, nsr, nsc, nst, self.endRow(self.row2Line(row))), file=self.dbgFile)
-        while nsr > self.endRow(self.row2Line(row)) - row + 1:
+        row, col, nst, br, er = self.row, self.col, len(self.selectTabs[0]), self.bgnRow(line), self.endRow(line)
+        print('pasteSelectTabs({},{}) ({},{}) bgn ns={}, nt={}, nsr={}, nsc={}, nst={}, er={}'.format(self.arpeggiate, self.cursorDir, row, col, ns, nt, nsr, nsc, nst, er), file=self.dbgFile)
+        while row + nsr - 1 > er:
             row -= 1
-            print('pasteSelectTabs(--row) nsr={}, endRow={}, row={}'.format(nsr, self.endRow(self.row2Line(row)), row), file=self.dbgFile)
+            if row < br: self.printe('pasteSelectTabs() tried to adjust row={} < br={}, nsr={}'.format(row, br, nsr))
+            print('pasteSelectTabs(--row) row={} + nsr={} - 1 <= er={}'.format(row, nsr, er), file=self.dbgFile)
         rr, cc = self.rowCol2Indices(row, col)
         if self.arpeggiate is None: nc = nsc
         else:                       nc = nst
@@ -1366,7 +1373,7 @@ class Tabs(object):
                         rangeError = 1
                         break
             print('pasteSelectTabs(loop1) c={}, sc={}'.format(c, self.selectCols[c]), file=self.dbgFile)
-            self.selectStyle(self.selectCols[c], self.styles['NORMAL'], rList=self.selectRows)
+            if not rangeError: self.selectStyle(self.selectCols[c], self.styles['NORMAL'], rList=self.selectRows)
         if self.editMode == self.EDIT_MODES['INSERT']:
             self.printTabs()
         elif self.editMode == self.EDIT_MODES['REPLACE']:
@@ -1397,12 +1404,14 @@ class Tabs(object):
                     else:
                         self.prints(chr(tab), row, col, self.styles['TABS'])
             self.resetPos()
-        self.selectTabs, self.selectHTabs, self.selectCols, self.selectRows = [], [], [], []
+        if not rangeError:
+            self.selectTabs, self.selectHTabs, self.selectCols, self.selectRows = [], [], [], []
         if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
             self.chordsObj.printChords()
         self.resetPos()
+        self.selectFlag = 0
         self.arpeggiate = 0
-        self.dumpTabs('pasteSelectTabs({},{}) END row={}, col={}'.format(self.arpeggiate, self.cursorDir, row, col))
+        self.dumpTabs('pasteSelectTabs({},{}) end row={}, col={}'.format(self.arpeggiate, self.cursorDir, row, col))
 
     def dumpTabs(self, reason='', h=None):
         print('dumpTabs({})'.format(reason), file=self.dbgFile)
