@@ -877,7 +877,6 @@ class Tabs(object):
                 print('unselectRow(up={}) ({},{}) before removing r={}, c={}, from selectRows={}, selectCols={}'.format(up, self.row, self.col, r, c, self.selectRows, self.selectCols), file=self.dbgFile)
                 self.selectRows.remove(r)
                 print('unselectRow(up={}) ({},{}) after removing r={}, c={}, from selectRows={}, selectCols={}'.format(up, self.row, self.col, r, c, self.selectRows, self.selectCols), file=self.dbgFile)
-#                aqq = self.col2Index(self.col)
                 self.selectStyle(c, self.styles['NORMAL'], r=r)
                 if up: self.moveUp()
                 else:  self.moveDown()
@@ -1316,13 +1315,15 @@ class Tabs(object):
                 self.prints(chr(tab), r + row, col, self.styles['TABS'])
 #        self.dumpTabs('deleteTabs({}, {}) col={} end: '.format(self.row, self.col, col))
 
-    def pasteSelectTabs(self):
-        '''Paste selected tabs as chords or stretched into arpeggios.'''
-        ns, nt, nsr, nsc, nst, line = self.numStrings, len(self.tabs[0]), len(self.selectRows), len(self.selectCols), len(self.selectTabs), self.row2Line(self.row)
+    def _initPasteInfo(self):
+        nc, rangeError, row, col = 0, 0, self.row, self.col
+        rr, cc, = self.rowCol2Indices(row, col)
+        line, ns, nt, nsr, nsc, nst = self.row2Line(self.row), self.numStrings, len(self.tabs[0]), len(self.selectRows), len(self.selectCols), len(self.selectTabs)
         if nst == 0:
             self.printe('pasteSelectTabs() no tabs to paste, nsr={}, nsc={}, nst={}, use CTRL/SHIFT C or X to copy or cut selected tabs'.format(nsr, nsc, nst))
-            return
-        row, col, nst, br, er = self.row, self.col, len(self.selectTabs[0]), self.bgnRow(line), self.endRow(line)
+            return rangeError, nc, row, col, rr, cc, line, ns, nt, nsr, nsc, nst
+        nst = len(self.selectTabs[0])
+        br, er = self.bgnRow(line), self.endRow(line)
         print('pasteSelectTabs({},{}) ({},{}) bgn ns={}, nt={}, nsr={}, nsc={}, nst={}, er={}'.format(self.arpeggiate, self.cursorDir, row, col, ns, nt, nsr, nsc, nst, er), file=self.dbgFile)
         while row + nsr - 1 > er:
             row -= 1
@@ -1343,17 +1344,13 @@ class Tabs(object):
                         self.tabs[r][c] = ord('-')
                         self.htabs[r][c] = ord('-')
                         print('pasteSelectTabs(INSERT) c={} < cc={} + nst={}, tabs[{}][{}]={}'.format(c, cc, nst, r, c, chr(self.tabs[r][c])), file=self.dbgFile)
-        elif self.arpeggiate and self.editMode == self.EDIT_MODES['REPLACE']:
+        elif self.editMode == self.EDIT_MODES['REPLACE'] and self.arpeggiate and cc + nst < nt:
             for c in range(cc, cc + nst):
-                if c < nt:
-                    for r in range(0, nsr):
-                        self.tabs[r][c] = ord('-')
-                        self.htabs[r][c] = ord('-')
-                        print('pasteSelectTabs(REPLACE) tabs[{}][{}]={}'.format(r, c, chr(self.tabs[r][c])), file=self.dbgFile)
-                else:
-                    self.printe('pasteSelectTabs() c={} >= len(tabs[0])={} skip remaining columns'.format(c, nt))
-                    break
-        rangeError = 0
+                for r in range(0, nsr):
+                    self.tabs[r][c] = ord('-')
+                    self.htabs[r][c] = ord('-')
+                    print('pasteSelectTabs(REPLACE) tabs[{}][{}]={}'.format(r, c, chr(self.tabs[r][c])), file=self.dbgFile)
+        else: self.printe('pasteSelectTabs() c={} >= len(tabs[0])={} skip remaining columns'.format(cc + nst, nt))
         for c in range(0, nsc):
             if rangeError: break
             for r in range(0, nsr):
@@ -1374,6 +1371,12 @@ class Tabs(object):
                         break
             print('pasteSelectTabs(loop1) c={}, sc={}'.format(c, self.selectCols[c]), file=self.dbgFile)
             if not rangeError: self.selectStyle(self.selectCols[c], self.styles['NORMAL'], rList=self.selectRows)
+        return rangeError, nc, row, col, rr, cc, line, ns, nt, nsr, nsc, nst
+        
+    def pasteSelectTabs(self):
+        '''Paste selected tabs as is or either stretched in time (like arpeggios) or compressed in time.'''
+        rangeError, nc, row, col, rr, cc, line, ns, nt, nsr, nsc, nst = self._initPasteInfo()
+        if nst == 0: return
         if self.editMode == self.EDIT_MODES['INSERT']:
             self.printTabs()
         elif self.editMode == self.EDIT_MODES['REPLACE']:
@@ -1409,8 +1412,7 @@ class Tabs(object):
         if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
             self.chordsObj.printChords()
         self.resetPos()
-        self.selectFlag = 0
-        self.arpeggiate = 0
+        self.arpeggiate, self.selectFlag = 0, 0
         self.dumpTabs('pasteSelectTabs({},{}) end row={}, col={}'.format(self.arpeggiate, self.cursorDir, row, col))
 
     def dumpTabs(self, reason='', h=None):
