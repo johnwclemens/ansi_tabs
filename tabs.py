@@ -98,8 +98,8 @@ class Tabs(object):
         
         self.ROW_OFF = 1                                       # offset between cursor row    number and tabs row    index
         self.COL_OFF = 3                                       # offset between cursor column number and tabs column index
-        self.CHORDS_LEN = 0                                    # number of rows used to display chords
-        self.NOTES_LEN = 0                                     # number of rows used to display notes
+        self.CHORDS_LEN = 0                                    # number of rows used to display chords on a given line
+        self.NOTES_LEN = 0                                     # number of rows used to display notes  on a given line
         self.NUM_FRETS = 24                                    # number of frets, (might make this a list for all the strings)?
         
         self.hiliteCount = 0                                   # statistic for measuring efficiency
@@ -212,9 +212,9 @@ class Tabs(object):
         self.outFile = None
         
     def initConsts(self): # foreground 30-37, background 40-47, 0=black, 1=red, 2=green, 3=yellow, 4= blue, 5=magenta, 6=cyan, 7=white
-        self.styles = { 'NAT_NOTE':'32;47m', 'NAT_H_NOTE':'37;43m', 'NAT_CHORD':'37;46m', 'MIN_COL_NUM':'32;40m',   'TABS':'32;40m', 'NUT_UP':'31;43m', 'NORMAL':'22;',
-                        'FLT_NOTE':'34;47m', 'FLT_H_NOTE':'34;43m', 'FLT_CHORD':'34;46m', 'MAJ_COL_NUM':'33;40m', 'H_TABS':'33;40m', 'NUT_DN':'34;43m', 'BRIGHT':'1;',
-                        'SHP_NOTE':'31;47m', 'SHP_H_NOTE':'31;43m', 'SHP_CHORD':'31;46m',      'STATUS':'37;40m',  'MODES':'34;47m',  'ERROR':'31;43m',   'CONS':'37;40m' }
+        self.styles = { 'NAT_NOTE':'32;47m', 'NAT_H_NOTE':'37;43m', 'NAT_CHORD':'37;43m', 'MIN_COL_NUM':'32;40m',   'TABS':'32;40m', 'NUT_UP':'31;43m', 'NORMAL':'22;',
+                        'FLT_NOTE':'34;47m', 'FLT_H_NOTE':'34;43m', 'FLT_CHORD':'34;43m', 'MAJ_COL_NUM':'33;40m', 'H_TABS':'33;40m', 'NUT_DN':'34;43m', 'BRIGHT':'1;',
+                        'SHP_NOTE':'31;47m', 'SHP_H_NOTE':'31;43m', 'SHP_CHORD':'31;43m',      'STATUS':'37;40m',  'MODES':'34;47m',  'ERROR':'31;43m',   'CONS':'37;40m' }
         self.INTERVALS = { 0:'R',  1:'b2',  2:'2',  3:'m3',  4:'M3',  5:'4',   6:'b5',  7:'5',  8:'a5',  9:'6',  10:'b7', 11:'7', 
                           12:'R', 13:'b9', 14:'9', 15:'m3', 16:'M3', 17:'11', 18:'b5', 19:'5', 20:'a5', 21:'13', 22:'b7', 23:'7',
                           24:'R', 25:'b9', 26:'9', 27:'m3', 28:'M3', 29:'11', 30:'b5', 31:'5', 32:'a5', 33:'13', 34:'b7', 35:'7', 
@@ -1317,14 +1317,12 @@ class Tabs(object):
 
     def _initPasteInfo(self):
         nc, rangeError, row, col = 0, 0, self.row, self.col
-        rr, cc, = self.rowCol2Indices(row, col)
         line, ns, nt, nsr, nsc, nst = self.row2Line(self.row), self.numStrings, len(self.tabs[0]), len(self.selectRows), len(self.selectCols), len(self.selectTabs)
         if nst == 0:
             self.printe('pasteSelectTabs() no tabs to paste, nsr={}, nsc={}, nst={}, use CTRL/SHIFT C or X to copy or cut selected tabs'.format(nsr, nsc, nst))
             return rangeError, nc, row, col, rr, cc, line, ns, nt, nsr, nsc, nst
-        nst = len(self.selectTabs[0])
-        br, er = self.bgnRow(line), self.endRow(line)
-        print('pasteSelectTabs({},{}) ({},{}) bgn ns={}, nt={}, nsr={}, nsc={}, nst={}, er={}'.format(self.arpeggiate, self.cursorDir, row, col, ns, nt, nsr, nsc, nst, er), file=self.dbgFile)
+        nst, br, er = len(self.selectTabs[0]), self.bgnRow(line), self.endRow(line)
+        print('pasteSelectTabs({},{}) ({},{}) bgn ns={}, nt={}, nsr={}, nsc={}, nst={}, line={}, br={}, er={}'.format(self.arpeggiate, self.cursorDir, row, col, ns, nt, nsr, nsc, nst, line, br, er), file=self.dbgFile)
         while row + nsr - 1 > er:
             row -= 1
             if row < br: self.printe('pasteSelectTabs() tried to adjust row={} < br={}, nsr={}'.format(row, br, nsr))
@@ -1350,7 +1348,6 @@ class Tabs(object):
                     self.tabs[r][c] = ord('-')
                     self.htabs[r][c] = ord('-')
                     print('pasteSelectTabs(REPLACE) tabs[{}][{}]={}'.format(r, c, chr(self.tabs[r][c])), file=self.dbgFile)
-        else: self.printe('pasteSelectTabs() c={} >= len(tabs[0])={} skip remaining columns'.format(cc + nst, nt))
         for c in range(0, nsc):
             if rangeError: break
             for r in range(0, nsr):

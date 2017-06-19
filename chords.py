@@ -36,7 +36,7 @@ class Chords(object):
         print('printChords({}, {}) end {} =?= {} * {}'.format(self.tabsObj.row, self.tabsObj.col, self.tabsObj.numTabsPerString, self.tabsObj.numLines, self.tabsObj.numTabsPerStringPerLine), file=self.tabsObj.dbgFile)
         
     def printChord(self, c=None, dbg=0):
-        '''Analyse and if a valid chord is discovered then print it in the appropriate chords section.'''
+        '''Analyse notes in given column index and if a valid chord is discovered then print it in the appropriate chords section.'''
         if c is None:
             c = self.tabsObj.col - self.tabsObj.COL_OFF
         self.eraseChord(c)
