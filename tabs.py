@@ -1014,7 +1014,7 @@ class Tabs(object):
         
     def setTab(self, tab):
         '''Set given tab byte at the current row and col, print the corresponding tab character and then move cursor according to the cursor mode.'''
-        print('setTab({}, {}) chr(tab)={}, tab, bgn: check row/col'.format(self.row, self.col, chr(tab), tab), file=self.dbgFile)
+        print('setTab({}, {}) chr(tab)={}, tab={}, bgn: check row/col'.format(self.row, self.col, chr(tab), tab), file=self.dbgFile)
         if self.bgnCol() <= self.col <= self.endCol() and self.ROW_OFF <= self.row < self.ROW_OFF + self.numLines * self.lineDelta():
             row, col = self.row, self.col
             rr, cc = self.rowCol2Indices(row, col)
@@ -1059,12 +1059,13 @@ class Tabs(object):
                 if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
                     noteCount = 0
                     for r in range(0, self.numStrings):
-                        if self.isTab(chr(self.tabs[r][cc])):
+                        if self.isFret(chr(self.tabs[r][cc])):
                             noteCount += 1
                             if noteCount > 1:
-                                print('setTab() noteCount={}'.format(noteCount), file=self.dbgFile)
+                                print('setTab() r={}, increment noteCount={}'.format(r, noteCount), file=self.dbgFile)
                                 self.chordsObj.printChord(c=cc)
                                 break
+                            else: print('setTab() r={}, noteCount={}'.format(r, noteCount), file=self.dbgFile)
             self.moveCursor()
         else:
             info = 'row/col setTab({},{},{})'.format(self.row, self.col, tab)
