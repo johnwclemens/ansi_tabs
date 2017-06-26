@@ -158,7 +158,7 @@ class Chords(object):
             else: 
                 if dbg: print('{}printChord({}) index={}, Found key=\'{}\', value=\'{}\' in chords'.format(indent, c, j, chordKey, self.chords[chordKey]), file=self.tabsObj.dbgFile)
                 chordName = self.chords[chordKey]
-            if len(chordName) > 0: # != '':
+            if len(chordName) > 0:
                 if len(chordName) > 1 and ( chordName[1] == '#' or chordName[1] == 'b' ):
                     chordName = chordName[0] + chordName[2:]
                 for i in range(len(chordName)):
@@ -175,7 +175,7 @@ class Chords(object):
                                     style = self.tabsObj.styles['SHP_CHORD']
                                 else:
                                     style = self.tabsObj.styles['FLT_CHORD']
-                    if chordName[i] == 'm' or 'dim' in chordName and chordName[i] == 'd' or chordName[i] == 'i':
+                    elif chordName[i] == 'm' or 'dim' in chordName and chordName[i] == 'd' or chordName[i] == 'i':
                         style = self.tabsObj.styles['FLT_CHORD']
                     self.tabsObj.prints(chordName[i], i + row, col, style)
 #                    self.moveTo()
@@ -183,7 +183,7 @@ class Chords(object):
 
     def getChordName(self, imap):
         '''Calculate chord name.'''
-        r = imap['R'] # r = imap['R'][0]
+        r = imap['R']
         if 'R' in imap:
             if '5' in imap: 
                 if len(imap) == 2:                            return '{}5'.format(r)
@@ -193,6 +193,7 @@ class Chords(object):
                         if   'b7' in imap:                    return '{}7'.format(r)
                         elif  '7' in imap:                    return '{}M7'.format(r)
                         elif  '6' in imap or '13' in imap:    return '{}6'.format(r)
+                        elif  '2' in imap or  '9' in imap:    return '{}+9'.format(r)
                     elif len(imap) == 5:
                         if 'b7' in imap:
                             if   '2' in imap or  '9' in imap: return '{}9'.format(r)
@@ -208,6 +209,7 @@ class Chords(object):
                         if   'b7' in imap:                    return '{}m7'.format(r)
                         elif  '7' in imap:                    return '{}mM7'.format(r)
                         elif  '6' in imap or '13' in imap:    return '{}m6'.format(r)
+                        elif  '2' in imap or  '9' in imap:     return '{}m+9'.format(r)
                     elif len(imap) == 5:
                         if 'b7' in imap:
                             if   '2' in imap or  '9' in imap: return '{}m9'.format(r)
