@@ -49,7 +49,6 @@ class Chords(object):
                 if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][c])):
                     note = self.tabsObj.getNote(r + 1, 0)
                     print('{:>3}/{:<1}'.format(r+1, note.name[0]), end=' ', file=self.tabsObj.dbgFile)
-        
         tbs = []
         for r in range(self.tabsObj.numStrings):
             if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][c])):
@@ -84,6 +83,7 @@ class Chords(object):
             print(']\n{}notes       ['.format(indent), end='', file=self.tabsObj.dbgFile)
             for t in range(len(notes)):
                 print('{:>5}'.format(notes[t]), end=' ', file=self.tabsObj.dbgFile)
+                
         indices = []
         for r in range(self.tabsObj.numStrings):
             tab = self.tabsObj.getFretByte(self.tabsObj.getFretNum(self.tabsObj.tabs[r][c]) + self.tabsObj.getFretNum(self.tabsObj.capo))
@@ -161,7 +161,10 @@ class Chords(object):
             if len(chordName) > 0:
                 if len(chordName) > 1 and ( chordName[1] == '#' or chordName[1] == 'b' ):
                     chordName = chordName[0] + chordName[2:]
-                for i in range(len(chordName)):
+                print('printChord() colorize name={}, len={}'.format(chordName, len(chordName)), file=self.tabsObj.dbgFile)
+                i = 0
+                while i < len(chordName):
+                    print('printChord() colorizing name={}, len={}, i={}'.format(chordName, len(chordName), i), file=self.tabsObj.dbgFile)
                     style = self.tabsObj.styles['NAT_CHORD']
                     if i == 0:
                         if len(imap['R']) > 1:
@@ -177,7 +180,12 @@ class Chords(object):
                                     style = self.tabsObj.styles['FLT_CHORD']
                     elif chordName[i] == 'm' or 'dim' in chordName and chordName[i] == 'd' or chordName[i] == 'i':
                         style = self.tabsObj.styles['FLT_CHORD']
+                    elif chordName[i] == '+':
+                        chordName = chordName[0:i] + chordName[i+1:]
+                        style = self.tabsObj.styles['SHP_CHORD']
+                        print('printChord() colorized name={}, len={}, i={}'.format(chordName, len(chordName), i), file=self.tabsObj.dbgFile)
                     self.tabsObj.prints(chordName[i], i + row, col, style)
+                    i += 1
 #                    self.moveTo()
                 break
 
@@ -241,3 +249,110 @@ class Chords(object):
                     if   'b7' in imap:                        return '{}m7n5'.format(r)
                     elif  '7' in imap:                        return '{}mM7n5'.format(r)
         return ''
+
+'''
+Chord Naming Conventions:
+| ----------------------------------------------------|
+| Long      | Short | Intervals      | Notes          |
+| ----------------------------------------------------|
+| CMaj      | C     | R 3 5          | C E G          |
+| CMin      | Cm    | R m3 5         | C Eb G         |
+| CAug      | C+    | R 3 a5         | C E G#         |
+| CDim      | Co    | R m3 b5        | C Eb G#        |
+| ----------------------------------------------------|
+| CMaj7     | CM7   | R 3 5 7        | C E G B        |
+| CDom7     | C7    | R 3 5 b7       | C E G Bb       |
+| CMin7     | Cm7   | R m3 5 b7      | C Eb G Bb      |
+| CMinMaj7  | CmM7  | R m3 5 7       | C Eb G B       |
+| CAugMaj7  | C+M7  | R 3 a5 7       | C E G# B       |
+| CAug7     | C+7   | R 3 a5 b7      | C E G# Bb      |
+| CHDim7    | C07   | R m3 b5 b7     | C Eb Gb Bb     |
+| CDim7     | Co7   | R m3 b5 bb7    | C Eb Gb Bbb    |
+| C7Dim5    | C7b5  | R 3 b5 b7      | C E Gb Bb      |
+| ----------------------------------------------------|
+| CMaj9     | CM9   | R 3 5 7 9      | C E G B D      |
+| CDom9     | C9    | R 3 5 b7 9     | C E G Bb D     |
+| CMinMaj9  | CmM9  | R m3 5 7 9     | C Eb G B D     |
+| CMinDom9  | Cm9   | R m3 5 b7 9    | C Eb G Bb D    |
+| CAugMaj9  | C+M9  | R 3 a5 7 9     | C E G# B D     |
+| CAugDom9  | C+9   | R 3 a5 b7 9    | C E G# Bb D    |
+| CHDim9    | C09   | R m3 b5 b7 9   | C Eb Gb Bb D   |
+| CHDimMin9 | C0b9  | R m3 b5 b7 9b  | C Eb Gb Bb Db  |
+| CDim9     | Co9   | R m3 b5 bb7 9  | C Eb Gb Bbb D  |
+| CDimMin9  | Cob9  | R m3 b5 bb7 b9 | C Eb Gb Bbb Db |
+| ----------------------------------------------------|
+| CMaj11    | CM11  | R 3 5 7 9 11   | C E G B D F    |
+| CDom11    | C11   | R 3 5 b7 9 11  | C E G Bb D F   |
+| CMinMaj11 | CmM11 | R m3 5 7 9 11  | C Eb G Bb D F  |
+| ----------------------------------------------------|
+
+
+Long      | Short | Intervals      | Notes
+---------------------------------------------------
+CMaj      | C     | R 3 5          | C E G
+CMin      | Cm    | R m3 5         | C Eb G
+CAug      | C+    | R 3 a5         | C E G#
+CDim      | Co    | R m3 b5        | C Eb G#
+
+CDom7     | C7    | R 3 5 b7       | C E G Bb
+CMaj7     | CM7   | R 3 5 7        | C E G B
+CMin7     | Cm7   | R m3 5 b7      | C Eb G Bb
+CMinMaj7  | CmM7  | R m3 5 7       | C Eb G B
+CAugMaj7  | C+M7  | R 3 a5 7       | C E G# B
+CAug7     | C+7   | R 3 a5 b7      | C E G# Bb
+CHDim7    | C07   | R m3 b5 b7     | C Eb Gb Bb
+CDim7     | Co7   | R m3 b5 bb7    | C Eb Gb Bbb
+C7Dim5    | C7b5  | R 3 b5 b7      | C E Gb Bb
+
+CMaj9     | CM9   | R 3 5 7 9      | C E G B D
+CDom9     | C9    | R 3 5 b7 9     | C E G Bb D
+CMinMaj9  | CmM9  | R m3 5 7 9     | C Eb G B D
+CMinDom9  | Cm9   | R m3 5 b7 9    | C Eb G Bb D
+CAugMaj9  | C+M9  | R 3 a5 7 9     | C E G# B D
+CAugDom9  | C+9   | R 3 a5 b7 9    | C E G# Bb D
+CHDim9    | C09   | R m3 b5 b7 9   | C Eb Gb Bb D
+CHDimMin9 | C0b9  | R m3 b5 b7 9b  | C Eb Gb Bb Db
+CDim9     | Co9   | R m3 b5 bb7 9  | C Eb Gb Bbb D
+CDimMin9  | Cob9  | R m3 b5 bb7 b9 | C Eb Gb Bbb Db
+
+---------------------------------------------------
+
+C5   : R 5            : C G            : 5
+C    : R M3 5         : C E G          : Maj
+Cm   : R m3 5         : C Eb G         : Min
+C+   : R M3 a5        : C E G#         : Aug
+Co   : R m3 b5        : C Eb Gb        : Dim
+Co5  : R M3 b5        : C E Gb         : Dim5
+
+C7   : R M3 5 b7      : C E G Bb       : Dom7
+CM7  : R M3 5 7       : C E G B        : Maj7
+Cm7  : R m3 5 b7      : C Eb G Bb      : Min7
+CmM7 : R m3 5 7       : C Eb G B       : MinMaj7
+Co7  : R m3 b5 6      : C Eb Gb Bbb    : Dim7
+C07  : R m3 b5 b7     : C Eb Gb Bb     : HDim7
+C+7  : R M3 a5 b7     : C E G# Bb      : Aug7
+C+M7 : R M3 a5 7      : C E G# B       : AugMaj7
+
+C9   : C E G Bb D     : Dom9
+C11  : C E G Bb D F   : Dom11
+C13  : C E G Bb D F A : Dom13
+CM9  : C E G B D      : Maj9
+CM11 : C E G B D F    : Maj11
+CM13 : C E G B D F A  : Maj13
+Cm9  : C Eb G B D     : Min9
+Cm11 : C Eb G B D F   : Maj11
+Cm13 : C Eb G B D F A : Maj13
+
+C7+5 : C E G# Bb      : 7Aug5
+C7-5 : C E Gb Bb      : 7Dim5
+C7+9 : C E G Bb D#    : 7#9
+C7-9 : C E G Bb Db    : 7b9
+
+Cs2 : C D G           : sus2
+Cs4 : C F G           : sus4
+C2  : C D E G         : 2
+C4  : C E F G         : 4
+
+C6/9 : C E G A D
+
+'''
