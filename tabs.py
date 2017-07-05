@@ -81,6 +81,7 @@ class Tabs(object):
         self.htabs = []                                        # list of bytearrays, one for each string; for harmonic tabs
         self.tabCount = 0                                      # used by appendTabs() 
         self.tabs = []                                         # list of bytearrays, one for each string; for all the tabs
+        self.chordInfo = {}
         
         self.arpeggiate = 0                                    # used to transform chords to arpeggios
         self.selectFlag = 0                                    # used to un-hilite selected rows
@@ -1549,6 +1550,15 @@ class Tabs(object):
         elif tab in self.mods: self.printTabModInfo(tab, r, c)
         else:                  self.printDefTabInfo(tab, r, c)
         self.clearRow(arg=0, file=self.outFile)
+        if c in self.chordInfo:
+            imap = self.chordInfo[c]
+            info = ''
+            for k in imap:
+                info += '{}:{} '.format(k, imap[k])
+#            info = '{}'.format(self.chordInfo[c])
+            infoCol = self.numTabsPerStringPerLine + self.COL_OFF - len(info)
+            print('printStatus(col={}) info={}'.format(infoCol, info), file=self.dbgFile)
+            self.prints(info, self.lastRow, infoCol, self.styles['STATUS'])
         self.resetPos()
         
     def printTabFretInfo(self, tab, r, c):
@@ -1679,7 +1689,7 @@ class Tabs(object):
         print(Tabs.CSI + '{}J'.format(arg), file=file)
 
     @staticmethod
-    def clearRow(arg=2, file=None):
+    def clearRow(arg=2, file=None): # arg=0: cursor to end of line, arg=1: begin of line to cursor, arg=2: entire line 
         print(Tabs.CSI + '{}K'.format(arg), end='', file=file)
         
     def printHelpSummary(self):

@@ -125,8 +125,8 @@ class Chords(object):
             
             imap = dict(zip(intervals, notes))
             imapKeys = sorted(imap, key=self.imapKeyFunc, reverse=False)
-            chordKeys = [ imap[k] for k in imapKeys ]
-            chordKey = self.getChordKey(chordKeys)
+            imapNotes = [ imap[k] for k in imapKeys ]
+            chordKey = self.getChordKey(imapNotes)
             if dbg:
                 print(']\n{}iMap        ['.format(indent), end='', file=self.tabsObj.dbgFile)
                 for k in imap:
@@ -134,8 +134,8 @@ class Chords(object):
                 print(']\n{}imapKeys    ['.format(indent), end='', file=self.tabsObj.dbgFile)
                 for k in imapKeys:
                     print('{:>5}'.format(k), end=' ', file=self.tabsObj.dbgFile)
-                print(']\n{}chordKeys   ['.format(indent), end='', file=self.tabsObj.dbgFile)
-                for k in chordKeys:
+                print(']\n{}imapNotes   ['.format(indent), end='', file=self.tabsObj.dbgFile)
+                for k in imapNotes:
                     print('{:>5}'.format(k), end=' ', file=self.tabsObj.dbgFile)
                 print(']\n{}chords      ['.format(indent), end=' ', file=self.tabsObj.dbgFile)
                 for k in self.chords:
@@ -161,11 +161,8 @@ class Chords(object):
             if len(chordName) > 0:
                 if len(chordName) > 1 and ( chordName[1] == '#' or chordName[1] == 'b' ):
                     chordName = chordName[0] + chordName[2:]
-#                print('printChord() colorize name={}, len={}'.format(chordName, len(chordName)), file=self.tabsObj.dbgFile)
-#                for i in range(len(chordName)):
                 i = 0
                 while i < len(chordName):
-#                    print('printChord() colorizing name={}, len={}, i={}'.format(chordName, len(chordName), i), file=self.tabsObj.dbgFile)
                     style = self.tabsObj.styles['NAT_CHORD']
                     if i == 0:
                         if len(imap['R']) > 1:
@@ -184,7 +181,6 @@ class Chords(object):
                     elif chordName[i] == 'n':
                         chordName = chordName[0:i] + chordName[i+1:]
                         style = '30;43m'
-#                        print('printChord() colorized name={}, len={}, i={}'.format(chordName, len(chordName), i), file=self.tabsObj.dbgFile)
                     elif chordName[i] == 'b':
                         chordName = chordName[0:i] + chordName[i+1:]
                         style = self.tabsObj.styles['FLT_CHORD']
@@ -194,6 +190,12 @@ class Chords(object):
                     self.tabsObj.prints(chordName[i], i + row, col, style)
                     i += 1
 #                    self.moveTo()
+                self.tabsObj.chordInfo[c] = imap
+#                info = '{}'.format(imap)
+#                infoCol = self.tabsObj.numTabsPerStringPerLine + self.tabsObj.COL_OFF - 1 - len(info)
+#                self.tabsObj.prints(info, self.tabsObj.lastRow, infoCol, style)
+#                self.tabsObj.clearRow(2)
+#                self.tabsObj.prints(info, self.tabsObj.lastRow, infoCol, style)
                 break
 
     def getChordName(self, imap):
@@ -202,18 +204,18 @@ class Chords(object):
         if '5' in imap: 
             if len(imap) == 2:                                return '{}5'.format(r)       # (Power)5
             elif 'M3' in imap:
-                if len(imap) == 3:                            return '{}'.format(r)        # Maj
+                if len(imap) == 3:                            return '{}'.format(r)        # (Maj)
                 elif len(imap) == 4:
-                    if   'b7' in imap:                        return '{}7'.format(r)       # Dom7
+                    if   'b7' in imap:                        return '{}7'.format(r)       # (Dom)7
                     elif  '7' in imap:                        return '{}M7'.format(r)      # Maj7
                     elif  '2' in imap or  '9' in imap:        return '{}2'.format(r)       # Add2
                     elif  '4' in imap or '11' in imap:        return '{}4'.format(r)       # Add4
                     elif  '6' in imap or '13' in imap:        return '{}6'.format(r)       # Add6
                 elif len(imap) == 5:
                     if 'b7' in imap:
-                        if   '2' in imap or  '9' in imap:     return '{}9'.format(r)       # Dom9
-                        elif '4' in imap or '11' in imap:     return '{}11n9'.format(r)    # Dom11(no9)
-                        elif '6' in imap or '13' in imap:     return '{}13n9'.format(r)    # Dom13(no9)
+                        if   '2' in imap or  '9' in imap:     return '{}9'.format(r)       # 9
+                        elif '4' in imap or '11' in imap:     return '{}11n9'.format(r)    # 11(no9)
+                        elif '6' in imap or '13' in imap:     return '{}13n9'.format(r)    # 13(no9)
                     elif '7' in imap:
                         if   '2' in imap or  '9' in imap:     return '{}M9'.format(r)      # Maj9
                         elif '4' in imap or '11' in imap:     return '{}M11n9'.format(r)   # Maj11(no9)
@@ -221,15 +223,15 @@ class Chords(object):
                 elif len(imap) == 6:
                     if '2' in imap or '9' in imap:
                         if 'b7' in imap:
-                            if   '4' in imap or '11' in imap: return '{}11'.format(r)      # Dom11
-                            elif '6' in imap or '13' in imap: return '{}13n11'.format(r)   # Dom13(no11)
+                            if   '4' in imap or '11' in imap: return '{}11'.format(r)      # 11
+                            elif '6' in imap or '13' in imap: return '{}13n11'.format(r)   # 13(no11)
                         elif '7' in imap:
                             if   '4' in imap or '11' in imap: return '{}M11'.format(r)     # Maj11
                             elif '6' in imap or '13' in imap: return '{}M13n11'.format(r)  # Maj13(no11)
             elif 'm3' in imap:
                 if len(imap) == 3:                            return '{}m'.format(r)       # Min
                 elif len(imap) == 4:
-                    if   'b7' in imap:                        return '{}m7'.format(r)      # MinDom7
+                    if   'b7' in imap:                        return '{}m7'.format(r)      # Min7
                     elif  '7' in imap:                        return '{}mM7'.format(r)     # MinMaj7
                     elif  '2' in imap or  '9' in imap:        return '{}m2'.format(r)      # MinAdd2
                     elif  '4' in imap or '11' in imap:        return '{}m4'.format(r)      # MinAdd4
@@ -246,18 +248,18 @@ class Chords(object):
                 elif len(imap) == 6:
                     if '2' in imap or '9' in imap:
                         if 'b7' in imap:
-                            if   '4' in imap or '11' in imap: return '{}11'.format(r)      # MinDom11
-                            elif '6' in imap or '13' in imap: return '{}13n11'.format(r)   # MinDom13(no11)
+                            if   '4' in imap or '11' in imap: return '{}m11'.format(r)      # Min11
+                            elif '6' in imap or '13' in imap: return '{}m13n11'.format(r)   # Min13(no11)
                         elif '7' in imap:
-                            if   '4' in imap or '11' in imap: return '{}M11'.format(r)     # MinMaj11
-                            elif '6' in imap or '13' in imap: return '{}M13n11'.format(r)  # MinMaj13(no11)
+                            if   '4' in imap or '11' in imap: return '{}mM11'.format(r)     # MinMaj11
+                            elif '6' in imap or '13' in imap: return '{}mM13n11'.format(r)  # MinMaj13(no11)
             elif len(imap) == 3:
                 if    '2' in imap or  '9' in imap:            return '{}s2'.format(r)      # sus2
                 elif  '4' in imap or '11' in imap:            return '{}s4'.format(r)      # sus4
             elif len(imap) == 4:
                 if   'b7' in imap:
-                    if    '2' in imap or  '9' in imap:        return '{}7s2'.format(r)     # Dom7sus2
-                    elif  '4' in imap or '11' in imap:        return '{}7s4'.format(r)     # Dom7sus4
+                    if    '2' in imap or  '9' in imap:        return '{}7s2'.format(r)     # 7sus2
+                    elif  '4' in imap or '11' in imap:        return '{}7s4'.format(r)     # 7sus4
         elif 'b5' in imap:
             if 'm3' in imap:
                 if len(imap) == 3:                            return '{}o'.format(r)       # Dim
@@ -282,11 +284,11 @@ class Chords(object):
                             if   '4' in imap or '11' in imap: return '{}011'.format(r)     # HalfDim11
                             elif '6' in imap or '13' in imap: return '{}013n11'.format(r)  # HalfDim13(no11)
                         elif '6' in imap:
-                            if   '4' in imap or '11' in imap: return '{}M11'.format(r)     # Dim11
-                            elif '6' in imap or '13' in imap: return '{}M13n11'.format(r)  # Dim13(no11)
+                            if   '4' in imap or '11' in imap: return '{}o11'.format(r)     # Dim11
+                            elif '6' in imap or '13' in imap: return '{}o13n11'.format(r)  # Dim13(no11)
             elif 'M3' in imap:
                 if len(imap) == 4:
-                    if 'b7' in imap:                          return '{}7b5'.format(r)     # Dom7Dim5
+                    if 'b7' in imap:                          return '{}7b5'.format(r)     # 7Dim5
         elif 'a5' in imap:
             if 'M3' in imap:
                 if len(imap) == 3:                            return '{}+'.format(r)       # Aug
@@ -311,8 +313,8 @@ class Chords(object):
                             if   '4' in imap or '11' in imap: return '{}+11'.format(r)     # Aug11
                             elif '6' in imap or '13' in imap: return '{}+13n11'.format(r)  # Aug13(no11)
                         elif '7' in imap:
-                            if   '4' in imap or '11' in imap: return '{}+M11'.format(r)     # AugMaj11
-                            elif '6' in imap or '13' in imap: return '{}+M13n11'.format(r)  # AugMaj13(no11)
+                            if   '4' in imap or '11' in imap: return '{}+M11'.format(r)    # AugMaj11
+                            elif '6' in imap or '13' in imap: return '{}+M13n11'.format(r) # AugMaj13(no11)
         # Maybe omit all the n5 (no 5th) chords for simplicity
         elif 'M3' in imap:
             if len(imap) == 3:
@@ -331,12 +333,12 @@ class Chords(object):
 Chord Naming Conventions:
 | ----------------------------------------------------------|
 | Long      | Short | Intervals          | Notes            | NoR | No3 | No5 |
-| ----------------------------------------------------------|
+| ----------|-------|--------------------|------------------|
 | CMaj      | C     | R 3 5              | C E G            |
 | CMin      | Cm    | R m3 5             | C Eb G           |
 | CAug      | C+    | R 3 a5             | C E G#           |
 | CDim      | Co    | R m3 b5            | C Eb Gb          |
-| ----------------------------------------------------------|
+| ----------|-------|--------------------|------------------|
 | CMaj7     | CM7   | R 3 5 7            | C E G B          |
 | CDom7     | C7    | R 3 5 b7           | C E G Bb         |
 | CMin7     | Cm7   | R m3 5 b7          | C Eb G Bb        |
@@ -346,7 +348,7 @@ Chord Naming Conventions:
 | CHDim7    | C07   | R m3 b5 b7         | C Eb Gb Bb       |
 | CDim7     | Co7   | R m3 b5 bb7        | C Eb Gb Bbb      |
 | C7Dim5    | C7b5  | R 3 b5 b7          | C E Gb Bb        |
-| ----------------------------------------------------------|
+| ----------|-------|--------------------|------------------|
 | CMaj9     | CM9   | R 3 5 7 9          | C E G B D        |
 | CDom9     | C9    | R 3 5 b7 9         | C E G Bb D       |
 | CMinMaj9  | CmM9  | R m3 5 7 9         | C Eb G B D       |
@@ -357,7 +359,7 @@ Chord Naming Conventions:
 | CHDimMin9 | C0b9  | R m3 b5 b7 9b      | C Eb Gb Bb Db    |
 | CDim9     | Co9   | R m3 b5 bb7 9      | C Eb Gb Bbb D    |
 | CDimMin9  | Cob9  | R m3 b5 bb7 b9     | C Eb Gb Bbb Db   |
-| ----------------------------------------------------------|
+| ----------|-------|--------------------|------------------|
 | CMaj11    | CM11  | R 3 5 7 9 11       | C E G B D F      |
 | CDom11    | C11   | R 3 5 b7 9 11      | C E G Bb D F     |
 | CMinMaj11 | CmM11 | R m3 5 7 9 11      | C Eb G B D F     |
@@ -366,7 +368,7 @@ Chord Naming Conventions:
 | CAug11    | C+11  | R 3 a5 b7 9 11     | C E G# Bb D F    |
 | CHDim11   | C011  | R m3 b5 b7 b9 11   | C Eb Gb Bb Db F  |
 | CDim11    | Co11  | R m3 b5 bb7 b9 b11 | C Eb Gb Bbb Db F |
-| ----------------------------------------------------------|
+| ----------|-------|--------------------|------------------|
 | CMaj13    | CM13  | R 3 5 7 9 11 13    | C E G B D F A    |
 | CDom13    | C13   | R 3 5 b7 9 11 13   | C E G Bb D F A   |
 | CMinMaj13 | CmM13 | R m3 5 7 9 11 13   | C Eb G B D F A   |
@@ -374,17 +376,17 @@ Chord Naming Conventions:
 | CAugMaj13 | C+M13 | R 3 a5 7 9 11 13   | C E G# B D F A   |
 | CAugDom13 | C+13  | R 3 a5 b7 9 11 13  | C E G# Bb D F A  |
 | CHDim13   | C013  | R m3 b5 b7 9 11 13 | C Eb Gb Bb D F A |
-| ----------------------------------------------------------|
+| ----------|-------|--------------------|------------------|
 | CPower5   | C5    | R 5                | C G              |
 | C7no3     | C7n3  | R 5 7b             | C G Bb           |
-| ----------------------------------------------------------|
+| ----------|-------|--------------------|------------------|
 | Csus2     | Cs2   | R 2 5              | C D G            |
 | C7sus2    | C7s2  | R 2 5 b7           | C D G Bb         |
 | C9sus2    | C9s2  | R 2 5 b7 9         | C D G Bb D       |
 | Csus4     | Cs4   | R 4 5              | C F G            |
 | C7sus4    | C7s4  | R 4 5 b7           | C F G Bb         |
 | C9sus4    | C9s4  | R 4 5 b7 9         | C F G Bb D       |
-| ----------------------------------------------------------|
+| ----------|-------|--------------------|------------------|
 | Cadd9     | C2    | R 2 3 5            | C D E G          |
 | Cadd11    | C4    | R 3 4 5            | C E F G          |
 | Cadd13    | C6    | R 3 5 6            | C E G A          |
