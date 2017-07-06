@@ -1,5 +1,7 @@
 '''chords.py module.  class list: [Chords].  Users are encouraged to modify this module to customize chord discovery and naming'''
 
+import notes
+
 class Chords(object):
     '''Model chords for stringed instruments.  Discover and name chords'''
     
@@ -68,7 +70,7 @@ class Chords(object):
             for t in range(len(tbs)):
                 print('{:>5}'.format(tbs[t]), end=' ', file=self.tabsObj.dbgFile)
         
-        notes = []
+        _notes = []
         for r in range(self.tabsObj.numStrings):
             tab = self.tabsObj.getFretByte(self.tabsObj.getFretNum(self.tabsObj.tabs[r][c]) + self.tabsObj.getFretNum(self.tabsObj.capo))
             if self.tabsObj.isFret(chr(tab)):
@@ -77,12 +79,12 @@ class Chords(object):
                     note.name = self.tabsObj.SHARPS_2_FLATS[note.name]
                 elif len(note.name) > 1 and note.name[1] == 'b' and self.tabsObj.enharmonic == self.tabsObj.ENHARMONIC['SHARP']:
                     note.name = self.tabsObj.FLATS_2_SHARPS[note.name]
-                notes.append(note.name)
-        notes.reverse()
+                _notes.append(note.name)
+        _notes.reverse()
         if dbg:
             print(']\n{}notes       ['.format(indent), end='', file=self.tabsObj.dbgFile)
-            for t in range(len(notes)):
-                print('{:>5}'.format(notes[t]), end=' ', file=self.tabsObj.dbgFile)
+            for t in range(len(_notes)):
+                print('{:>5}'.format(_notes[t]), end=' ', file=self.tabsObj.dbgFile)
                 
         indices = []
         for r in range(self.tabsObj.numStrings):
@@ -105,18 +107,8 @@ class Chords(object):
                 if indices[i] - indices[j] >= 0:
                     deltas.append(indices[i] - indices[j])
                 else:
-                    d = (indices[j] - indices[i]) % 12
-                    deltas.append(12 - d)
-                '''
-                elif 0 > indices[i] - indices[j] >= -12:
-                    deltas.append(indices[i] - indices[j] + 12)
-                elif -12 > indices[i] - indices[j] >= -24:
-                    deltas.append(indices[i] - indices[j] + 24)
-                elif -24 > indices[i] - indices[j] >= -36:
-                    deltas.append(indices[i] - indices[j] + 36)
-                elif -36 > indices[i] - indices[j] >= -48:
-                    deltas.append(indices[i] - indices[j] + 48)
-                '''
+                    d = (indices[j] - indices[i]) % notes.Note.NUM_SEMI_TONES
+                    deltas.append(notes.Note.NUM_SEMI_TONES - d)
             if dbg:
                 print('{}deltas      ['.format(indent), end='', file=self.tabsObj.dbgFile)
                 for t in range(len(deltas)):
@@ -129,7 +121,7 @@ class Chords(object):
                 for t in range(len(deltas)):
                     print('{:>5}'.format(intervals[t]), end=' ', file=self.tabsObj.dbgFile)
             
-            imap = dict(zip(intervals, notes))
+            imap = dict(zip(intervals, _notes))
             imapKeys = sorted(imap, key=self.imapKeyFunc, reverse=False)
             imapNotes = [ imap[k] for k in imapKeys ]
             chordKey = self.getChordKey(imapNotes)

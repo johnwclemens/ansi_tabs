@@ -3,6 +3,7 @@
 class Note(object):
     '''Model a musical note played on a stringed instrument.'''
     
+    NUM_SEMI_TONES = 12
     S_TONES = { 0:'C', 1:'C#', 2:'D', 3:'D#', 4:'E', 5:'F', 6:'F#', 7:'G', 8:'G#', 9:'A', 10:'A#', 11:'B' }
     F_TONES = { 0:'C', 1:'Db', 2:'D', 3:'Eb', 4:'E', 5:'F', 6:'Gb', 7:'G', 8:'Ab', 9:'A', 10:'Bb', 11:'B' }
     
@@ -52,7 +53,7 @@ class Note(object):
         return self.getFreq(), 'Hz'
 
     def getFreq(self):
-        return 440.0 * pow(pow(2, 1/12), self.index - self.INDICES['A4'])
+        return 440.0 * pow(pow(2, 1/self.NUM_SEMI_TONES), self.index - self.INDICES['A4'])
     
     def getWaveLenInfo(self, freq=None):
         if freq is None: return 343 / self.getFreq(), 'm'

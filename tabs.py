@@ -1553,7 +1553,6 @@ class Tabs(object):
         if c in self.chordInfo:
             imap = self.chordInfo[c]
             imapKeys = sorted(imap, key=self.chordsObj.imapKeyFunc, reverse=False)
-#            '''
             info, infoLen, i, hk = [], 0, 0, None
             if self.htabs[r][c] == ord('1'): n = self.getHarmonicNote(r + 1, ord(tab))
             else:                            n = self.getNote(r + 1, ord(tab))
@@ -1562,10 +1561,8 @@ class Tabs(object):
                 infoLen += len(info[len(info)-1])
                 if imap[k] == n.name: hk = k
                 print('printStatus({}) infoLen={}, info={}, imap[{}]={}, note={}, hk={}'.format(len(info)-1, infoLen, info, k, imap[k], n.name, hk), file=self.dbgFile)
-#            info = ''.join(info)
             infoCol = self.numTabsPerStringPerLine + self.COL_OFF - infoLen + 1
             print('printStatus(col={}) info={}'.format(infoCol, info), file=self.dbgFile)
-#            self.prints(info, self.lastRow, infoCol, self.styles['STATUS'])
             style = self.CSI + self.styles['TABS']
             print(style + self.CSI + '{};{}H'.format(self.lastRow, infoCol), end='', file=self.outFile)
             for k in imapKeys:
@@ -1573,14 +1570,6 @@ class Tabs(object):
                 else:       style = self.CSI + self.styles['TABS']
                 print(style + '{}'.format(info[i]), end='', file=self.outFile)
                 i += 1
-            '''
-            info = ''
-            for k in imapKeys:
-                info += '{}:{} '.format(k, imap[k])
-            infoCol = self.numTabsPerStringPerLine + self.COL_OFF - len(info)
-            print('printStatus(col={}) info={}'.format(infoCol, info), file=self.dbgFile)
-            self.prints(info, self.lastRow, infoCol, self.styles['STATUS'])
-            '''
         self.resetPos()
         
     def printTabFretInfo(self, tab, r, c):
