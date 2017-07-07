@@ -81,7 +81,7 @@ class Tabs(object):
         self.htabs = []                                        # list of bytearrays, one for each string; for harmonic tabs
         self.tabCount = 0                                      # used by appendTabs() 
         self.tabs = []                                         # list of bytearrays, one for each string; for all the tabs
-        self.chordInfo = {}                                    # imap (dict of intervals -> note names)
+        self.chordInfo = {}                                    # dict of intervals -> note names, imap
         
         self.arpeggiate = 0                                    # used to transform chords to arpeggios
         self.selectFlag = 0                                    # used to un-hilite selected rows
@@ -1546,9 +1546,9 @@ class Tabs(object):
         r, c = self.rowCol2Indices(self.row, self.col)
         tab = chr(self.tabs[r][c])
         print('printStatus({}, {}) r={}, c={}, tab={}'.format(self.row, self.col, r, c, tab), file=self.dbgFile)
-        if   self.isFret(tab): self.printTabFretInfo(tab, r, c)
-        elif tab in self.mods: self.printTabModInfo(tab, r, c)
-        else:                  self.printDefTabInfo(tab, r, c)
+        if   self.isFret(tab): self.printFretStatus(tab, r, c)
+        elif tab in self.mods: self.printModStatus(tab, r, c)
+        else:                  self.printDefStatus(tab, r, c)
         self.clearRow(arg=0, file=self.outFile)
         if c in self.chordInfo:
             imap = self.chordInfo[c]
@@ -1559,9 +1559,9 @@ class Tabs(object):
             for k in imapKeys:
                 chordKey += imap[k] + ' '
                 info.append('{}:{} '.format(k, imap[k]))
-                infoLen += len(info[len(info)-1])
+                infoLen += len(info[-1])
                 if imap[k] == n.name: hk = k
-                print('printStatus({}) infoLen={}, info={}, imap[{}]={}, note={}, hk={}, chordKey=\'{}\''.format(len(info)-1, infoLen, info, k, imap[k], n.name, hk, chordKey), file=self.dbgFile)
+                print('printStatus({}) infoLen={}, info={}, imap[{}]={}, note={}, hk={}, chordKey={}'.format(len(info)-1, infoLen, info, k, imap[k], n.name, hk, chordKey), file=self.dbgFile)
             infoCol = self.numTabsPerStringPerLine + self.COL_OFF - infoLen + 1
             if info: info[-1] = info[-1][:-1]
             if chordKey: chordKey = chordKey[:-1]
@@ -1580,7 +1580,7 @@ class Tabs(object):
             print(self.CSI + self.styles['STATUS'] + '{}'.format(chordName), file=self.outFile)
         self.resetPos()
         
-    def printTabFretInfo(self, tab, r, c):
+    def printFretStatus(self, tab, r, c):
         s, ss = r + 1, self.getOrdSfx(r + 1)
         f, fs = self.getFretNum(ord(tab)), self.getOrdSfx(self.getFretNum(ord(tab)))
         statStyle, fretStyle, typeStyle, noteStyle = self.CSI + self.styles['STATUS'], self.CSI + '32;40m', self.CSI + '33;40m', self.CSI + '32;40m'
@@ -1589,7 +1589,7 @@ class Tabs(object):
         if len(n.name) > 1:
             if n.name[1] == '#': noteStyle = self.CSI + '31;40m'
             else:                noteStyle = self.CSI + '36;40m'
-        print('printTabFretInfo({}) r={}, c={}, tab={}, n.n={}, n.o={}, n.i={}, {}'.format(noteType, r, c, tab, n.name, n.getOctaveNum(), n.index, n.getPhysProps()), file=self.dbgFile)
+        print('printFretStatus({}) r={}, c={}, tab={}, n.n={}, n.o={}, n.i={}, {}'.format(noteType, r, c, tab, n.name, n.getOctaveNum(), n.index, n.getPhysProps()), file=self.dbgFile)
         print(tabStyle + self.CSI + '{};{}H{}'.format(self.lastRow, 1, tab), end='', file=self.outFile)
         if f != 0: print(fretStyle + ' {}{}'.format(s, ss) + statStyle + ' string ' + fretStyle + '{}{}'.format(f, fs) + statStyle + ' fret ', end='', file=self.outFile)
         else:      print(fretStyle + ' {}{}'.format(s, ss) + statStyle + ' string ' + fretStyle + 'open' + statStyle + ' fret ', end='', file=self.outFile)
@@ -1599,7 +1599,7 @@ class Tabs(object):
         print(statStyle + ' freq=' + fretStyle + '{:03.2f}'.format(n.getFreq()) + statStyle + 'Hz', end='', file=self.outFile)
         print(statStyle + ' wvln=' + fretStyle + '{:04.3f}'.format(n.getWaveLen()) + statStyle + 'm', end='', file=self.outFile)
     
-    def printTabModInfo(self, tab, r, c):
+    def printModStatus(self, tab, r, c):
         ph, nh, s, ss = 0, 0,  r + 1, self.getOrdSfx(r + 1)
         prevFN, nextFN, prevNote, nextNote, dir1, dir2 = None, None, None, None, None, None
         if self.isFret(chr(self.tabs[r][c-1])): 
@@ -1617,14 +1617,14 @@ class Tabs(object):
         if prevFN is not None and nextFN is not None:
             if   prevFN < nextFN: dir1, dir2 = 'up',   'on'
             elif prevFN > nextFN: dir1, dir2 = 'down', 'off'
-        print('printTabModInfo({}, {}) tab={}, pfn={}, nfn={}'.format(r, c, tab, prevFN, nextFN), file=self.dbgFile)
+        print('printModStatus({}, {}) tab={}, pfn={}, nfn={}'.format(r, c, tab, prevFN, nextFN), file=self.dbgFile)
         self.modsObj.setMods(dir1=dir1, dir2=dir2, prevFN=prevFN, nextFN=nextFN, prevNote=prevNote, nextNote=nextNote, ph=ph, nh=nh)
         print(self.CSI + self.styles['TABS'] + self.CSI + '{};{}H{} '.format(self.lastRow, 1, tab), end='', file=self.outFile)
         print(self.CSI + self.styles['TABS'] + '{}{}'.format(s, ss) + self.CSI + self.styles['STATUS'] + ' string {}'.format(self.mods[tab]), end='', file=self.outFile)
     
-    def printDefTabInfo(self, tab, r, c):
+    def printDefStatus(self, tab, r, c):
         s, ss, tabStyle, statStyle = r + 1, self.getOrdSfx(r + 1), self.CSI + self.styles['TABS'], self.CSI + self.styles['STATUS']
-        print('printDefTabInfo({}, {}) tab={}'.format(r, c, tab), file=self.dbgFile)
+        print('printDefStatus({}, {}) tab={}'.format(r, c, tab), file=self.dbgFile)
         print(tabStyle + self.CSI + '{};{}H{} '.format(self.lastRow, 1, tab), end='', file=self.outFile)
         print(tabStyle + '{}{}'.format(s, ss) + statStyle + ' string ' + tabStyle + 'muted' + statStyle + ' not played', end='', file=self.outFile)
     
