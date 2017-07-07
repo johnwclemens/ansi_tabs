@@ -1553,16 +1553,23 @@ class Tabs(object):
         if c in self.chordInfo:
             imap = self.chordInfo[c]
             imapKeys = sorted(imap, key=self.chordsObj.imapKeyFunc, reverse=False)
-            info, infoLen, i, hk = [], 0, 0, None
+            info, infoLen, i, hk, chordKey, chordName = [], 0, 0, None, '', ''
             if self.htabs[r][c] == ord('1'): n = self.getHarmonicNote(r + 1, ord(tab))
             else:                            n = self.getNote(r + 1, ord(tab))
             for k in imapKeys:
+                chordKey += imap[k] + ' '
                 info.append('{}:{} '.format(k, imap[k]))
                 infoLen += len(info[len(info)-1])
                 if imap[k] == n.name: hk = k
-                print('printStatus({}) infoLen={}, info={}, imap[{}]={}, note={}, hk={}'.format(len(info)-1, infoLen, info, k, imap[k], n.name, hk), file=self.dbgFile)
+                print('printStatus({}) infoLen={}, info={}, imap[{}]={}, note={}, hk={}, chordKey=\'{}\''.format(len(info)-1, infoLen, info, k, imap[k], n.name, hk, chordKey), file=self.dbgFile)
             infoCol = self.numTabsPerStringPerLine + self.COL_OFF - infoLen + 1
-            print('printStatus(col={}) info={}'.format(infoCol, info), file=self.dbgFile)
+            if info: info[-1] = info[-1][:-1]
+            if chordKey: chordKey = chordKey[:-1]
+            if chordKey in self.chordsObj.chords:
+                chordName = self.chordsObj.chords[chordKey]
+                chordName = ' > ' + chordName
+                infoCol -= len(chordName)
+            print('printStatus(col={}) info={}, chordName={}'.format(infoCol, info, chordName), file=self.dbgFile)
             style = self.CSI + self.styles['TABS']
             print(style + self.CSI + '{};{}H'.format(self.lastRow, infoCol), end='', file=self.outFile)
             for k in imapKeys:
@@ -1570,6 +1577,7 @@ class Tabs(object):
                 else:       style = self.CSI + self.styles['TABS']
                 print(style + '{}'.format(info[i]), end='', file=self.outFile)
                 i += 1
+            print(self.CSI + self.styles['STATUS'] + '{}'.format(chordName), file=self.outFile)
         self.resetPos()
         
     def printTabFretInfo(self, tab, r, c):
