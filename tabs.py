@@ -434,7 +434,7 @@ class Tabs(object):
     def quit(self, reason, code=0):
         '''Quit with reason and exit code.'''
         self.printLineInfo('quit(ExitCode={}, reason=\'{}\')'.format(code, reason))
-        print(self.CSI + self.styles['CONS'] + self.CSI + '{};{}HExitCode={}, reason=\'{}\''.format(self.lastRow, 1, code, reason))
+        print(self.CSI + self.styles['CONS'] + self.CSI + '{};{}HExitCode={}, reason=\'{}\''.format(self.lastRow + 1, 1, code, reason))
         self.dbgFile.close()
         exit(code)
      
@@ -770,6 +770,7 @@ class Tabs(object):
         '''Toggle display of enharmonic (sharp or flat) notes.  [cmd line opt -F]'''
         self.enharmonic = (self.enharmonic + 1) % len(self.ENHARMONIC)
         self.printTabs()
+        self.printStatus()
 
     def toggleDisplayLabels(self, printTabs=True):
         '''Toggle (enable or disable) display of modes and labels row.  [cmd line opt -a]'''
@@ -1548,36 +1549,9 @@ class Tabs(object):
         print('printStatus({}, {}) r={}, c={}, tab={}'.format(self.row, self.col, r, c, tab), file=self.dbgFile)
         if   self.isFret(tab): self.printFretStatus(tab, r, c)
         elif tab in self.mods: self.printModStatus(tab, r, c)
-        else:                  self.printDefStatus(tab, r, c)
+        else:                  self.printDefaultStatus(tab, r, c)
         self.clearRow(arg=0, file=self.outFile)
-        if c in self.chordInfo:
-            imap = self.chordInfo[c]
-            imapKeys = sorted(imap, key=self.chordsObj.imapKeyFunc, reverse=False)
-            info, infoLen, i, hk, chordKey, chordName = [], 0, 0, None, '', ''
-            if self.htabs[r][c] == ord('1'): n = self.getHarmonicNote(r + 1, ord(tab))
-            else:                            n = self.getNote(r + 1, ord(tab))
-            for k in imapKeys:
-                chordKey += imap[k] + ' '
-                info.append('{}:{} '.format(k, imap[k]))
-                infoLen += len(info[-1])
-                if imap[k] == n.name: hk = k
-                print('printStatus({}) infoLen={}, info={}, imap[{}]={}, note={}, hk={}, chordKey={}'.format(len(info)-1, infoLen, info, k, imap[k], n.name, hk, chordKey), file=self.dbgFile)
-            infoCol = self.numTabsPerStringPerLine + self.COL_OFF - infoLen + 1
-            if info: info[-1] = info[-1][:-1]
-            if chordKey: chordKey = chordKey[:-1]
-            if chordKey in self.chordsObj.chords:
-                chordName = self.chordsObj.chords[chordKey]
-                chordName = ' > ' + chordName
-                infoCol -= len(chordName)
-            print('printStatus(col={}) info={}, chordName={}'.format(infoCol, info, chordName), file=self.dbgFile)
-            style = self.CSI + self.styles['TABS']
-            print(style + self.CSI + '{};{}H'.format(self.lastRow, infoCol), end='', file=self.outFile)
-            for k in imapKeys:
-                if k == hk: style = self.CSI + self.styles['H_TABS']
-                else:       style = self.CSI + self.styles['TABS']
-                print(style + '{}'.format(info[i]), end='', file=self.outFile)
-                i += 1
-            print(self.CSI + self.styles['STATUS'] + '{}'.format(chordName), file=self.outFile)
+        self.printChordStatus(tab, r, c)
         self.resetPos()
         
     def printFretStatus(self, tab, r, c):
@@ -1622,15 +1596,55 @@ class Tabs(object):
         print(self.CSI + self.styles['TABS'] + self.CSI + '{};{}H{} '.format(self.lastRow, 1, tab), end='', file=self.outFile)
         print(self.CSI + self.styles['TABS'] + '{}{}'.format(s, ss) + self.CSI + self.styles['STATUS'] + ' string {}'.format(self.mods[tab]), end='', file=self.outFile)
     
-    def printDefStatus(self, tab, r, c):
+    def printDefaultStatus(self, tab, r, c):
         s, ss, tabStyle, statStyle = r + 1, self.getOrdSfx(r + 1), self.CSI + self.styles['TABS'], self.CSI + self.styles['STATUS']
-        print('printDefStatus({}, {}) tab={}'.format(r, c, tab), file=self.dbgFile)
+        print('printDefaultStatus({}, {}) tab={}'.format(r, c, tab), file=self.dbgFile)
         print(tabStyle + self.CSI + '{};{}H{} '.format(self.lastRow, 1, tab), end='', file=self.outFile)
         print(tabStyle + '{}{}'.format(s, ss) + statStyle + ' string ' + tabStyle + 'muted' + statStyle + ' not played', end='', file=self.outFile)
     
+    def printChordStatus(self, tab, r, c):
+        if c in self.chordInfo:
+            imap = self.chordInfo[c]
+            imapKeys = sorted(imap, key=self.chordsObj.imapKeyFunc, reverse=False)
+            info, infoLen, i, hk, chordKey, chordName, chordDelim, n = [], 0, 0, None, '', '', ' > ', ''
+            if self.isFret(tab):
+                if self.htabs[r][c] == ord('1'): n = self.getHarmonicNote(r + 1, ord(tab)).name
+                else:                            n = self.getNote(r + 1, ord(tab)).name
+            for k in imapKeys:
+                chordKey += imap[k] + ' '
+                info.append('{}:{} '.format(k, imap[k]))
+                infoLen += len(info[-1])
+                if imap[k] == n: hk = k
+                print('printChordStatus({}) infoLen={}, info={}, imap[{}]={}, n={}, hk={}, chordKey={}'.format(len(info)-1, infoLen, info, k, imap[k], n, hk, chordKey), file=self.dbgFile)
+            infoCol = self.numTabsPerStringPerLine + self.COL_OFF - infoLen + 1
+            if info: info[-1] = info[-1][:-1]
+            if chordKey: chordKey = chordKey[:-1]
+            if chordKey in self.chordsObj.chords:
+                chordName = self.chordsObj.chords[chordKey]
+                infoCol -= (len(chordName) + len(chordDelim))
+            print('printChordStatus(col={}) info={}, chordName={}'.format(infoCol, info, chordName), file=self.dbgFile)
+            style = self.CSI + self.styles['TABS']
+            print(style + self.CSI + '{};{}H'.format(self.lastRow, infoCol), end='', file=self.outFile)
+            for k in imapKeys:
+                if k == hk: style = self.CSI + self.styles['TABS']
+                else:       style = self.CSI + self.styles['STATUS']
+                print(style + '{}'.format(info[i]), end='', file=self.outFile)
+                i += 1
+            print(self.CSI + self.styles['H_TABS'] + '{}'.format(chordDelim), end='', file=self.outFile)
+            if len(chordName) > 1:
+                if chordName[1] == 'b':
+                    if self.enharmonic == self.ENHARMONIC['SHARP']: style = '31;40m'
+                    else:                                           style = '36;40m'
+                elif chordName[1] == '#':
+                    if self.enharmonic == self.ENHARMONIC['FLAT']: style = '36;40m'
+                    else:                                          style = '31;40m'
+                else: style = self.styles['STATUS']
+            else: style = self.styles['STATUS']
+            print(self.CSI + style + '{}'.format(chordName), end='', file=self.outFile)
+    
     def prints(self, c, row, col, style):
        print(self.CSI + style + self.CSI + '{};{}H{}'.format(row, col, str(c)), end='', file=self.outFile)
-
+    
     def printe(self, info, row=None, col=None, style=None):
         if row is None: row=self.row
         if col is None: col=self.col
