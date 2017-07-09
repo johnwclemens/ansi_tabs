@@ -888,12 +888,12 @@ class Tabs(object):
     def selectCol(self, left=0):
         '''Select column, append to selected columns list, hilite current tab, and advance (left or right) to next tab.'''
         cc = self.col2Index(self.col)
-        print('selectCol(left={}) ({}{}), cc={} selectFlag={}, selectRows={}, selectCols={}'.format(left, self.row, self.col, cc, self.selectFlag, self.selectRows, self.selectCols), file=self.dbgFile)
+        print('selectCol(left={}) ({},{}), cc={} selectFlag={}, selectRows={}, selectCols={}'.format(left, self.row, self.col, cc, self.selectFlag, self.selectRows, self.selectCols), file=self.dbgFile)
         if len(self.selectRows) == 0:
             self.selectFlag = 1
             for r in range(0, self.numStrings):
                 self.selectRows.append(r)
-            print('selectCol(left={}) ({}{}) appended all rows, cc={}, selectFlag={}, selectRows={}, selectCols={}'.format(left, self.row, self.col, cc, self.selectFlag, self.selectRows, self.selectCols), file=self.dbgFile)
+            print('selectCol(left={}) ({},{}) appended all rows, cc={}, selectFlag={}, selectRows={}, selectCols={}'.format(left, self.row, self.col, cc, self.selectFlag, self.selectRows, self.selectCols), file=self.dbgFile)
         elif self.selectFlag == 0:
             self.selectFlag = 1
             for c in range(0, len(self.selectCols)):
@@ -1260,10 +1260,10 @@ class Tabs(object):
                 elif arpg == 1:
                     if   self.cursorDir == self.CURSOR_DIRS['DOWN']: cst, ct = c * nsr + r, cc
                     elif self.cursorDir == self.CURSOR_DIRS['UP']:   cst, ct = (c + 1) * nsr - r - 1, cc
-                print('copySelectTabs({},{}) r={},  ={}, c={}, cc={}, cst={}, ct={}, '.format(arpg, self.cursorDir, r, rr, c, cc, cst, ct), end='', file=self.dbgFile)
+                print('copySelectTabs({},{}) r={}, rr={}, c={}, cc={}, cst={}, ct={}, '.format(arpg, self.cursorDir, r, rr, c, cc, cst, ct), end='', file=self.dbgFile)
                 self.selectTabs[r][cst]  = self.tabs[rr][ct]
                 self.selectHTabs[r][cst] = self.htabs[rr][ct]
-                print('selectTabs[{}][{}]={}, tabs[{}][{}]={}'.format(r, cst, chr(self.selectTabs[r][cst]), rr, ct, chr(self.tabs[rr][ct])), file=self.dbgFile)
+                print('copySelectTabs() selectTabs[{}][{}]={}, tabs[{}][{}]={}'.format(r, cst, chr(self.selectTabs[r][cst]), rr, ct, chr(self.tabs[rr][ct])), file=self.dbgFile)
             self.printSelectTabs(info='copySelectTabs()')
             
     def deleteSelectTabs(self, delSel=True):
@@ -1283,7 +1283,7 @@ class Tabs(object):
         self.maxFret = self.findMaxFret()
         self.resetPos()
 
-    def cutSelectTabs(self, arpg=0):
+    def cutSelectTabs(self, arpg=None):
         '''Cut selected tabs.'''
         self.copySelectTabs(arpg=arpg)
         self.deleteSelectTabs(delSel=False)
@@ -1335,7 +1335,7 @@ class Tabs(object):
         else:                       nc = nst
         print('pasteSelectTabs({},{}) row={}, col={}, rr={}, cc={}, nc={}'.format(self.arpeggiate, self.cursorDir, row, col, rr, cc, nc), file=self.dbgFile)
         if self.editMode == self.EDIT_MODES['INSERT']:
-            for c in range(len(nt - 1, cc - 1, -1)):
+            for c in range(nt - 1, cc - 1, -1):
                 for r in range(0, nsr):
                     if c >= nc + cc:
                         self.tabs[r][c] = self.tabs[r][c - nc]
