@@ -679,19 +679,13 @@ class Tabs(object):
         return int(c / self.numTabsPerStringPerLine)
         
     def rowCol2Indices(self, row, col):
-        r = self.row2Index(row)
-        c = self.col2Index(col)
-        return r, c
+        return self.row2Index(row), self.col2Index(col)
     
     def row2Index(self, row):
-        r = row - self.ROW_OFF
-        r -= self.row2Line(row) * self.lineDelta()
-        return r
+        return row - self.ROW_OFF - self.row2Line(row) * self.lineDelta()
     
     def col2Index(self, col):
-        c = col - self.COL_OFF
-        c += self.row2Line(self.row) * self.numTabsPerStringPerLine
-        return c
+        return col - self.COL_OFF + self.row2Line(self.row) * self.numTabsPerStringPerLine
     
     def indices2Row(self, r, c):
         return r + self.ROW_OFF + self.colIndex2Line(c) * self.lineDelta()
@@ -702,10 +696,6 @@ class Tabs(object):
     def indices2RowCol(self, r, c):
         return self.indices2Row(r, c), self.index2Col(c)
 
-    def foldColIndex(self, c):
-        c -= self.colIndex2Line(c) * self.numTabsPerStringPerLine
-        return c
-        
     def bgnCol(self):
         return self.COL_OFF
         
