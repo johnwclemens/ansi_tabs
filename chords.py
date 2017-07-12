@@ -45,7 +45,7 @@ class Chords(object):
         row, col = self.tabsObj.indices2RowCol(self.tabsObj.numStrings + self.tabsObj.NOTES_LEN, c)
         indent = '    '
         if dbg:
-            print('printChord({}) ({},{}) bgn: '.format(c, row, col), file=self.tabsObj.dbgFile)
+            print('printChord({}) ({},{}) bgn: len(chords)={}'.format(c, row, col, len(self.chords)), file=self.tabsObj.dbgFile)
             print('{}Strings     ['.format(indent), end='', file=self.tabsObj.dbgFile)
             for r in range(self.tabsObj.numStrings - 1, -1, -1):
                 if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][c])):
@@ -99,6 +99,7 @@ class Chords(object):
                 print('{:>5}'.format(indices[t]), end=' ', file=self.tabsObj.dbgFile)
             print(']', file=self.tabsObj.dbgFile)
         
+        limap = []
         count = 0
         for j in range(len(indices)):
             if dbg: print('{}printChord({}) index={}'.format(indent, c, j), file=self.tabsObj.dbgFile)
@@ -179,19 +180,20 @@ class Chords(object):
                     elif chordName[i] == 'm' or 'dim' in chordName and chordName[i] == 'd' or chordName[i] == 'i':
                         style = self.tabsObj.styles['FLT_CHORD']
                     elif chordName[i] == 'n':
-                        chordName = chordName[0:i] + chordName[i+1:]
+                        chordName = chordName[:i] + chordName[i+1:]
                         style = '30;43m'
                     elif chordName[i] == 'b':
-                        chordName = chordName[0:i] + chordName[i+1:]
+                        chordName = chordName[:i] + chordName[i+1:]
                         style = self.tabsObj.styles['FLT_CHORD']
                     elif chordName[i] == 'a':
-                        chordName = chordName[0:i] + chordName[i+1:]
+                        chordName = chordName[:i] + chordName[i+1:]
                         style = self.tabsObj.styles['SHP_CHORD']
                     self.tabsObj.prints(chordName[i], i + row, col, style)
                     i += 1
 #                    self.moveTo()
-                self.tabsObj.chordInfo[c] = imap
-                break                                      # if executed, only calculates one chord name, else, calculates multiple chord names, last one wins
+                limap.append(imap)
+                self.tabsObj.chordInfo[c] = limap    
+#                break                                      # if executed, only calculates one chord name, else, calculates multiple chord names, last one wins
 
     def getChordName(self, imap):
         '''Calculate chord name.'''
