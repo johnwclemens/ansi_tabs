@@ -188,7 +188,7 @@ class Tabs(object):
             if 'Z' in argMap and len(argMap['Z']) == 0:
                 self.goToLastTab(ll=1)                         # go to last tab on last line of all strings
             if 'h' in argMap and len(argMap['h']) == 0:
-                self.printHelpInfo()                           # display the help info
+                self.printHelpInfo(ui=0)                       # display the help info
             self.printTabs()                                   # display all the tabs in the tabs section, optionally display the notes and chords sections and the modes/labels row
             self.moveTo(hi=1)                                  # display the status and hilite the first tab character
  
@@ -438,7 +438,7 @@ class Tabs(object):
         self.dbgFile.close()
         exit(code)
      
-    def printHelpInfo(self, ui=None):
+    def printHelpInfo(self, ui=1):
         '''Print help info.  If ui: explicitly call printTabs(), else: assume printTabs() will be called by the invoker.  [cmd line opt -h]'''
         self.clearScreen()
         self.printHelpSummary()
@@ -535,7 +535,7 @@ class Tabs(object):
             elif b == 6:   self.uiCmds['Ctrl F']()                # toggleEnharmonic()     # cmd line opt -F?
             elif b == 7:   self.uiCmds['Ctrl G']()                # goTo()                 #?cmd line opt -g?
             elif b == 8:   self.uiCmds['Ctrl H or Backspace']()   # deletePrevTab()        # N/A
-            elif b == 72:  self.uiCmds['Shift H'](ui=1)           # printHelpInfo()        # cmd line opt -h
+            elif b == 72:  self.uiCmds['Shift H']()               # printHelpInfo()        # cmd line opt -h
             elif b == 9:   self.uiCmds['Ctrl I or Tab']()         # toggleCursorDir()      # cmd line opt -i
             elif b == 10:  self.uiCmds['Ctrl J']()                # shiftSelectTabs()      # N/A
             elif b == 11:  self.uiCmds['Ctrl K'](dbg=1)           # printChord()           # N/A
@@ -1629,25 +1629,27 @@ class Tabs(object):
                     print(style + '{}'.format(info[i]), end='', file=self.outFile)
                     i += 1
                 print(self.CSI + self.styles['H_TABS'] + '{}'.format(chordDelim), end='', file=self.outFile)
-                if len(chordName) > 1:
-                    if chordName[1] == 'b':
-                        if self.enharmonic == self.ENHARMONIC['SHARP']: style = '31;40m'
-                        else:                                           style = '36;40m'
-                    elif chordName[1] == '#':
-                        if self.enharmonic == self.ENHARMONIC['FLAT']: style = '36;40m'
-                        else:                                          style = '31;40m'
-                    else: style = self.styles['STATUS']
-                else: style = self.styles['STATUS']
+                style = self.getEnharmonicStyle(chordName, self.styles['STATUS'], '36;40m', '31;40m')
                 print(self.CSI + style + '{}'.format(chordName), end='', file=self.outFile)
         else: self.clearRow(arg=0, file=self.outFile)
+
+    def getEnharmonicStyle(self, name, defStyle, flatStyle, sharpStyle):
+        if len(name) > 1:
+            if name[1] == 'b':
+                if self.enharmonic == self.ENHARMONIC['FLAT']:  return flatStyle
+                else:                                           return sharpStyle
+            elif name[1] == '#':
+                if self.enharmonic == self.ENHARMONIC['SHARP']: return sharpStyle
+                else:                                           return flatStyle
+        return defStyle
         
     def prints(self, c, row, col, style):
        print(self.CSI + style + self.CSI + '{};{}H{}'.format(row, col, str(c)), end='', file=self.outFile)
     
     def printe(self, info, row=None, col=None, style=None):
-        if row is None: row=self.row
-        if col is None: col=self.col
-        if style == None: style = self.styles['ERROR']
+        if row is None:     row = self.row
+        if col is None:     col = self.col
+        if style is None: style = self.styles['ERROR']
         info = 'ERROR! printe({}, {}) {}'.format(row, col, info)
         print(info, file=self.dbgFile)
         print(self.CSI + style + self.CSI + '{};{}H{}'.format(self.lastRow, 1, info), end='')

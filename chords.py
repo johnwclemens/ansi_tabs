@@ -166,18 +166,8 @@ class Chords(object):
                 while i < len(chordName):
                     style = self.tabsObj.styles['NAT_CHORD']
                     if i == 0:
-                        if len(imap['R']) > 1:
-                            if imap['R'][1] == '#':
-                                if self.tabsObj.enharmonic == self.tabsObj.ENHARMONIC['FLAT']:
-                                    style = self.tabsObj.styles['FLT_CHORD']
-                                else:
-                                    style = self.tabsObj.styles['SHP_CHORD']
-                            elif imap['R'][1] == 'b':
-                                if self.tabsObj.enharmonic == self.tabsObj.ENHARMONIC['SHARP']:
-                                    style = self.tabsObj.styles['SHP_CHORD']
-                                else:
-                                    style = self.tabsObj.styles['FLT_CHORD']
-                    elif chordName[i] == 'm' or 'dim' in chordName and chordName[i] == 'd' or chordName[i] == 'i':
+                        style = self.tabsObj.getEnharmonicStyle(imap['R'], style, self.tabsObj.styles['FLT_CHORD'], self.tabsObj.styles['SHP_CHORD'])
+                    elif chordName[i] == 'm':
                         style = self.tabsObj.styles['FLT_CHORD']
                     elif chordName[i] == 'n':
                         chordName = chordName[:i] + chordName[i+1:]
@@ -191,6 +181,8 @@ class Chords(object):
                     self.tabsObj.prints(chordName[i], i + row, col, style)
                     i += 1
 #                    self.moveTo()
+                for i in range(i, self.tabsObj.CHORDS_LEN):
+                    self.tabsObj.prints(' ', i + row, col, self.tabsObj.styles['NAT_CHORD'])
                 limap.append(imap)
                 self.tabsObj.chordInfo[c] = limap    
 #                break                                      # if executed, only calculates one chord name, else, calculates multiple chord names, last one wins
