@@ -82,6 +82,7 @@ class Tabs(object):
         self.tabCount = 0                                      # used by appendTabs() 
         self.tabs = []                                         # list of bytearrays, one for each string; for all the tabs
         self.chordInfo = {}                                    # dict of intervals -> note names, imap for status chord info
+        self.analyzeIndex = 0
         
         self.arpeggiate = 0                                    # used to transform chords to arpeggios
         self.selectFlag = 0                                    # used to un-hilite selected rows
@@ -216,10 +217,14 @@ class Tabs(object):
         self.styles = { 'NAT_NOTE':'32;47m', 'NAT_H_NOTE':'37;43m', 'NAT_CHORD':'37;43m', 'MIN_COL_NUM':'32;40m',   'TABS':'32;40m', 'NUT_UP':'31;43m', 'NORMAL':'22;',
                         'FLT_NOTE':'34;47m', 'FLT_H_NOTE':'34;43m', 'FLT_CHORD':'34;43m', 'MAJ_COL_NUM':'33;40m', 'H_TABS':'33;40m', 'NUT_DN':'34;43m', 'BRIGHT':'1;',
                         'SHP_NOTE':'31;47m', 'SHP_H_NOTE':'31;43m', 'SHP_CHORD':'31;43m',      'STATUS':'37;40m',  'MODES':'34;47m',  'ERROR':'31;43m',   'CONS':'37;40m' }
+#        self.INTERVALS = { 0:'R',  1:'b2',  2:'2',  3:'m3',  4:'M3',  5:'4',   6:'b5',  7:'5',  8:'a5',  9:'6',  10:'b7', 11:'7', 
+#                          12:'R', 13:'b9', 14:'9', 15:'m3', 16:'M3', 17:'11', 18:'b5', 19:'5', 20:'a5', 21:'13', 22:'b7', 23:'7',
+#                          24:'R', 25:'b9', 26:'9', 27:'m3', 28:'M3', 29:'11', 30:'b5', 31:'5', 32:'a5', 33:'13', 34:'b7', 35:'7', 
+#                          36:'R', 37:'b9', 38:'9', 39:'m3', 40:'M3', 41:'11', 42:'b5', 43:'5', 44:'a5', 45:'13', 46:'b7', 47:'7', 48:'R' }
         self.INTERVALS = { 0:'R',  1:'b2',  2:'2',  3:'m3',  4:'M3',  5:'4',   6:'b5',  7:'5',  8:'a5',  9:'6',  10:'b7', 11:'7', 
-                          12:'R', 13:'b9', 14:'9', 15:'m3', 16:'M3', 17:'11', 18:'b5', 19:'5', 20:'a5', 21:'13', 22:'b7', 23:'7',
-                          24:'R', 25:'b9', 26:'9', 27:'m3', 28:'M3', 29:'11', 30:'b5', 31:'5', 32:'a5', 33:'13', 34:'b7', 35:'7', 
-                          36:'R', 37:'b9', 38:'9', 39:'m3', 40:'M3', 41:'11', 42:'b5', 43:'5', 44:'a5', 45:'13', 46:'b7', 47:'7', 48:'R' }
+                          12:'R', 13:'b9', 14:'2', 15:'m3', 16:'M3', 17:'4',  18:'b5', 19:'5', 20:'a5', 21:'6',  22:'b7', 23:'7',
+                          24:'R', 25:'b9', 26:'2', 27:'m3', 28:'M3', 29:'4',  30:'b5', 31:'5', 32:'a5', 33:'6',  34:'b7', 35:'7', 
+                          36:'R', 37:'b9', 38:'2', 39:'m3', 40:'M3', 41:'4',  42:'b5', 43:'5', 44:'a5', 45:'6',  46:'b7', 47:'7', 48:'R' }
         self.HARMONIC_FRETS = { 12:12, 7:19, 19:19, 5:24, 24:24, 4:28, 9:28, 16:28, 28:28 }
 #        self.FRET_INDICES = { 0:0, 1:1, 2:2, 3:3, 4:4, 5:5, 6:6, 7:7, 8:8, 9:9, 10:'a' }  # for moving along the fretboard?
 #        self.MAJ_INDICES = [ 0, 2, 4, 5, 7, 9, 11, 12 ]                                   # for key signatures and or scales?
@@ -1657,7 +1662,49 @@ class Tabs(object):
         self.resetPos()
         
     def analyzeChord(self):
-        print('analyzeChord()'.format(), file=self.dbgFile)
+        r, c = self.rowCol2Indices(self.row, self.col)
+        tab = chr(self.tabs[r][c])
+        print('analyzeChord({}, {}) r={}, c={}, tab={}'.format(self.row, self.col, r, c, tab), file=self.dbgFile)
+        if c in self.chordInfo:
+            print('analyzeChord() len(chordInfo[{}])={}'.format(c, len(self.chordInfo[c])), file=self.dbgFile)
+            m = self.analyzeIndex % len(self.chordInfo[c])
+            self.analyzeIndex += 1
+            print('analyzeChord() m={} analyzeIndex={}'.format(m, self.analyzeIndex), file=self.dbgFile)
+#            self.clearRow(arg=0, file=self.outFile)
+            imap = self.chordInfo[c][m]
+            imapKeys = sorted(imap, key=self.chordsObj.imapKeyFunc, reverse=False)
+            print('analyzeChord() imap[{}]= [ '.format(m), end='', file=self.dbgFile)
+            for k in imapKeys: print('{}:{} '.format(k, imap[k]), end='', file=self.dbgFile)
+            print(']', file=self.dbgFile)
+            info, infoLen, i, n, hk, chordKey, chordName, chordDelim = [], 0, 0, None, '', '', '', ' > '
+            if self.isFret(tab):
+                if self.htabs[r][c] == ord('1'): n = self.getHarmonicNote(r + 1, ord(tab)).name
+                else:                            n = self.getNote(r + 1, ord(tab)).name
+            for k in imapKeys:
+                chordKey += imap[k] + ' '
+                info.append('{}:{} '.format(k, imap[k]))
+                infoLen += len(info[-1])
+                if imap[k] == n: hk = k
+                print('analyzeChord({}) infoLen={}, info={}, imap[{}]={}, n={}, hk={}, chordKey={}'.format(len(info)-1, infoLen, info, k, imap[k], n, hk, chordKey), file=self.dbgFile)
+            infoCol = self.numTabsPerStringPerLine + self.COL_OFF - infoLen + 1
+            if info: info[-1] = info[-1][:-1]
+            if chordKey: chordKey = chordKey[:-1]
+            if chordKey in self.chordsObj.chords:
+                chordName = self.chordsObj.chords[chordKey]
+                infoCol -= (len(chordName) + len(chordDelim))
+            print('analyzeChord(col={}) info={}, chordName={}'.format(infoCol, info, chordName), file=self.dbgFile)
+            style = self.CSI + self.styles['TABS']
+            print(style + self.CSI + '{};{}H'.format(self.lastRow, infoCol), end='', file=self.outFile)
+            for k in imapKeys:
+                if k == hk: style = self.CSI + self.styles['TABS']
+                else:       style = self.CSI + self.styles['STATUS']
+                print(style + '{}'.format(info[i]), end='', file=self.outFile)
+                i += 1
+            print(self.CSI + self.styles['H_TABS'] + '{}'.format(chordDelim), end='', file=self.outFile)
+            style = self.getEnharmonicStyle(chordName, self.styles['STATUS'], '36;40m', '31;40m')
+            print(self.CSI + style + '{}'.format(chordName), end='', file=self.outFile)
+#        else: self.clearRow(arg=0, file=self.outFile)
+        self.resetPos()
         
     def hilite(self, text):
         return self.CSI + self.styles['ERROR'] + text + self.CSI + self.styles['CONS']
