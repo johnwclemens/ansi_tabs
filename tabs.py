@@ -118,7 +118,7 @@ class Tabs(object):
         self.displayNotes = self.DISPLAY_NOTES['DISABLED']     # enable or disable the display of the notes section for each line
         self.displayChords = self.DISPLAY_CHORDS['DISABLED']   # enable or disable the display of the chords section for each line
         self.cursorDir = self.CURSOR_DIRS['DOWN']              # affects the automatic cursor movement (up/down) when entering a tab in chord or arpeggio mode
-        self.enharmonic = self.ENHARMONIC['SHARP']             # toggle to display enharmonic notes using flats or sharps
+        self.enharmonic = self.ENHARMONICS['SHARP']            # toggle between displaying enharmonic notes as flat or sharp
         self.editMode = self.EDIT_MODES['REPLACE']             # toggle between modifying the current character or inserting a new character
         self.cursorMode = self.CURSOR_MODES['MELODY']          # toggle between different cursor modes; melody, chord, and arpeggio
         
@@ -228,7 +228,7 @@ class Tabs(object):
         self.CURSOR_DIRS = { 'DOWN':0, 'UP':1 }
         self.CURSOR_MODES = { 'MELODY':0, 'CHORD':1, 'ARPEGGIO':2 }
         self.EDIT_MODES = { 'REPLACE':0, 'INSERT':1 }
-        self.ENHARMONIC = { 'SHARP':0, 'FLAT':1 }
+        self.ENHARMONICS = { 'FLAT':0, 'SHARP':1 }
         self.DISPLAY_LABELS = { 'DISABLED':0, 'ENABLED':1 }
         self.DISPLAY_NOTES = { 'DISABLED':0, 'ENABLED':1 }
         self.DISPLAY_CHORDS = { 'DISABLED':0, 'ENABLED':1 }
@@ -761,7 +761,7 @@ class Tabs(object):
 
     def toggleEnharmonic(self):
         '''Toggle display of enharmonic (sharp or flat) notes.  [cmd line opt -F]'''
-        self.enharmonic = (self.enharmonic + 1) % len(self.ENHARMONIC)
+        self.enharmonic = (self.enharmonic + 1) % len(self.ENHARMONICS)
         self.printTabs()
         self.printStatus()
 
@@ -1145,7 +1145,7 @@ class Tabs(object):
         self.prints(self.hiliteRowNum, self.row, self.editModeCol, self.styles['BRIGHT'] + self.styles['TABS'])
         self.resetPos()
 
-    def deleteTab(self, row=None, col=None):
+    def deleteTab(self, row=None, col=None, dir=0):
         '''Delete current tab.'''
         if row is None: row = self.row
         if col is None: col = self.col
@@ -1169,7 +1169,8 @@ class Tabs(object):
             if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
                 self.chordsObj.eraseChord(c)
                 self.chordsObj.printChord(c=c)
-            self.moveTo(row=row, col=col)
+            if not dir: self.moveTo(row=row, col=col + 1)
+            else:       self.moveTo(row=row, col=col - 1)
         if self.isFret(chr(tab)) and tabFN == maxFN:
             self.maxFret = self.findMaxFret()
             print('deleteTab() reset maxFret={}, chr(maxFret)={}, maxFN={}, tab={}, chr(tab)={}, tabFN={}'.format(self.maxFret, chr(self.maxFret), self.getFretNum(self.maxFret), tab, chr(tab), tabFN), file=self.dbgFile)
@@ -1177,7 +1178,7 @@ class Tabs(object):
     def deletePrevTab(self):
         '''Delete previous tab (backspace).'''
         self.moveTo(col=self.col - 1)
-        self.deleteTab()
+        self.deleteTab(dir=1)
     
     def eraseTabs(self):
         '''Erase all tabs (resets all tabs to '-').'''
@@ -1261,10 +1262,6 @@ class Tabs(object):
             
     def deleteSelectTabs(self, delSel=True):
         '''Delete selected tabs.'''
-#        print('deleteSelectTabs(): {', end='', file=self.dbgFile)
-#        for c in range(0, len(self.selectCols)):
-#            print('{}'.format(self.selectCols[c]), end=',', file=self.dbgFile)
-#        print('}', file=self.dbgFile)
         self.printLineInfo('deleteSelectTabs({}, {})'.format(self.row, self.col))
         self.selectCols.sort(key = int, reverse = True)
         for c in range(0, len(self.selectCols)):
@@ -1520,12 +1517,12 @@ class Tabs(object):
             shpStyle = style + self.styles['SHP_H_NOTE']
         if len(note.name) > 1:
             if note.name[1] == '#':
-                if self.enharmonic == self.ENHARMONIC['FLAT']:
+                if self.enharmonic == self.ENHARMONICS['FLAT']:
                     return fltStyle
                 else:
                     return shpStyle
             elif note.name[1] == 'b':
-                if self.enharmonic == self.ENHARMONIC['SHARP']:
+                if self.enharmonic == self.ENHARMONICS['SHARP']:
                     return shpStyle
                 else:
                     return fltStyle
@@ -1651,10 +1648,10 @@ class Tabs(object):
     def getEnharmonicStyle(self, name, defStyle, flatStyle, sharpStyle):
         if len(name) > 1:
             if name[1] == 'b':
-                if self.enharmonic == self.ENHARMONIC['FLAT']:  return flatStyle
+                if self.enharmonic == self.ENHARMONICS['FLAT']:  return flatStyle
                 else:                                           return sharpStyle
             elif name[1] == '#':
-                if self.enharmonic == self.ENHARMONIC['SHARP']: return sharpStyle
+                if self.enharmonic == self.ENHARMONICS['SHARP']: return sharpStyle
                 else:                                           return flatStyle
         return defStyle
         
