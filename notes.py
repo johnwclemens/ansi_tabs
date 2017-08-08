@@ -17,14 +17,14 @@ class Note(object):
                 'C7':84, 'C#7':85, 'Db7':85, 'D7':86, 'D#7':87, 'Eb7':87, 'E7':88, 'F7':89, 'F#7':90, 'Gb7':90, 'G7':91, 'G#7':92, 'Ab7':92, 'A7':93, 'A#7':94, 'Bb7':94, 'B7':95, 
                 'C8':96 } # For simplicity omit double flats and double sharps and other redundant enharmonic note names e.g. Abb, C##, Cb, B#, Fb, E#
 
-    def __init__(self, index, flats=None):
+    def __init__(self, index, sharps=None):
         '''The index identifies the note value, the name is looked up using the TONES dictionary.'''
         self._index = index
-        if flats is None or flats is 0:
-            self._name = self.S_TONES[index % len(self.S_TONES)]
-        else:
+        if sharps is None or sharps is 0:
             self._name = self.F_TONES[index % len(self.F_TONES)]
-        
+        else:
+            self._name = self.S_TONES[index % len(self.S_TONES)]
+   
     @property
     def index(self):
         return self._index

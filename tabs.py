@@ -1515,19 +1515,7 @@ class Tabs(object):
             natStyle = style + self.styles['NAT_H_NOTE']
             fltStyle = style + self.styles['FLT_H_NOTE']
             shpStyle = style + self.styles['SHP_H_NOTE']
-        if len(note.name) > 1:
-            if note.name[1] == '#':
-                if self.enharmonic == self.ENHARMONICS['FLAT']:
-                    return fltStyle
-                else:
-                    return shpStyle
-            elif note.name[1] == 'b':
-                if self.enharmonic == self.ENHARMONICS['SHARP']:
-                    return shpStyle
-                else:
-                    return fltStyle
-        else:
-            return natStyle
+        return self.getEnharmonicStyle(note.name, natStyle, fltStyle, shpStyle)
     
     def printNote(self, row, col, note, style='', hn=None):
         style = self.getNoteStyle(note, style, hn)
@@ -1649,12 +1637,12 @@ class Tabs(object):
         if len(name) > 1:
             if name[1] == 'b':
                 if self.enharmonic == self.ENHARMONICS['FLAT']:  return flatStyle
-                else:                                           return sharpStyle
+                else:                                            return sharpStyle
             elif name[1] == '#':
                 if self.enharmonic == self.ENHARMONICS['SHARP']: return sharpStyle
-                else:                                           return flatStyle
+                else:                                            return flatStyle
         return defStyle
-        
+
     def prints(self, c, row, col, style):
        print(self.CSI + style + self.CSI + '{};{}H{}'.format(row, col, str(c)), end='', file=self.outFile)
     
