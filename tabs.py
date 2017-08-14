@@ -83,6 +83,7 @@ class Tabs(object):
         self.tabs = []                                         # list of bytearrays, one for each string; for all the tabs
         self.chordInfo = {}                                    # dict of intervals -> note names, imap for status chord info
         self.analyzeIndex = 0
+        self.chordInfoCols = {}
         
         self.arpeggiate = 0                                    # used to transform chords to arpeggios
         self.selectFlag = 0                                    # used to un-hilite selected rows
@@ -1581,9 +1582,8 @@ class Tabs(object):
     
     def printChordStatus(self, tab, r, c):
         if c in self.chordInfo:
-            print('printChordStatus() len(chordInfo[{}])={}'.format(c, len(self.chordInfo[c])), file=self.dbgFile)
+            print('printChordStatus() len(chordInfo[{}])={}, chordInfo[{}]={}'.format(c, len(self.chordInfo[c]), c, self.chordInfo[c]), file=self.dbgFile)
             for m in range(len(self.chordInfo[c])):
-                self.clearRow(arg=0, file=self.outFile)
                 self.inspectChord(tab, r, c, m)
         else: self.clearRow(arg=0, file=self.outFile)
 
@@ -1604,7 +1604,7 @@ class Tabs(object):
         imapKeys = sorted(imap, key=self.chordsObj.imapKeyFunc, reverse=False)
         print('inspectChord() imap[{}]= [ '.format(m), end='', file=self.dbgFile)
         for k in imapKeys: print('{}:{} '.format(k, imap[k]), end='', file=self.dbgFile)
-        print(']', file=self.dbgFile)
+        print('], tab={}, r={}, c={}'.format(tab, r, c), file=self.dbgFile)
         info, infoLen, i, n, hk, chordKey, chordName, chordDelim = [], 0, 0, None, '', '', '', ' > '
         if self.isFret(tab):
             if self.htabs[r][c] == ord('1'): n = self.getHarmonicNote(r + 1, ord(tab)).name
@@ -1621,8 +1621,12 @@ class Tabs(object):
         if chordKey in self.chordsObj.chords:
             chordName = self.chordsObj.chords[chordKey]
             infoCol -= (len(chordName) + len(chordDelim))
-        print('inspectChord(col={}) info={}, chordName={}'.format(infoCol, info, chordName), file=self.dbgFile)
+        if c in self.chordInfoCols:
+            if infoCol < self.chordInfoCols[c]: self.chordInfoCols[c] = infoCol
+        else: self.chordInfoCols[c] = infoCol
+        print('inspectChord() info={}, chordName={}, col={}, cols[c]={}'.format(info, chordName, infoCol, self.chordInfoCols[c]), file=self.dbgFile)
         style = self.CSI + self.styles['TABS']
+        self.clearRow(arg=0, row=self.lastRow, col=self.chordInfoCols[c], file=self.outFile)
         print(style + self.CSI + '{};{}H'.format(self.lastRow, infoCol), end='', file=self.outFile)
         for k in imapKeys:
             if k == hk: style = self.CSI + self.styles['TABS']
@@ -1722,9 +1726,12 @@ class Tabs(object):
     def clearScreen(arg=2, file=None):
         print(Tabs.CSI + '{}J'.format(arg), file=file)
 
-    @staticmethod
-    def clearRow(arg=2, file=None): # arg=0: cursor to end of line, arg=1: begin of line to cursor, arg=2: entire line 
-        print(Tabs.CSI + '{}K'.format(arg), end='', file=file)
+#    @staticmethod
+    def clearRow(self, arg=2, row=None, col=None, file=None): # arg=0: cursor to end of line, arg=1: begin of line to cursor, arg=2: entire line 
+        if row is not None and col is not None:
+            print('clearRow() row={}, col={}'.format(row, col), file=self.dbgFile)
+            print(self.CSI + '{};{}H'.format(row, col), end='', file=file)
+        print(self.CSI + '{}K'.format(arg), end='', file=file)
         
     def printHelpSummary(self):
         summary = \

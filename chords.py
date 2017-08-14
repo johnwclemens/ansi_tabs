@@ -152,7 +152,6 @@ class Chords(object):
                         print(']', file=self.tabsObj.dbgFile)
                 elif dbg: print('{}printChord({}) index={}, Key=\'{}\' not a chord'.format(indent, c, j, chordKey), file=self.tabsObj.dbgFile)
             else:
-                chordName = self.chords[chordKey]
                 count += 1
                 if dbg: print('{}printChord({}) index={}, count={}, Found key=\'{}\', value=\'{}\' in chords'.format(indent, c, j, count, chordKey, self.chords[chordKey]), file=self.tabsObj.dbgFile)
             if len(chordName) > 0:
