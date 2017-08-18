@@ -1625,17 +1625,18 @@ class Tabs(object):
             if infoCol < self.chordStatusCols[c]: self.chordStatusCols[c] = infoCol
         else: self.chordStatusCols[c] = infoCol
         print('inspectChord() info={}, chordName={}, col={}, cols[c]={}'.format(info, chordName, infoCol, self.chordStatusCols[c]), file=self.dbgFile)
-        style = self.CSI + self.styles['TABS']
         self.clearRow(arg=0, row=self.lastRow, col=self.chordStatusCols[c], file=self.outFile)
-        print(style + self.CSI + '{};{}H'.format(self.lastRow, infoCol), end='', file=self.outFile)
+        style = self.CSI + self.styles['TABS']
+        if len(chordName) > 0:
+            style = self.getEnharmonicStyle(chordName, self.styles['STATUS'], '36;40m', '31;40m')
+            print(self.CSI + style + self.CSI + '{};{}H{}'.format(self.lastRow, infoCol, chordName), end='', file=self.outFile)
+            print(self.CSI + self.styles['H_TABS'] + '{}'.format(chordDelim), end='', file=self.outFile)
+        else: print(style + self.CSI + '{};{}H{}'.format(self.lastRow, infoCol, chordName), end='', file=self.outFile)
         for k in imapKeys:
             if k == hk: style = self.CSI + self.styles['TABS']
             else:       style = self.CSI + self.styles['STATUS']
             print(style + '{}'.format(info[i]), end='', file=self.outFile)
             i += 1
-        print(self.CSI + self.styles['H_TABS'] + '{}'.format(chordDelim), end='', file=self.outFile)
-        style = self.getEnharmonicStyle(chordName, self.styles['STATUS'], '36;40m', '31;40m')
-        print(self.CSI + style + '{}'.format(chordName), end='', file=self.outFile)
     
     def getEnharmonicStyle(self, name, defStyle, flatStyle, sharpStyle):
         if len(name) > 1:

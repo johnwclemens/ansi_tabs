@@ -98,7 +98,7 @@ class Chords(object):
         limap = []
         count = 0
         for j in range(len(indices)):
-            found = 0
+#            found = 0
             if dbg: print('{}printChord({}) index={}'.format(indent, c, j), file=self.tabsObj.dbgFile)
             deltas = []
             for i in range(len(indices)):
@@ -153,10 +153,12 @@ class Chords(object):
                         print(']', file=self.tabsObj.dbgFile)
                 elif dbg: print('{}printChord({}) index={}, Key=\'{}\' not a chord'.format(indent, c, j, chordKey), file=self.tabsObj.dbgFile)
             else:
-                found = 1
+#                found = 1
                 chordName = self.chords[chordKey]
                 count += 1
                 if dbg: print('{}printChord({}) index={}, count={}, Found key=\'{}\', value=\'{}\' in chords'.format(indent, c, j, count, chordKey, self.chords[chordKey]), file=self.tabsObj.dbgFile)
+            limap.append(imap)
+            self.tabsObj.chordInfo[c] = limap
             if len(chordName) > 0:
                 if len(chordName) > 1 and ( chordName[1] == '#' or chordName[1] == 'b' ):
                     chordName = chordName[0] + chordName[2:]
@@ -181,9 +183,9 @@ class Chords(object):
 #                    self.moveTo()
                 for i in range(i, self.tabsObj.CHORDS_LEN):
                     self.tabsObj.prints(' ', i + row, col, self.tabsObj.styles['NAT_CHORD'])
-                if found == 0:
-                    limap.append(imap)
-                    self.tabsObj.chordInfo[c] = limap
+#                if found == 0:
+#                    limap.append(imap)
+#                    self.tabsObj.chordInfo[c] = limap
 #                break                                      # if executed, only calculates one chord name, else, calculates multiple chord names, last one wins
 
     def getChordName(self, imap):
