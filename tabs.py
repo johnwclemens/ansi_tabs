@@ -82,8 +82,8 @@ class Tabs(object):
         self.tabCount = 0                                      # used by appendTabs() 
         self.tabs = []                                         # list of bytearrays, one for each string; for all the tabs
         self.chordInfo = {}                                    # dict of intervals -> note names, imap for status chord info
-        self.analyzeIndex = 0
-        self.chordInfoCols = {}
+        self.analyzeIndex = 0                                  # index being analysed for chord info
+        self.chordStatusCols = {}                              # dict of tab column indices -> status column for chord info to be displayed
         
         self.arpeggiate = 0                                    # used to transform chords to arpeggios
         self.selectFlag = 0                                    # used to un-hilite selected rows
@@ -1621,12 +1621,12 @@ class Tabs(object):
         if chordKey in self.chordsObj.chords:
             chordName = self.chordsObj.chords[chordKey]
             infoCol -= (len(chordName) + len(chordDelim))
-        if c in self.chordInfoCols:
-            if infoCol < self.chordInfoCols[c]: self.chordInfoCols[c] = infoCol
-        else: self.chordInfoCols[c] = infoCol
-        print('inspectChord() info={}, chordName={}, col={}, cols[c]={}'.format(info, chordName, infoCol, self.chordInfoCols[c]), file=self.dbgFile)
+        if c in self.chordStatusCols:
+            if infoCol < self.chordStatusCols[c]: self.chordStatusCols[c] = infoCol
+        else: self.chordStatusCols[c] = infoCol
+        print('inspectChord() info={}, chordName={}, col={}, cols[c]={}'.format(info, chordName, infoCol, self.chordStatusCols[c]), file=self.dbgFile)
         style = self.CSI + self.styles['TABS']
-        self.clearRow(arg=0, row=self.lastRow, col=self.chordInfoCols[c], file=self.outFile)
+        self.clearRow(arg=0, row=self.lastRow, col=self.chordStatusCols[c], file=self.outFile)
         print(style + self.CSI + '{};{}H'.format(self.lastRow, infoCol), end='', file=self.outFile)
         for k in imapKeys:
             if k == hk: style = self.CSI + self.styles['TABS']
