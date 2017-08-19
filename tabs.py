@@ -81,7 +81,7 @@ class Tabs(object):
         self.htabs = []                                        # list of bytearrays, one for each string; for harmonic tabs
         self.tabCount = 0                                      # used by appendTabs() 
         self.tabs = []                                         # list of bytearrays, one for each string; for all the tabs
-        self.chordInfo = {}                                    # dict of intervals -> note names, imap for status chord info
+        self.chordInfo = {}                                    # dict column -> list of dict intervals -> note names i.e. dict col -> list of imaps for status chord info
         self.analyzeIndex = 0                                  # index being analysed for chord info
         self.chordStatusCols = {}                              # dict of tab column indices -> status column for chord info to be displayed
         
