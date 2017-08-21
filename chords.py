@@ -156,7 +156,14 @@ class Chords(object):
                 count += 1
                 if dbg: print('{}printChord({}) index={}, count={}, Found key=\'{}\', value=\'{}\' in chords'.format(indent, c, j, count, chordKey, self.chords[chordKey]), file=self.tabsObj.dbgFile)
             if imap not in limap:
-                limap.append(imap)
+                if len(chordName) == 0:
+                    print('printChord() chord={} prepend imap={} to limap={}'.format(chordName, imap, limap), file=self.tabsObj.dbgFile)
+                    limap.insert(0, imap)
+                    print('printChord() limap={}'.format(limap), file=self.tabsObj.dbgFile)
+                else:
+                    print('printChord() chord={} append imap={} to limap={}'.format(chordName, imap, limap), file=self.tabsObj.dbgFile)
+                    limap.append(imap)
+                    print('printChord() limap={}'.format(limap), file=self.tabsObj.dbgFile)
                 self.tabsObj.chordInfo[c] = limap
             if len(chordName) > 0:
                 if len(chordName) > 1 and ( chordName[1] == '#' or chordName[1] == 'b' ):
