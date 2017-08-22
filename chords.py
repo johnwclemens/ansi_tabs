@@ -186,7 +186,6 @@ class Chords(object):
                         style = self.tabsObj.styles['SHP_CHORD']
                     self.tabsObj.prints(chordName[i], i + row, col, style)
                     i += 1
-#                    self.moveTo()
                 for i in range(i, self.tabsObj.CHORDS_LEN):
                     self.tabsObj.prints(' ', i + row, col, self.tabsObj.styles['NAT_CHORD'])
 #                break                                      # if executed, only calculates one chord name, else, calculates multiple chord names, last one wins
