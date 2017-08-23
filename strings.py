@@ -13,6 +13,7 @@ class Strings(object):
         self.ALIASES['GUITAR_OPEN_D_VESTAPOL']    = ['D2A2D3F#3A3D4']
         self.ALIASES['GUITAR_OPEN_G_OVERTONE']    = ['G2G2D3G3B3D4']
         self.ALIASES['GUITAR_OPEN_GMIN_OVERTONE'] = ['G2G2D3G3Bb3D4']
+        self.ALIASES['TENOR_GUITAR']              = ['C3G3D4A4']
         self.ALIASES['BASS']                      = ['E1A1D2G2']
         self.ALIASES['BASS_5_STRING']             = ['B0E1A1D2G2']
         self.ALIASES['BASS_5_STRING_TENOR']       = ['E1A1D2G2C3']
