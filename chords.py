@@ -95,6 +95,7 @@ class Chords(object):
                 print('{:>5}'.format(indices[t]), end=' ', file=self.tabsObj.dbgFile)
             print(']', file=self.tabsObj.dbgFile)
         
+        aliases = []
         limap = []
         count = 0
         for j in range(len(indices)):
@@ -166,6 +167,24 @@ class Chords(object):
                     print('printChord() limap={}'.format(limap), file=self.tabsObj.dbgFile)
                 self.tabsObj.chordInfo[c] = limap
             if len(chordName) > 0:
+                if imapKeys == ['R', 'm3', '5', 'b7']:
+                    alias = 'm7'
+                    aliases.append(alias)
+                    print('printChord() imapKeys={} appended alias={} to aliases={}'.format(imapKeys, alias, aliases), file=self.tabsObj.dbgFile)
+                elif imapKeys == ['R', 'm3', 'b5', 'b7']:
+                    alias = '07'
+                    aliases.append(alias)
+                    print('printChord() imapKeys={} appended alias={} to aliases={}'.format(imapKeys, alias, aliases), file=self.tabsObj.dbgFile)
+                elif imapKeys == ['R', 'M3', '5', '6']:
+                    alias = '6'
+                    if 'm7' in aliases:
+                        print('printChord() imapKeys={} skipped alias={} because "m7" in aliases={}'.format(imapKeys, alias, aliases), file=self.tabsObj.dbgFile)
+                        break;
+                elif imapKeys == ['R', 'm3', '5', '6']:
+                    alias = 'm6'
+                    if '07' in aliases:
+                        print('printChord() imapKeys={} skipped alias={} because "07" in aliases={}'.format(imapKeys, alias, aliases), file=self.tabsObj.dbgFile)
+                        break;
                 if len(chordName) > 1 and ( chordName[1] == '#' or chordName[1] == 'b' ):
                     chordName = chordName[0] + chordName[2:]
                 i = 0
@@ -258,9 +277,10 @@ class Chords(object):
                 elif len(imap) == 4:
                     if   'b7' in imap:                        return '{}07'.format(r)      # HalfDim7
                     elif  '6' in imap:                        return '{}o7'.format(r)      # Dim7
-                    elif  '2' or  '9' in imap:                return '{}o2'.format(r)      # DimAdd2
-                    elif  '4' or '11' in imap:                return '{}o4'.format(r)      # DimAdd4
-                    elif  '6' or '13' in imap:                return '{}o6'.format(r)      # DimAdd6
+#                    elif  '2' or  '9' in imap:                return '{}o2'.format(r)      # DimAdd2
+#                    elif  '4' or '11' in imap:                return '{}o4'.format(r)      # DimAdd4
+#                    elif  '6' or '13' in imap:                return '{}o6'.format(r)      # DimAdd6
+                    else:                                     return ''
                 elif len(imap) == 5:
                     if   'b7' in imap:
                         if   '2' in imap or  '9' in imap:     return '{}09'.format(r)      # HalfDim9
