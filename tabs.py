@@ -81,7 +81,7 @@ class Tabs(object):
         self.htabs = []                                        # list of bytearrays, one for each string; for harmonic tabs
         self.tabCount = 0                                      # used by appendTabs() 
         self.tabs = []                                         # list of bytearrays, one for each string; for all the tabs
-        self.chordInfo = {}                                    # dict column -> list of dict intervals -> note names i.e. dict col -> list of imaps for status chord info
+        self.chordInfo = {}                                    # dict column -> (list of dict intervals -> note names) i.e. dict col -> list of imaps for status chord info
         self.analyzeIndex = 0                                  # index being analysed for chord info
         self.chordStatusCol = None                             # tab column index used to display chord info on status row
         
@@ -1156,6 +1156,7 @@ class Tabs(object):
         maxFN = self.getFretNum(self.maxFret)
         print('deleteTab({},{},{},{}) tab={}, chr(tab)={}, tabFN={}'.format(row, col, r, c, tab, chr(tab), tabFN, maxFN), file=self.dbgFile)
         if self.editMode == self.EDIT_MODES['INSERT']:
+            if dir: self.moveTo(col=self.col - 1)
             for cc in range(c, len(self.tabs[r])):
                 if len(self.tabs[r]) > cc + 1:
                     self.tabs[r][cc]  = self.tabs[r][cc + 1]
@@ -1178,7 +1179,6 @@ class Tabs(object):
 
     def deletePrevTab(self):
         '''Delete previous tab (backspace).'''
-        self.moveTo(col=self.col - 1)
         self.deleteTab(dir=1)
     
     def eraseTabs(self):
@@ -1289,18 +1289,28 @@ class Tabs(object):
 
     def deleteTabs(self, cc):
         row, col = self.indices2RowCol(0, cc)
+        print('deleteTabs({})'.format(cc), file=self.dbgFile)
+        if cc in self.chordInfo:
+            print('deleteTabs() deleting chordInfo[{}]={}'.format(cc, self.chordInfo[cc]), file=self.dbgFile)
+            del self.chordInfo[cc]
 #        self.dumpTabs('deleteTabs({}, {}) (row,col)=({},{}), cc={} bgn: '.format(self.row, self.col, row, col, cc))
         if self.editMode == self.EDIT_MODES['INSERT']:
             for r in range(0, self.numStrings):
                 for c in range(cc, len(self.tabs[r]) - 1):
                     self.tabs[r][c] = self.tabs[r][c + 1]
                     self.htabs[r][c] = self.htabs[r][c + 1]
+                    if r == 0 and c+1 in self.chordInfo:
+                        self.chordInfo[c] = self.chordInfo[c + 1]
+                        del self.chordInfo[c + 1]
             self.printTabs()
         elif self.editMode == self.EDIT_MODES['REPLACE']:
             for r in range(0, self.numStrings):
                 tab = ord('-')
                 self.tabs[r][cc] = tab
                 self.htabs[r][cc] = ord('0')
+                if cc in self.chordInfo:
+                    print('deleteTabs() deleting chordInfo[{}]={}'.format(cc, self.chordInfo[cc]), file=self.dbgFile)
+                    del self.chordInfo[cc]
                 if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
                     if self.isFret(chr(tab)):
                         self.printNote(r + row + self.numStrings, col, self.getNote(r + 1, tab))
@@ -1530,6 +1540,7 @@ class Tabs(object):
         if   self.isFret(tab): self.printFretStatus(tab, r, c)
         elif tab in self.mods: self.printModStatus(tab, r, c)
         else:                  self.printDefaultStatus(tab, r, c)
+        self.clearRow(arg=0, file=self.outFile)
         self.printChordStatus(tab, r, c)
         self.resetPos()
         
@@ -1586,7 +1597,6 @@ class Tabs(object):
             print('printChordStatus() len(chordInfo[{}])={}, chordInfo[{}]={}'.format(c, len(self.chordInfo[c]), c, self.chordInfo[c]), file=self.dbgFile)
             for m in range(len(self.chordInfo[c])):
                 self.printChordInfo(tab, r, c, m)
-        else: self.clearRow(arg=0, file=self.outFile)
 
     def analyzeChord(self):
         r, c = self.rowCol2Indices(self.row, self.col)
