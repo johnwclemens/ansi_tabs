@@ -936,7 +936,7 @@ class Tabs(object):
     def selectRowStyle(self, r, c, style):
         tab = self.tabs[r][c]
         row, col = self.indices2RowCol(r, c)
-        print('selectRowStyle({}) r={}, c={}, row={}, col={}, tab={}'.format(style, r, c, row, col, chr(tab)), file=self.dbgFile)
+        print('selectRowStyle({}) r={}, c={}, row={}, col={}, tabc={}'.format(style, r, c, row, col, chr(tab)), file=self.dbgFile)
         if self.htabs[r][c] == ord('1'):
             self.prints(chr(tab), row, col, style + self.styles['H_TABS'])
         else:
@@ -966,7 +966,7 @@ class Tabs(object):
                     self.printNote(r + line * self.lineDelta() + self.endRow(0) + 1 , self.col, n, hn=1)
                     self.resetPos()
                 pn = self.getNote(r + 1, tab)
-                print('toggleHarmonicNote({},{}) r,c={},{}, tab={}, pn.n={}, pn.i={} norm->harm n.n={}, n.i={}'.format(self.row, self.col, r, c, chr(tab), pn.name, pn.index, n.name, n.index), file=self.dbgFile)
+                print('toggleHarmonicNote({},{}) r,c={},{}, tabc={}, pn.n={}, pn.i={} norm->harm n.n={}, n.i={}'.format(self.row, self.col, r, c, chr(tab), pn.name, pn.index, n.name, n.index), file=self.dbgFile)
         else:
             self.htabs[r][c] = ord('0')
             n = self.getNote(r + 1, tab)
@@ -975,7 +975,7 @@ class Tabs(object):
                 self.printNote(r + line * self.lineDelta() + self.endRow(0) + 1 , self.col, n)
                 self.resetPos()
             pn = self.getHarmonicNote(r + 1, tab)
-            print('toggleHarmonicNote({},{}) r,c={},{}, tab={}, pn.n={}, pn.i={} harm->norm n.n={}, n.i={}'.format(self.row, self.col, r, c, chr(tab), pn.name, pn.index, n.name, n.index), file=self.dbgFile)
+            print('toggleHarmonicNote({},{}) r,c={},{}, tabc={}, pn.n={}, pn.i={} harm->norm n.n={}, n.i={}'.format(self.row, self.col, r, c, chr(tab), pn.name, pn.index, n.name, n.index), file=self.dbgFile)
         if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
             self.chordsObj.eraseChord(c)
             self.chordsObj.printChord(c=c)
@@ -1010,7 +1010,7 @@ class Tabs(object):
         
     def setTab(self, tab):
         '''Set given tab byte at the current row and col, print the corresponding tab character and then move cursor according to the cursor mode.'''
-        print('setTab({}, {}) chr(tab)={}, tab={}, bgn: check row/col'.format(self.row, self.col, chr(tab), tab), file=self.dbgFile)
+        print('setTab({}, {}) tabc={}, tabc={}, bgn: check row/col'.format(self.row, self.col, chr(tab), tab), file=self.dbgFile)
         if self.bgnCol() <= self.col <= self.endCol() and self.ROW_OFF <= self.row < self.ROW_OFF + self.numLines * self.lineDelta():
             row, col = self.row, self.col
             rr, cc = self.rowCol2Indices(row, col)
@@ -1025,17 +1025,17 @@ class Tabs(object):
             if self.isFret(chr(prevTab)) and self.getFretNum(prevTab) == self.getFretNum(self.maxFret):
                 self.maxFret = self.findMaxFret()
                 print('setTab() setting maxFret=({},{},{}) prevMF=({},{},{})'.format(self.maxFret, chr(self.maxFret), self.getFretNum(self.maxFret), prevTab, chr(prevTab), self.getFretNum(prevTab)), file=self.dbgFile)
-            print('setTab({}, {}) chr(tab)={}, tab={}, check isFret(chr(tab)), htab={}'.format(rr, cc, chr(tab), tab, self.htabs[rr][cc]), file=self.dbgFile)
+            print('setTab({}, {}) tabc={}, tabc={}, check isFret(tabc), htab={}'.format(rr, cc, chr(tab), tab, self.htabs[rr][cc]), file=self.dbgFile)
             if self.isFret(chr(tab)):
                 tabFN = self.getFretNum(tab)
                 maxFN = self.getFretNum(self.maxFret)
                 capFN = self.getFretNum(self.capo)
-                print('setTab() chr(tab)={}, tab={}, chr(capo)={}, capo={}, check tabFN:{} + capFN:{} > {}?'.format(chr(tab), tab, chr(self.capo), self.capo, tabFN, capFN, self.NUM_FRETS), file=self.dbgFile)
+                print('setTab() tabc={}, tab={}, chr(capo)={}, capo={}, check tabFN:{} + capFN:{} > {}?'.format(chr(tab), tab, chr(self.capo), self.capo, tabFN, capFN, self.NUM_FRETS), file=self.dbgFile)
                 if tabFN + capFN > self.NUM_FRETS:
-                    info = 'setTab() capFN:{} + tabFN:{} > {}! chr(tab)={}, tab={}, chr(capo)={}, capo={}'.format(capFN, tabFN, self.NUM_FRETS, chr(tab), tab, chr(self.capo), self.capo)
+                    info = 'setTab() capFN:{} + tabFN:{} > {}! tabc={}, tab={}, chr(capo)={}, capo={}'.format(capFN, tabFN, self.NUM_FRETS, chr(tab), tab, chr(self.capo), self.capo)
                     self.printe(info)
                     return
-                print('setTab() check tabFn:{} > maxFn:{}? chr(tab)={}, tab={}, chr(mf)={}, maxFret={}'.format(tabFN, maxFN, chr(tab), tab, chr(self.maxFret), self.maxFret), file=self.dbgFile)
+                print('setTab() check tabFn:{} > maxFn:{}? tabc={}, tab={}, chr(mf)={}, maxFret={}'.format(tabFN, maxFN, chr(tab), tab, chr(self.maxFret), self.maxFret), file=self.dbgFile)
                 if tabFN > maxFN: 
                     self.maxFret = tab
                     print('setTab() updating maxFret: chr(mf)={}, maxFret={}, maxFN={}'.format(chr(self.maxFret), self.maxFret, self.getFretNum(self.maxFret)), file=self.dbgFile)
@@ -1154,9 +1154,9 @@ class Tabs(object):
         tab = self.tabs[r][c]
         tabFN = self.getFretNum(tab)
         maxFN = self.getFretNum(self.maxFret)
-        print('deleteTab({},{},{},{}) tab={}, chr(tab)={}, tabFN={}'.format(row, col, r, c, tab, chr(tab), tabFN, maxFN), file=self.dbgFile)
+        print('deleteTab({},{},{},{}) tab={}, tabc={}, tabFN={}'.format(row, col, r, c, tab, chr(tab), tabFN, maxFN), file=self.dbgFile)
         if self.editMode == self.EDIT_MODES['INSERT']:
-            if dir: self.moveTo(col=self.col - 1)
+            if dir: self.moveLeft()
             for cc in range(c, len(self.tabs[r])):
                 if len(self.tabs[r]) > cc + 1:
                     self.tabs[r][cc]  = self.tabs[r][cc + 1]
@@ -1171,11 +1171,11 @@ class Tabs(object):
             if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
                 self.chordsObj.eraseChord(c)
                 self.chordsObj.printChord(c=c)
-            if not dir: self.moveTo(row=row, col=col + 1)
-            else:       self.moveTo(row=row, col=col - 1)
+            if not dir: self.moveRight()
+            else:       self.moveLeft()
         if self.isFret(chr(tab)) and tabFN == maxFN:
             self.maxFret = self.findMaxFret()
-            print('deleteTab() reset maxFret={}, chr(maxFret)={}, maxFN={}, tab={}, chr(tab)={}, tabFN={}'.format(self.maxFret, chr(self.maxFret), self.getFretNum(self.maxFret), tab, chr(tab), tabFN), file=self.dbgFile)
+            print('deleteTab() reset maxFret={}, chr(maxFret)={}, maxFN={}, tab={}, tabc={}, tabFN={}'.format(self.maxFret, chr(self.maxFret), self.getFretNum(self.maxFret), tab, chr(tab), tabFN), file=self.dbgFile)
 
     def deletePrevTab(self):
         '''Delete previous tab (backspace).'''
@@ -1393,7 +1393,7 @@ class Tabs(object):
                 for r in range(rr, rr + nsr):
                     row = self.indices2Row(r, c)
                     tab = self.tabs[r][c]
-                    print('pasteSelectTabs(loop2) row={}, col={}, r={}, c={}, tab[{}][{}]={}'.format(row, col, r, c, r, c, chr(tab)), file=self.dbgFile)
+                    print('pasteSelectTabs(loop2) row={}, col={}, r={}, c={}, tabc[{}][{}]={}'.format(row, col, r, c, r, c, chr(tab)), file=self.dbgFile)
                     if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
                         if self.isFret(chr(tab)):
                             if self.htabs[r][c] == ord('1'):
@@ -1481,7 +1481,7 @@ class Tabs(object):
                                 self.prints(chr(self.capo), row, self.cursorModeCol, self.styles['NUT_UP'])
                         if self.isFret(chr(capTab)):
                             if chr(self.htabs[r][c + line * self.numTabsPerStringPerLine]) == '1':
-                                print('printTabs() tab={}, capTab={}, chr(tab)={}, chr(capTab)={}, tabFN={}, capoFN={}'.format(tab, capTab, chr(tab), chr(capTab), self.getFretNum(tab), self.getFretNum(capTab)), file=self.dbgFile)
+                                print('printTabs() tab={}, capTab={}, tabc={}, chr(capTab)={}, tabFN={}, capoFN={}'.format(tab, capTab, chr(tab), chr(capTab), self.getFretNum(tab), self.getFretNum(capTab)), file=self.dbgFile)
                                 n = self.getHarmonicNote(r + 1, tab)
                                 self.printNote(row, c + self.COL_OFF, n, hn=1)
                             else:
