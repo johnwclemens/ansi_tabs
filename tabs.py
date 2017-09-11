@@ -123,18 +123,22 @@ class Tabs(object):
         self.editMode = self.EDIT_MODES['REPLACE']             # toggle between modifying the current character or inserting a new character
         self.cursorMode = self.CURSOR_MODES['MELODY']          # toggle between different cursor modes; melody, chord, and arpeggio
         
-        argMap = {}
-        cmdArgs.parseCmdLine(argMap)
-        print('tabs.py args={}'.format(argMap), file=self.dbgFile)
-        if 'f' in argMap and len(argMap['f']) > 0:
-            self.inName = argMap['f'][0]                       # file to read from
-            self.outName = argMap['f'][0]                      # file to write to, only written to with the saveTabs command
-        if 't' in argMap and len(argMap['t']) > 0:
-            self.initTabLen(argMap['t'])                       # set number of tabs/columns per line (and per string)
-        if 'S' in argMap and len(argMap['S']) > 0:
-            self.initStrings(alias=argMap['S'])                # set string tuning with alias 
-        elif 's' in argMap and len(argMap['s']) > 0:
-            self.initStrings(spelling=argMap['s'])             # set string tuning with string spelling
+        self.cmdLine = ''
+        for arg in sys.argv:
+            self.cmdLine += arg + ' '
+        print(self.cmdLine, file=self.dbgFile)
+        self.argMap = {}
+        cmdArgs.parseCmdLine(self.argMap)
+        print('tabs.py args={}'.format(self.argMap), file=self.dbgFile)
+        if 'f' in self.argMap and len(self.argMap['f']) > 0:
+            self.inName = self.argMap['f'][0]                       # file to read from
+            self.outName = self.argMap['f'][0]                      # file to write to, only written to with the saveTabs command
+        if 't' in self.argMap and len(self.argMap['t']) > 0:
+            self.initTabLen(self.argMap['t'])                       # seet number of tabs/columns per line (and per string)
+        if 'S' in self.argMap and len(self.argMap['S']) > 0:
+            self.initStrings(alias=self.argMap['S'])                # set string tuning with alias
+        elif 's' in self.argMap and len(self.argMap['s']) > 0:
+            self.initStrings(spelling=self.argMap['s'])             # set string tuning with string spelling
         else:
             self.initStrings()                                 # set default string tuning
         self.setLastRow()                                      # calculate last row, depends on numStrings which is supposed to be set in initStrings()
@@ -169,27 +173,27 @@ class Tabs(object):
             print('init() mods=\{ ', file=self.dbgFile)
             for k in self.mods:
                 print('{}:{}, '.format(k, self.mods[k]), file=self.dbgFile)
-            if 'F' in argMap and len(argMap['F']) == 0:
+            if 'F' in self.argMap and len(self.argMap['F']) == 0:
                 self.toggleEnharmonic()                        # toggle enharmonic note display from sharp to flat
-            if 'i' in argMap and len(argMap['i']) == 0:
+            if 'i' in self.argMap and len(self.argMap['i']) == 0:
                 self.toggleCursorDir(dbg=1)                    # toggle automatic cursor movement direction from down to up
-            if 'k' in argMap and len(argMap['k']) > 0:
-                self.setCapo(c=argMap['k'][0])                 # set capo at desired fret
-            if 'a' in argMap and len(argMap['a']) == 0:
+            if 'k' in self.argMap and len(self.argMap['k']) > 0:
+                self.setCapo(c=self.argMap['k'][0])                 # set capo at desired fret
+            if 'a' in self.argMap and len(self.argMap['a']) == 0:
                 self.toggleDisplayLabels(printTabs=False)      # toggle the display of the edit mode, cursor mode, and column number labels in first row for each line
-            if 'b' in argMap and len(argMap['b']) == 0:
+            if 'b' in self.argMap and len(self.argMap['b']) == 0:
                 self.toggleDisplayChords(printTabs=False)      # enable the chords section display
-            if 'n' in argMap and len(argMap['n']) == 0:
+            if 'n' in self.argMap and len(self.argMap['n']) == 0:
                 self.toggleDisplayNotes(printTabs=False)       # enable the notes section display
-            if 'l' in argMap and len(argMap['l']) == 0:
+            if 'l' in self.argMap and len(self.argMap['l']) == 0:
                 self.goToLastTab(cs=1)                         # go to last tab on current line of current string
-            if 'L' in argMap and len(argMap['L']) == 0:
+            if 'L' in self.argMap and len(self.argMap['L']) == 0:
                 self.goToLastTab()                             # go to last tab on current line of all strings
-            if 'z' in argMap and len(argMap['z']) == 0:
+            if 'z' in self.argMap and len(self.argMap['z']) == 0:
                 self.goToLastTab(cs=1, ll=1)                   # go to last tab on last line of current string
-            if 'Z' in argMap and len(argMap['Z']) == 0:
+            if 'Z' in self.argMap and len(self.argMap['Z']) == 0:
                 self.goToLastTab(ll=1)                         # go to last tab on last line of all strings
-            if 'h' in argMap and len(argMap['h']) == 0:
+            if 'h' in self.argMap and len(self.argMap['h']) == 0:
                 self.printHelpInfo(ui=0)                       # display the help info
             self.printTabs()                                   # display all the tabs in the tabs section, optionally display the notes and chords sections and the modes/labels row
             self.moveTo(hi=1)                                  # display the status and hilite the first tab character
@@ -248,10 +252,13 @@ class Tabs(object):
         if len(self.strings.map) < 1:
             print('initStrings() ERROR! invalid stringMap, numStrings={}'.format(self.numStrings), file=self.dbgFile)
             self.quit('initStrings() ERROR! Empty stringMap!', code=1)
-        print('initStrings() map = {', end='', file=self.dbgFile)
+        self.printStringMap(file=self.dbgFile)
+    
+    def printStringMap(self, file):
+        print('string map = {', end='', file=file)
         for k in self.stringKeys:
-            print(' {}:{}'.format(k, self.stringMap[k]), end='', file=self.dbgFile)
-        print(' }', file=self.dbgFile)
+            print(' {}:{}'.format(k, self.stringMap[k]), end='', file=file)
+        print(' }', file=file)
     
     def initTabLen(self, numTabs):
         self.numTabsPerStringPerLine = int(numTabs[0])
@@ -1146,23 +1153,27 @@ class Tabs(object):
         self.prints(self.hiliteRowNum, self.row, self.editModeCol, self.styles['BRIGHT'] + self.styles['TABS'])
         self.resetPos()
 
-    def deleteTab(self, row=None, col=None, dir=0):
+    def deleteTab(self, row=None, col=None, back=0):
         '''Delete current tab.'''
+        print('deleteTab(row={}, col={}, back={})'.format(row, col, back), file=self.dbgFile)
         if row is None: row = self.row
         if col is None: col = self.col
         r, c = self.rowCol2Indices(row, col)
         tab = self.tabs[r][c]
         tabFN = self.getFretNum(tab)
         maxFN = self.getFretNum(self.maxFret)
-        print('deleteTab({},{},{},{}) tab={}, tabc={}, tabFN={}'.format(row, col, r, c, tab, chr(tab), tabFN, maxFN), file=self.dbgFile)
         if self.editMode == self.EDIT_MODES['INSERT']:
-            if dir: self.moveLeft()
-            for cc in range(c, len(self.tabs[r])):
-                if len(self.tabs[r]) > cc + 1:
-                    self.tabs[r][cc]  = self.tabs[r][cc + 1]
-                    self.htabs[r][cc] = self.htabs[r][cc + 1]
+            print('deleteTab({},{},{},{}) tab={}, tabc={}, tabFN={}, EM=I'.format(row, col, r, c, tab, chr(tab), tabFN, maxFN), file=self.dbgFile)
+            for cc in range(c, len(self.tabs[r]) - 1):
+                self.tabs[r][cc]  = self.tabs[r][cc + 1]
+                self.htabs[r][cc] = self.htabs[r][cc + 1]
+            cc = len(self.tabs[r]) - 1
+            self.tabs[r][cc]  = ord('-')
+            self.htabs[r][cc] = ord('0')
+            if back: self.moveLeft()
             self.printTabs()
         elif self.editMode == self.EDIT_MODES['REPLACE']:
+            print('deleteTab({},{},{},{}) tab={}, tabc={}, tabFN={}, EM=R'.format(row, col, r, c, tab, chr(tab), tabFN, maxFN), file=self.dbgFile)
             self.tabs[r][c] = ord('-')
             self.htabs[r][c] = ord('0')
             self.prints(chr(self.tabs[r][c]), row, col, self.styles['TABS'])
@@ -1171,15 +1182,16 @@ class Tabs(object):
             if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
                 self.chordsObj.eraseChord(c)
                 self.chordsObj.printChord(c=c)
-            if not dir: self.moveRight()
-            else:       self.moveLeft()
+            if back: self.moveLeft()
+            else:    self.moveRight()
         if self.isFret(chr(tab)) and tabFN == maxFN:
             self.maxFret = self.findMaxFret()
             print('deleteTab() reset maxFret={}, chr(maxFret)={}, maxFN={}, tab={}, tabc={}, tabFN={}'.format(self.maxFret, chr(self.maxFret), self.getFretNum(self.maxFret), tab, chr(tab), tabFN), file=self.dbgFile)
 
     def deletePrevTab(self):
         '''Delete previous tab (backspace).'''
-        self.deleteTab(dir=1)
+        self.deleteTab(col=self.col-1, back=1)
+#        self.deleteTab(back=1)
     
     def eraseTabs(self):
         '''Erase all tabs (resets all tabs to '-').'''
@@ -1199,7 +1211,10 @@ class Tabs(object):
         with open(self.outName, 'w') as self.outFile:
             self.printLineInfo('saveTabs({}, {}) bgn writing tabs to file'.format(self.row, self.col))
             self.clearScreen(2, file=self.outFile)
-            print('capo={}'.format(chr(self.capo)), file=self.outFile)
+            print(self.cmdLine, file=self.outFile)
+            for k in self.argMap:
+                print('cmdLineArg -{}={}'.format(k, self.argMap[k]), file=self.outFile)
+            self.printStringMap(file=self.outFile)
             self.printTabs()
             self.moveTo(hi=1)
             print(self.CSI + self.styles['NORMAL'] + self.styles['CONS'] + self.CSI + '{};{}H'.format(self.lastRow, 1), end='', file=self.outFile) # set the file cursor to the front of the next row (NUM_STR+r+1, 0) and set the foreground and background color

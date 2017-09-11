@@ -3,9 +3,8 @@
 import sys
 import os.path
 
-def parseCmdLine(options):
+def parseCmdLine(options, dbg=None):
     if options is None: raise Exception('Error! cmdArgs.parseCmdLine() options arg is required - raising Exception!')
-    dbg = None
     argc = len(sys.argv)
     if dbg: print(this, "argc = %s, arv = %s" % (argc, sys.argv))
     idx = 1
