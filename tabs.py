@@ -82,7 +82,8 @@ class Tabs(object):
         self.tabCount = 0                                      # used by appendTabs() 
         self.tabs = []                                         # list of bytearrays, one for each string; for all the tabs
         self.chordInfo = {}                                    # dict column -> (list of dict intervals -> note names) i.e. dict col -> list of imaps for status chord info
-        self.analyzeIndex = 0                                  # index being analysed for chord info
+        self.selectChords = {}
+        self.analyzeIndex = -1                                 # index being analyzed for chord info
         self.chordStatusCol = None                             # tab column index used to display chord info on status row
         
         self.arpeggiate = 0                                    # used to transform chords to arpeggios
@@ -492,6 +493,7 @@ class Tabs(object):
         self.registerUiCmd('Ctrl N',              self.toggleDisplayNotes)
         self.registerUiCmd('Ctrl P',              self.printTabs)
         self.registerUiCmd('Ctrl Q',              self.quit)
+        self.registerUiCmd('Shift Q',             self.selectChord)
         self.registerUiCmd('Ctrl R',              self.resetTabs)
         self.registerUiCmd('Ctrl S',              self.saveTabs)
         self.registerUiCmd('Ctrl T',              self.appendLine)
@@ -555,6 +557,7 @@ class Tabs(object):
             elif b == 14:  self.uiCmds['Ctrl N']()                # toggleDisplayNotes()   # cmd line opt -n
             elif b == 16:  self.uiCmds['Ctrl P']()                # printTabs()            # DBG?
             elif b == 17:  self.uiCmds['Ctrl Q'](self.QUIT_STR)   # quit()                 # DBG?
+            elif b == 81:  self.uiCmds['Shift Q']()               # selectChord()          # N/A
             elif b == 18:  self.uiCmds['Ctrl R']()                # resetTabs()            # DBG?
             elif b == 19:  self.uiCmds['Ctrl S']()                # saveTabs()             # DBG?
             elif b == 20:  self.uiCmds['Ctrl T']()                # appendLine()           # DBG?
@@ -1212,8 +1215,9 @@ class Tabs(object):
             self.printLineInfo('saveTabs({}, {}) bgn writing tabs to file'.format(self.row, self.col))
             self.clearScreen(2, file=self.outFile)
             print(self.cmdLine, file=self.outFile)
+            print('cmdLineArgs:', file=self.outFile)
             for k in self.argMap:
-                print('cmdLineArg -{}={}'.format(k, self.argMap[k]), file=self.outFile)
+                print('    {}={}'.format(k, self.argMap[k]), file=self.outFile)
             self.printStringMap(file=self.outFile)
             self.printTabs()
             self.moveTo(hi=1)
@@ -1619,12 +1623,23 @@ class Tabs(object):
         print('analyzeChord({}, {}) r={}, c={}, tab={}'.format(self.row, self.col, r, c, tab), file=self.dbgFile)
         if c in self.chordInfo:
             print('analyzeChord() len(chordInfo[{}])={}'.format(c, len(self.chordInfo[c])), file=self.dbgFile)
-            m = self.analyzeIndex % len(self.chordInfo[c])
             self.analyzeIndex += 1
+            m = self.analyzeIndex % len(self.chordInfo[c])
             print('analyzeChord() m={} analyzeIndex={}'.format(m, self.analyzeIndex), file=self.dbgFile)
             self.printChordInfo(tab, r, c, m)
         self.resetPos()
         
+    def selectChord(self):
+        r, c = self.rowCol2Indices(self.row, self.col)
+        print('selectChord({}, {}) r={}, c={}'.format(self.row, self.col, r, c), file=self.dbgFile)
+        if c in self.chordInfo:
+            print('selectChord() len(chordInfo[{}])={}'.format(c, len(self.chordInfo[c])), file=self.dbgFile)
+            m = self.analyzeIndex % len(self.chordInfo[c])
+            self.selectChords[c] = self.printChordInfo(chr(self.tabs[r][c]), r, c, m)
+            print('selectChord() m={} analyzeIndex={} selectChords[{}]={}'.format(m, self.analyzeIndex, c, self.selectChords[c]), file=self.dbgFile)
+            self.chordsObj.printChord(c=c, dbg=1)
+        self.resetPos()
+
     def printChordInfo(self, tab, r, c, m):
         imap = self.chordInfo[c][m]
         imapKeys = sorted(imap, key=self.chordsObj.imapKeyFunc, reverse=False)
@@ -1663,6 +1678,7 @@ class Tabs(object):
             else:       style = self.CSI + self.styles['STATUS']
             print(style + '{}'.format(info[i]), end='', file=self.outFile)
             i += 1
+        return chordName
     
     def getEnharmonicStyle(self, name, defStyle, flatStyle, sharpStyle):
         if len(name) > 1:

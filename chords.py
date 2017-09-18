@@ -98,7 +98,9 @@ class Chords(object):
         aliases = []
         limap = []
         count = 0
+        selected = 0
         for j in range(len(indices)):
+            if selected: break
             if dbg: print('{}printChord({}) index={}'.format(indent, c, j), file=self.tabsObj.dbgFile)
             deltas = []
             for i in range(len(indices)):
@@ -167,6 +169,10 @@ class Chords(object):
                     print('printChord() limap={}'.format(limap), file=self.tabsObj.dbgFile)
                 self.tabsObj.chordInfo[c] = limap
             if len(chordName) > 0:
+                if c in self.tabsObj.selectChords and self.tabsObj.selectChords[c] == chordName:
+                    print('printChord() chordName={} matches selectChords[{}]={} imapKeys={} '.format(chordName, c, self.tabsObj.selectChords[c], imapKeys), file=self.tabsObj.dbgFile)
+                    selected = 1
+                '''
                 if imapKeys == ['R', 'm3', '5', 'b7']:
                     alias = 'm7'
                     aliases.append(alias)
@@ -185,6 +191,7 @@ class Chords(object):
                     if '07' in aliases:
                         print('printChord() imapKeys={} skipped alias={} because "07" in aliases={}'.format(imapKeys, alias, aliases), file=self.tabsObj.dbgFile)
                         break;
+                '''
                 if len(chordName) > 1 and ( chordName[1] == '#' or chordName[1] == 'b' ):
                     chordName = chordName[0] + chordName[2:]
                 i = 0
