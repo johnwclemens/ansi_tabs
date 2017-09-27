@@ -1635,11 +1635,12 @@ class Tabs(object):
         if c in self.chordInfo:
             print('selectChord() len(chordInfo[{}])={}'.format(c, len(self.chordInfo[c])), file=self.dbgFile)
             m = self.analyzeIndex % len(self.chordInfo[c])
-            self.selectChords[c] = self.printChordInfo(chr(self.tabs[r][c]), r, c, m)
-            print('selectChord() m={} analyzeIndex={} selectChords[{}]={}'.format(m, self.analyzeIndex, c, self.selectChords[c]), file=self.dbgFile)
-            self.chordsObj.printChord(c=c, dbg=1)
+            name, imap = self.printChordInfo(chr(self.tabs[r][c]), r, c, m)
+            self.selectChords[name] = imap
+            print('selectChord() m={} analyzeIndex={} selectChords[{}]={}'.format(m, self.analyzeIndex, name, self.selectChords[name]), file=self.dbgFile)
+            self.printTabs()
         self.resetPos()
-
+       
     def printChordInfo(self, tab, r, c, m):
         imap = self.chordInfo[c][m]
         imapKeys = sorted(imap, key=self.chordsObj.imapKeyFunc, reverse=False)
@@ -1678,7 +1679,7 @@ class Tabs(object):
             else:       style = self.CSI + self.styles['STATUS']
             print(style + '{}'.format(info[i]), end='', file=self.outFile)
             i += 1
-        return chordName
+        return chordName, imap
     
     def getEnharmonicStyle(self, name, defStyle, flatStyle, sharpStyle):
         if len(name) > 1:

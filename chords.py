@@ -99,8 +99,8 @@ class Chords(object):
         limap = []
         count = 0
         selected = 0
+        outerChordName = ''
         for j in range(len(indices)):
-            if selected: break
             if dbg: print('{}printChord({}) index={}'.format(indent, c, j), file=self.tabsObj.dbgFile)
             deltas = []
             for i in range(len(indices)):
@@ -163,15 +163,21 @@ class Chords(object):
                     print('printChord() chord={} prepend imap={} to limap={}'.format(chordName, imap, limap), file=self.tabsObj.dbgFile)
                     limap.insert(0, imap)
                     print('printChord() limap={}'.format(limap), file=self.tabsObj.dbgFile)
+                elif selected == 1:
+                    print('printChord() chord={} insert imap={} to limap={}, len={}'.format(chordName, imap, limap, len(limap)), file=self.tabsObj.dbgFile)
+                    limap.insert(len(limap) - 1, imap)
+                    print('printChord() limap={}'.format(limap), file=self.tabsObj.dbgFile)
                 else:
                     print('printChord() chord={} append imap={} to limap={}'.format(chordName, imap, limap), file=self.tabsObj.dbgFile)
                     limap.append(imap)
                     print('printChord() limap={}'.format(limap), file=self.tabsObj.dbgFile)
                 self.tabsObj.chordInfo[c] = limap
             if len(chordName) > 0:
-                if c in self.tabsObj.selectChords and self.tabsObj.selectChords[c] == chordName:
-                    print('printChord() chordName={} matches selectChords[{}]={} imapKeys={} '.format(chordName, c, self.tabsObj.selectChords[c], imapKeys), file=self.tabsObj.dbgFile)
+                outerChordName = chordName
+                if chordName in self.tabsObj.selectChords:
+                    print('printChord() found chordName={} selectChords[{}]={} imapKeys={} '.format(chordName, chordName, self.tabsObj.selectChords[chordName], imapKeys), file=self.tabsObj.dbgFile)
                     selected = 1
+                    self.printChordName(row, col, chordName, imap)
                 '''
                 if imapKeys == ['R', 'm3', '5', 'b7']:
                     alias = 'm7'
@@ -192,30 +198,35 @@ class Chords(object):
                         print('printChord() imapKeys={} skipped alias={} because "07" in aliases={}'.format(imapKeys, alias, aliases), file=self.tabsObj.dbgFile)
                         break;
                 '''
-                if len(chordName) > 1 and ( chordName[1] == '#' or chordName[1] == 'b' ):
-                    chordName = chordName[0] + chordName[2:]
-                i = 0
-                while i < len(chordName):
-                    style = self.tabsObj.styles['NAT_CHORD']
-                    if i == 0:
-                        style = self.tabsObj.getEnharmonicStyle(imap['R'], style, self.tabsObj.styles['FLT_CHORD'], self.tabsObj.styles['SHP_CHORD'])
-                    elif chordName[i] == 'm':
-                        style = self.tabsObj.styles['FLT_CHORD']
-                    elif chordName[i] == 'n':
-                        chordName = chordName[:i] + chordName[i+1:]
-                        style = '30;43m'
-                    elif chordName[i] == 'b':
-                        chordName = chordName[:i] + chordName[i+1:]
-                        style = self.tabsObj.styles['FLT_CHORD']
-                    elif chordName[i] == 'a':
-                        chordName = chordName[:i] + chordName[i+1:]
-                        style = self.tabsObj.styles['SHP_CHORD']
-                    self.tabsObj.prints(chordName[i], i + row, col, style)
-                    i += 1
-                for i in range(i, self.tabsObj.CHORDS_LEN):
-                    self.tabsObj.prints(' ', i + row, col, self.tabsObj.styles['NAT_CHORD'])
-#                break                                      # if executed, only calculates one chord name, else, calculates multiple chord names, last one wins
-
+        if selected == 0 and len(limap):
+            imap = limap[-1]
+            self.printChordName(row, col, outerChordName, imap)
+    
+    def printChordName(self, row, col, chordName, imap, imapKeys=None, dbg=1):
+        if len(chordName) > 1 and ( chordName[1] == '#' or chordName[1] == 'b' ):
+            chordName = chordName[0] + chordName[2:]
+        i = 0
+        while i < len(chordName):
+            style = self.tabsObj.styles['NAT_CHORD']
+            if i == 0:
+                style = self.tabsObj.getEnharmonicStyle(imap['R'], style, self.tabsObj.styles['FLT_CHORD'], self.tabsObj.styles['SHP_CHORD'])
+            elif chordName[i] == 'm':
+                style = self.tabsObj.styles['FLT_CHORD']
+            elif chordName[i] == 'n':
+                chordName = chordName[:i] + chordName[i+1:]
+                style = '30;43m'
+            elif chordName[i] == 'b':
+                chordName = chordName[:i] + chordName[i+1:]
+                style = self.tabsObj.styles['FLT_CHORD']
+            elif chordName[i] == 'a':
+                chordName = chordName[:i] + chordName[i+1:]
+                style = self.tabsObj.styles['SHP_CHORD']
+            self.tabsObj.prints(chordName[i], i + row, col, style)
+            i += 1
+        for i in range(i, self.tabsObj.CHORDS_LEN):
+            self.tabsObj.prints(' ', i + row, col, self.tabsObj.styles['NAT_CHORD'])
+        if dbg: print('printChordName() name={}'.format(chordName), file=self.tabsObj.dbgFile)
+    
     def getChordName(self, imap):
         '''Calculate chord name.'''
         r = imap['R']
