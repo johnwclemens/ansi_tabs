@@ -71,6 +71,7 @@ class Tabs(object):
         
         self.initFiles(inName, outName, dbgName)
         self.initConsts()
+#        self.testAnsi2()
         self.registerUiCmds()                                  # register the dictionary for all the user interactive commands
         self.mods = {}                                         # dict of tab modification characters -> contextual descriptions 
         self.dbgMove = True                                    # used for finding bugs in basic movement functionality
@@ -198,9 +199,9 @@ class Tabs(object):
                 self.printHelpInfo(ui=0)                       # display the help info
             self.printTabs()                                   # display all the tabs in the tabs section, optionally display the notes and chords sections and the modes/labels row
             self.moveTo(hi=1)                                  # display the status and hilite the first tab character
- 
+
     def testAnsi(self):
-        file = open('testAnsi.tab', 'w')
+        file = None #open('testAnsi.tab', 'w')
         self.clearScreen(file=file)
         print(self.CSI + self.styles['TABS']       + self.CSI + '{};{}H{}'.format(1, 1, 'TABS'), file=file)
         print(self.CSI + self.styles['H_TABS']     + self.CSI + '{};{}H{}'.format(1, 20, 'H_TABS!'), file=file)
@@ -210,7 +211,29 @@ class Tabs(object):
         print(self.CSI + self.styles['FLT_H_NOTE'] + self.CSI + '{};{}H{}'.format(3, 20, 'FLT_H_NOTE'), file=file)
         print(self.CSI + self.styles['SHP_NOTE']   + self.CSI + '{};{}H{}'.format(4, 1, 'SHP_NOTE'), file=file)
         print(self.CSI + self.styles['SHP_H_NOTE'] + self.CSI + '{};{}H{}'.format(4, 20, 'SHP_H_NOTE'), file=file)
-        self.quit('testAnsi()')
+        exit()
+ 
+    def testAnsi2(self):
+        self.clearScreen()
+        print(self.CSI + '22;31;40m' + self.CSI + '{};{}H{}'.format(1, 1, 'Normal Red on Black'))
+        print(self.CSI +  '1;31;40m' + self.CSI + '{};{}H{}'.format(2, 1, 'Bright Red on Black'))
+        print(self.CSI + '22;32;40m' + self.CSI + '{};{}H{}'.format(3, 1, 'Nornal Green on Black'))
+        print(self.CSI +  '1;32;40m' + self.CSI + '{};{}H{}'.format(4, 1, 'Bright Green on Black'))
+        print(self.CSI + '22;33;40m' + self.CSI + '{};{}H{}'.format(5, 1, 'Nornal Yellow on Black'))
+        print(self.CSI +  '1;33;40m' + self.CSI + '{};{}H{}'.format(6, 1, 'Bright Yellow on Black'))
+        print(self.CSI + '22;34;40m' + self.CSI + '{};{}H{}'.format(7, 1, 'Normal Blue on Black'))
+        print(self.CSI +  '1;34;40m' + self.CSI + '{};{}H{}'.format(8, 1, 'Bright Blue on Black'))
+        print(self.CSI + '22;35;40m' + self.CSI + '{};{}H{}'.format(9, 1, 'Normal Magenta on Black'))
+        print(self.CSI +  '1;35;40m' + self.CSI + '{};{}H{}'.format(10, 1, 'Bright Magenta on Black'))
+        print(self.CSI + '22;36;40m' + self.CSI + '{};{}H{}'.format(11, 1, 'Normal Cyan on Black'))
+        print(self.CSI +  '1;36;40m' + self.CSI + '{};{}H{}'.format(12, 1, 'Bright Cyan on Black'))
+        print(self.CSI + '22;37;40m' + self.CSI + '{};{}H{}'.format(13, 1, 'Normal White on Black'), end='')
+        print(self.CSI +  '1;37;40m' + self.CSI + '{};{}H{}'.format(14, 1, 'Bright White on Black'), end='')
+        print(self.CSI + '10D', end='')
+        print(self.CSI + '6A', end='')
+        print(self.CSI + '1;31;43m' + 'Up 6 and back 10', end='')
+        print(self.CSI +  '1;32;40m' + self.CSI + '{};{}H{}'.format(15, 1, 'Bright Green on Black'))
+        exit()
      
     def initFiles(self, inName, outName, dbgName):
         self.dbgFile = open(dbgName, "w")
@@ -1399,7 +1422,7 @@ class Tabs(object):
         rangeError, nc, row, col, rr, cc, line, ns, nt, nsr, nsc, nst = self._initPasteInfo()
         if nst == 0: return
         if self.editMode == self.EDIT_MODES['INSERT']:
-            self.printTabs()
+            self.printTabs(cc)
         elif self.editMode == self.EDIT_MODES['REPLACE']:
             for c in range(cc, cc + nc):
                 if c >= len(self.tabs[0]):
@@ -1459,15 +1482,20 @@ class Tabs(object):
             print(' bgnRow{}={}, endRow{}={},'.format(line, self.bgnRow(line), line, self.endRow(line)), end='', file=self.dbgFile)
         print(' lastRow={}, bgnCol={}, endCol={}'.format(self.lastRow, self.bgnCol(), self.endCol()), file=self.dbgFile)
     
-    def printTabs(self):
+    def printTabs(self, c=None):
         '''Print tabs using ANSI escape sequences to control the cursor position, foreground and background colors, and brightness'''
         self.printLineInfo('printTabs({}, {}) bgn'.format(self.row, self.col))
-        if self.outFile == None: self.clearScreen()
+        if c: cc, ll = c % self.numTabsPerStringPerLine, self.colIndex2Line(c)
+        else: cc, ll = 0, 0
+        print('printTabs() ll={} cc={}'.format(ll, cc), file=self.dbgFile)
+#        if self.outFile == None: self.clearScreen()
         self.printFileMark('<BGN_TABS_SECTION>')
-        for line in range(0, self.numLines):
+        for line in range(ll, self.numLines):
+            if c and line == ll: ccc = cc
+            else: ccc = 0 
             for r in range(0, self.numStrings):
                 row = r + line * self.lineDelta() + self.ROW_OFF
-                for c in range(0, self.numTabsPerStringPerLine):
+                for c in range(ccc, self.numTabsPerStringPerLine):
                     tab = self.tabs[r][c + line * self.numTabsPerStringPerLine]
                     style = self.styles['TABS']
                     if chr(self.htabs[r][c + line * self.numTabsPerStringPerLine]) == '1':
@@ -1638,7 +1666,7 @@ class Tabs(object):
             name, imap = self.printChordInfo(chr(self.tabs[r][c]), r, c, m)
             self.selectChords[name] = imap
             print('selectChord() m={} analyzeIndex={} selectChords[{}]={}'.format(m, self.analyzeIndex, name, self.selectChords[name]), file=self.dbgFile)
-            self.printTabs()
+            self.printTabs(c=c)
         self.resetPos()
        
     def printChordInfo(self, tab, r, c, m):
@@ -1874,4 +1902,14 @@ Desired new features list:
     Unicode chars
     Display sheet music notation
     Unit tests and or regression tests
+'''
+
+'''
+Colorama doc
+ESC [ y;x H     # position cursor at x across, y down
+ESC [ y;x f     # position cursor at x across, y down
+ESC [ n A       # move cursor n lines up
+ESC [ n B       # move cursor n lines down
+ESC [ n C       # move cursor n characters forward
+ESC [ n D       # move cursor n characters backward
 '''
