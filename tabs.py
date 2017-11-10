@@ -597,6 +597,7 @@ class Tabs(object):
             elif b == 157: self.uiCmds['Alt Arrow Right']()       # unselectCol()          # N/A
             elif b == 152: self.uiCmds['Alt Arrow Up'](up=1)      # unselectRow()          # N/A
             elif b == 160: self.uiCmds['Alt Arrow Down']()        # unselectRow()          # N/A
+#            elif b == 161: self.uiCmds['Alt Page Down']()         # movePageDown()         # N/A
             elif b == 224:                                        # Escape Sequence        # N/A
                 b = ord(getwch())                                      # Read the escaped character
                 if   b == 75:  self.uiCmds['Arrow Left']()             # moveLeft()             # N/A
@@ -1913,3 +1914,7 @@ ESC [ n B       # move cursor n lines down
 ESC [ n C       # move cursor n characters forward
 ESC [ n D       # move cursor n characters backward
 '''
+#117, 119 CTRL END, CTRL HOME
+#159, 151 ALT END, ALT HOME
+#118, 134 CTRL DOWN, CTRL UP
+#161, 153 ALT DOWN, ALT UP 
