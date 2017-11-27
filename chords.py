@@ -162,18 +162,21 @@ class Chords(object):
                 if len(chordName) == 0:
                     print('printChord() chord={} prepend imap={} to limap={}'.format(chordName, imap, limap), file=self.tabsObj.dbgFile)
                     limap.insert(0, imap)
-                    print('printChord() limap={}'.format(limap), file=self.tabsObj.dbgFile)
                 elif selected == 1:
                     print('printChord() chord={} insert imap={} to limap={}, len={}'.format(chordName, imap, limap, len(limap)), file=self.tabsObj.dbgFile)
                     limap.insert(len(limap) - 1, imap)
-                    print('printChord() limap={}'.format(limap), file=self.tabsObj.dbgFile)
                 else:
                     print('printChord() chord={} append imap={} to limap={}'.format(chordName, imap, limap), file=self.tabsObj.dbgFile)
                     limap.append(imap)
-                    print('printChord() limap={}'.format(limap), file=self.tabsObj.dbgFile)
-                self.tabsObj.chordInfo[c] = limap
+            elif len(chordName) > 0 and imap != limap[-1]:
+                print('printChord() chord={} remove & append imap={} to limap={}'.format(chordName, imap, limap), file=self.tabsObj.dbgFile)
+                limap.remove(imap)
+                limap.append(imap)
+            print('printChord() limap={}'.format(limap), file=self.tabsObj.dbgFile)
+            self.tabsObj.chordInfo[c] = limap
             if len(chordName) > 0:
                 outerChordName = chordName
+                print('printChord() outer={}'.format(chordName, outerChordName), file=self.tabsObj.dbgFile)
                 if chordName in self.tabsObj.selectChords:
                     print('printChord() found chordName={} selectChords[{}]={} imapKeys={} '.format(chordName, chordName, self.tabsObj.selectChords[chordName], imapKeys), file=self.tabsObj.dbgFile)
                     selected = 1
@@ -203,6 +206,7 @@ class Chords(object):
             self.printChordName(row, col, outerChordName, imap)
     
     def printChordName(self, row, col, chordName, imap, imapKeys=None, dbg=1):
+        if dbg: print('printChordName() name={}, imap={}'.format(chordName, imap), file=self.tabsObj.dbgFile)
         if len(chordName) > 1 and ( chordName[1] == '#' or chordName[1] == 'b' ):
             chordName = chordName[0] + chordName[2:]
         i = 0
