@@ -176,7 +176,6 @@ class Chords(object):
             self.tabsObj.chordInfo[c] = limap
             if len(chordName) > 0:
                 outerChordName = chordName
-                print('printChord() outer={}'.format(chordName, outerChordName), file=self.tabsObj.dbgFile)
                 if chordName in self.tabsObj.selectChords:
                     print('printChord() found chordName={} selectChords[{}]={} imapKeys={} '.format(chordName, chordName, self.tabsObj.selectChords[chordName], imapKeys), file=self.tabsObj.dbgFile)
                     selected = 1
@@ -203,6 +202,7 @@ class Chords(object):
                 '''
         if selected == 0 and len(limap):
             imap = limap[-1]
+            print('printChord() inner={}, outer={}'.format(chordName, outerChordName), file=self.tabsObj.dbgFile)
             self.printChordName(row, col, outerChordName, imap)
     
     def printChordName(self, row, col, chordName, imap, imapKeys=None, dbg=1):
