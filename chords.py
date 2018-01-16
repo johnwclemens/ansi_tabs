@@ -4,7 +4,7 @@ import notes
 
 class Chords(object):
     '''Model chords for stringed instruments.  Discover and name chords'''
-    
+
     def __init__(self, tabsObj):
         self.INTERVAL_RANK = { 'R':0, 'b2':1, '2':2, 'm3':3, 'M3':4, '4':5, 'b5':6, '5':7, 'a5':8, '6':9, 'b7':10, '7':11, 'b9':12, '9':13, '11':14, '13':15 }
         self.tabsObj = tabsObj
@@ -22,7 +22,7 @@ class Chords(object):
 #        print('eraseChord({}) (row,col)=({},{}) bgn: '.format(cc, row, col), file=self.tabsObj.dbgFile)
         for r in range(self.tabsObj.CHORDS_LEN):
             self.tabsObj.prints(' ', r + row, col, self.tabsObj.styles['NAT_CHORD'])
-            
+
     def printChords(self):
         print('printChords({}, {}) bgn {} =?= {} * {}'.format(self.tabsObj.row, self.tabsObj.col, self.tabsObj.numTabsPerString, self.tabsObj.numLines, self.tabsObj.numTabsPerStringPerLine), file=self.tabsObj.dbgFile)
         for c in range(self.tabsObj.numTabsPerString):
@@ -36,7 +36,7 @@ class Chords(object):
                     noteCount += 1
             print(file=self.tabsObj.outFile)
         print('printChords({}, {}) end {} =?= {} * {}'.format(self.tabsObj.row, self.tabsObj.col, self.tabsObj.numTabsPerString, self.tabsObj.numLines, self.tabsObj.numTabsPerStringPerLine), file=self.tabsObj.dbgFile)
-        
+
     def printChord(self, c=None, dbg=1):
         '''Analyse notes in given column index and if a valid chord is discovered then print it in the appropriate chords section.'''
         if c is None:
@@ -51,25 +51,28 @@ class Chords(object):
                 if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][c])):
                     note = self.tabsObj.getNote(r + 1, 0)
                     print('{:>2}/{:<2}'.format(r + 1, note.name), end=' ', file=self.tabsObj.dbgFile)
-        tbs = []
-        for r in range(self.tabsObj.numStrings):
-            if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][c])):
-                tbs.append(chr(self.tabsObj.tabs[r][c]))
-        tbs.reverse()
-        if dbg:
-            print(']\n{}tabs        ['.format(indent), end='', file=self.tabsObj.dbgFile)
-            for t in range(len(tbs)):
-                print('{:>5}'.format(tbs[t]), end=' ', file=self.tabsObj.dbgFile)
-        tbs = []
-        for r in range(self.tabsObj.numStrings):
-            if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][c])):
-                tbs.append(chr(self.tabsObj.getFretByte(self.tabsObj.getFretNum(self.tabsObj.tabs[r][c]) + self.tabsObj.getFretNum(self.tabsObj.capo))))
-        tbs.reverse()
-        if dbg:
-            print(']\n{}capoed tabs ['.format(indent), end='', file=self.tabsObj.dbgFile)
-            for t in range(len(tbs)):
-                print('{:>5}'.format(tbs[t]), end=' ', file=self.tabsObj.dbgFile)
-        
+        self.getChordTabs(c, indent, dbg=dbg)
+#        tbs = []
+#        for r in range(self.tabsObj.numStrings):
+#            if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][c])):
+#                tbs.append(chr(self.tabsObj.tabs[r][c]))
+#        tbs.reverse()
+#        if dbg:
+#            print(']\n{}tabs        ['.format(indent), end='', file=self.tabsObj.dbgFile)
+#            for t in range(len(tbs)):
+#                print('{:>5}'.format(tbs[t]), end=' ', file=self.tabsObj.dbgFile)
+#        tbs = []
+#        for r in range(self.tabsObj.numStrings):
+#            if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][c])):
+#                tbs.append(chr(self.tabsObj.getFretByte(self.tabsObj.getFretNum(self.tabsObj.tabs[r][c]) + self.tabsObj.getFretNum(self.tabsObj.capo))))
+#        tbs.reverse()
+#        if dbg:
+#            print(']\n{}capoed tabs ['.format(indent), end='', file=self.tabsObj.dbgFile)
+#            for t in range(len(tbs)):
+#                print('{:>5}'.format(tbs[t]), end=' ', file=self.tabsObj.dbgFile)
+        self.getChordTabs(c, indent, capoed=1, dbg=dbg)
+        [_notes, indices] = self.getNotesAndIndices(c, indent, dbg=dbg)
+        '''
         _notes = []
         for r in range(self.tabsObj.numStrings):
             tab = self.tabsObj.getFretByte(self.tabsObj.getFretNum(self.tabsObj.tabs[r][c]) + self.tabsObj.getFretNum(self.tabsObj.capo))
@@ -94,6 +97,7 @@ class Chords(object):
             for t in range(len(indices)):
                 print('{:>5}'.format(indices[t]), end=' ', file=self.tabsObj.dbgFile)
             print(']', file=self.tabsObj.dbgFile)
+        '''
         
         aliases = []
         limap = []
@@ -185,6 +189,48 @@ class Chords(object):
             print('printChord() inner={}, outer={}'.format(chordName, outerChordName), file=self.tabsObj.dbgFile)
             self.printChordName(row, col, outerChordName, imap)
 
+    def getChordTabs(self, c, indent, capoed=0, dbg=0):
+        tbs = []
+        if capoed: label = ']\n{}capoed tabs ['.format(indent)
+        else:      label = ']\n{}tabs        ['.format(indent)
+        for r in range(self.tabsObj.numStrings):
+            if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][c])):
+                if capoed: tab = chr(self.tabsObj.getFretByte(self.tabsObj.getFretNum(self.tabsObj.tabs[r][c]) + self.tabsObj.getFretNum(self.tabsObj.capo)))
+                else:      tab = chr(self.tabsObj.tabs[r][c])
+                tbs.append(tab)
+        tbs.reverse()
+        if dbg:
+            print('{}'.format(label), end='', file=self.tabsObj.dbgFile)
+            for t in range(len(tbs)):
+                print('{:>5}'.format(tbs[t]), end=' ', file=self.tabsObj.dbgFile)
+
+    def getNotesAndIndices(self, c, indent, dbg=0):
+        _notes = []
+        for r in range(self.tabsObj.numStrings):
+            tab = self.tabsObj.getFretByte(self.tabsObj.getFretNum(self.tabsObj.tabs[r][c]) + self.tabsObj.getFretNum(self.tabsObj.capo))
+            if self.tabsObj.isFret(chr(tab)):
+                note = self.tabsObj.getNote(r + 1, tab)
+                _notes.append(note.name)
+        _notes.reverse()
+        if dbg:
+            print(']\n{}notes       ['.format(indent), end='', file=self.tabsObj.dbgFile)
+            for t in range(len(_notes)):
+                print('{:>5}'.format(_notes[t]), end=' ', file=self.tabsObj.dbgFile)
+                
+        indices = []
+        for r in range(self.tabsObj.numStrings):
+            tab = self.tabsObj.getFretByte(self.tabsObj.getFretNum(self.tabsObj.tabs[r][c]) + self.tabsObj.getFretNum(self.tabsObj.capo))
+            if self.tabsObj.isFret(chr(tab)):
+                note = self.tabsObj.getNote(r + 1, tab)
+                indices.append(note.index)
+        indices.reverse()
+        if dbg:
+            print(']\n{}indices     ['.format(indent), end='', file=self.tabsObj.dbgFile)
+            for t in range(len(indices)):
+                print('{:>5}'.format(indices[t]), end=' ', file=self.tabsObj.dbgFile)
+            print(']', file=self.tabsObj.dbgFile)
+        return [_notes, indices]
+        
     def printLimaps(self, imap, limap, chordName, reason):
         if chordName: print('{} chord={} imap=['.format(reason, chordName), end=' ', file=self.tabsObj.dbgFile)
         else: print('{} imap=['.format(reason), end=' ', file=self.tabsObj.dbgFile)
@@ -224,7 +270,7 @@ class Chords(object):
         for i in range(i, self.tabsObj.CHORDS_LEN):
             self.tabsObj.prints(' ', i + row, col, self.tabsObj.styles['NAT_CHORD'])
         if dbg: print('printChordName() name={}'.format(chordName), file=self.tabsObj.dbgFile)
-    
+
     def getChordName(self, imap):
         '''Calculate chord name.'''
         r = imap['R']
@@ -356,7 +402,7 @@ class Chords(object):
                 if   'b7' in imap:                        return '{}m7n5'.format(r)
                 elif  '7' in imap:                        return '{}mM7n5'.format(r)
         return ''
-        
+
 '''
 Chord Naming Conventions:
 | ----------------------------------------------------------|

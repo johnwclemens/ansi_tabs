@@ -136,7 +136,7 @@ class Tabs(object):
             self.inName = self.argMap['f'][0]                       # file to read from
             self.outName = self.argMap['f'][0]                      # file to write to, only written to with the saveTabs command
         if 't' in self.argMap and len(self.argMap['t']) > 0:
-            self.initTabLen(self.argMap['t'])                       # seet number of tabs/columns per line (and per string)
+            self.initTabLen(self.argMap['t'])                       # set number of tabs/columns per line (and per string)
         if 'S' in self.argMap and len(self.argMap['S']) > 0:
             self.initStrings(alias=self.argMap['S'])                # set string tuning with alias
         elif 's' in self.argMap and len(self.argMap['s']) > 0:
