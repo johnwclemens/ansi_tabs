@@ -360,7 +360,7 @@ class Tabs(object):
                             maxFN = self.getFretNum(self.maxFret)
                             if tabFN > maxFN: 
                                 self.maxFret = ord(tab)
-                                print('readTabs() updating chr(mf)={}, maxFret={}, maxFN={}'.format(chr(self.maxFret), self.maxFret, self.getFretNum(self.maxFret)), file=self.dbgFile)
+                                print('readTabs() updating chr(mf)={}, maxFret={}, maxFN={}, tabFN={}'.format(chr(self.maxFret), self.maxFret, self.getFretNum(self.maxFret), tabFN), file=self.dbgFile)
                         if hasFrag:
                             print('readTabs({}) {} {} [{},{}], ii={}, p1={}, p2={}, i={}, bgn={} {} \'{}\' data=\'{}\' tmp=\'{}\''.format(rowStr, cnt, len(fragment), row, col, ii, p1, p2, i, bgn, hasFrag, tab, ''.join([chr(data[p]) for p in range(ii, i+2)]), ''.join([chr(tmp[p]) for p in range(0, len(tmp))])), file=self.dbgFile)
                             hasFrag = False
@@ -1040,6 +1040,7 @@ class Tabs(object):
                     currFN = self.getFretNum(tab)
                     if currFN > maxFN:
                         maxFN = currFN
+        print('findMaxFret() maxFN={}'.format(maxFN), file=self.dbgFile)
         return self.getFretByte(maxFN)
         
     def setTab(self, tab):
