@@ -9,7 +9,7 @@ class Chords(object):
         self.INTERVAL_RANK = { 'R':0, 'b2':1, '2':2, 'm3':3, 'M3':4, '4':5, 'b5':6, '5':7, 'a5':8, '6':9, 'b7':10, '7':11, 'b9':12, '9':13, '11':14, '13':15 }
         self.tabsObj = tabsObj
         self.chords = {}                                       # dict of chord spelling -> chord name; cache of discovered chords to avoid calculation
-        print('Chords() tabsObj={}'.format(tabsObj), file=tabsObj.dbgFile)
+        print('Chords() tabsObj={}, chords={}'.format(tabsObj, self.chords), file=tabsObj.dbgFile)
 
     def imapKeyFunc(self, inKey):
         return self.INTERVAL_RANK[inKey]
@@ -369,67 +369,67 @@ class Chords(object):
 
 '''
 Chord Naming Conventions:
-| ----------------------------------------------------------|
-| Long      | Short | Intervals          | Notes            | NoR | No3 | No5 |
-| ----------|-------|--------------------|------------------|
-| CMaj      | C     | R 3 5              | C E G            |
-| CMin      | Cm    | R m3 5             | C Eb G           |
-| CAug      | C+    | R 3 a5             | C E G#           |
-| CDim      | Co    | R m3 b5            | C Eb Gb          |
-| ----------|-------|--------------------|------------------|
-| CMaj7     | CM7   | R 3 5 7            | C E G B          |
-| CDom7     | C7    | R 3 5 b7           | C E G Bb         |
-| CMin7     | Cm7   | R m3 5 b7          | C Eb G Bb        |
-| CMinMaj7  | CmM7  | R m3 5 7           | C Eb G B         |
-| CAugMaj7  | C+M7  | R 3 a5 7           | C E G# B         |
-| CAug7     | C+7   | R 3 a5 b7          | C E G# Bb        |
-| CHDim7    | C07   | R m3 b5 b7         | C Eb Gb Bb       |
-| CDim7     | Co7   | R m3 b5 bb7        | C Eb Gb Bbb      |
-| C7Dim5    | C7b5  | R 3 b5 b7          | C E Gb Bb        |
-| ----------|-------|--------------------|------------------|
-| CMaj9     | CM9   | R 3 5 7 9          | C E G B D        |
-| CDom9     | C9    | R 3 5 b7 9         | C E G Bb D       |
-| CMinMaj9  | CmM9  | R m3 5 7 9         | C Eb G B D       |
-| CMinDom9  | Cm9   | R m3 5 b7 9        | C Eb G Bb D      |
-| CAugMaj9  | C+M9  | R 3 a5 7 9         | C E G# B D       |
-| CAugDom9  | C+9   | R 3 a5 b7 9        | C E G# Bb D      |
-| CHDim9    | C09   | R m3 b5 b7 9       | C Eb Gb Bb D     |
-| CHDimMin9 | C0b9  | R m3 b5 b7 9b      | C Eb Gb Bb Db    |
-| CDim9     | Co9   | R m3 b5 bb7 9      | C Eb Gb Bbb D    |
-| CDimMin9  | Cob9  | R m3 b5 bb7 b9     | C Eb Gb Bbb Db   |
-| ----------|-------|--------------------|------------------|
-| CMaj11    | CM11  | R 3 5 7 9 11       | C E G B D F      |
-| CDom11    | C11   | R 3 5 b7 9 11      | C E G Bb D F     |
-| CMinMaj11 | CmM11 | R m3 5 7 9 11      | C Eb G B D F     |
-| CMin11    | Cm11  | R m3 5 b7 9 11     | C Eb G Bb D F    |
-| CAugMaj11 | C+M11 | R 3 a5 7 9 11      | C E G# B D F     |
-| CAug11    | C+11  | R 3 a5 b7 9 11     | C E G# Bb D F    |
-| CHDim11   | C011  | R m3 b5 b7 b9 11   | C Eb Gb Bb Db F  |
-| CDim11    | Co11  | R m3 b5 bb7 b9 b11 | C Eb Gb Bbb Db F |
-| ----------|-------|--------------------|------------------|
-| CMaj13    | CM13  | R 3 5 7 9 11 13    | C E G B D F A    |
-| CDom13    | C13   | R 3 5 b7 9 11 13   | C E G Bb D F A   |
-| CMinMaj13 | CmM13 | R m3 5 7 9 11 13   | C Eb G B D F A   |
-| CMinDom13 | Cm13  | R m3 5 b7 9 11 13  | C Eb G Bb D F A  |
-| CAugMaj13 | C+M13 | R 3 a5 7 9 11 13   | C E G# B D F A   |
-| CAugDom13 | C+13  | R 3 a5 b7 9 11 13  | C E G# Bb D F A  |
-| CHDim13   | C013  | R m3 b5 b7 9 11 13 | C Eb Gb Bb D F A |
-| ----------|-------|--------------------|------------------|
-| CPower5   | C5    | R 5                | C G              |
-| C7no3     | C7n3  | R 5 7b             | C G Bb           |
-| ----------|-------|--------------------|------------------|
-| Csus2     | Cs2   | R 2 5              | C D G            |
-| C7sus2    | C7s2  | R 2 5 b7           | C D G Bb         |
-| C9sus2    | C9s2  | R 2 5 b7 9         | C D G Bb D       |
-| Csus4     | Cs4   | R 4 5              | C F G            |
-| C7sus4    | C7s4  | R 4 5 b7           | C F G Bb         |
-| C9sus4    | C9s4  | R 4 5 b7 9         | C F G Bb D       |
-| ----------|-------|--------------------|------------------|
-| Cadd9     | C2    | R 2 3 5            | C D E G          |
-| Cadd11    | C4    | R 3 4 5            | C E F G          |
-| Cadd13    | C6    | R 3 5 6            | C E G A          |
-| CAdd6Add9 | C6/9  | R 3 5 6 9          | C E G A D        |
-| ----------------------------------------------------------|
+| -----------------------------------------------------------------------------|
+| Long      | Short | Intervals          | Indices          | Notes            |
+| ----------|-------|--------------------|------------------|------------------|
+| CMaj      | C     | R 3 5              | 0 4 7            | C E G            |
+| CMin      | Cm    | R m3 5             | 0 3 7            | C Eb G           |
+| CAug      | C+    | R 3 a5             | 0 4 8            | C E G#           |
+| CDim      | Co    | R m3 b5            | 0 3 6            | C Eb Gb          |
+| ----------|-------|--------------------|------------------|------------------|
+| CMaj7     | CM7   | R 3 5 7            | 0 4 7 11         | C E G B          |
+| CDom7     | C7    | R 3 5 b7           | 0 4 7 10         | C E G Bb         |
+| CMin7     | Cm7   | R m3 5 b7          | 0 3 7 10         | C Eb G Bb        |
+| CMinMaj7  | CmM7  | R m3 5 7           | 0 3 7 11         | C Eb G B         |
+| CAugMaj7  | C+M7  | R 3 a5 7           | 0 4 8 11         | C E G# B         |
+| CAug7     | C+7   | R 3 a5 b7          | 0 4 8 10         | C E G# Bb        |
+| CHDim7    | C07   | R m3 b5 b7         | 0 3 6 10         | C Eb Gb Bb       |
+| CDim7     | Co7   | R m3 b5 bb7        | 0 3 6 9          | C Eb Gb Bbb      |
+| C7Dim5    | C7b5  | R 3 b5 b7          | 0 4 6 10         | C E Gb Bb        |
+| ----------|-------|--------------------|------------------|------------------|
+| CMaj9     | CM9   | R 3 5 7 9          | 0 4 7 11 14      | C E G B D        |
+| CDom9     | C9    | R 3 5 b7 9         | 0 4 7 10 14      | C E G Bb D       |
+| CMinMaj9  | CmM9  | R m3 5 7 9         | 0 3 7 11 14      | C Eb G B D       |
+| CMinDom9  | Cm9   | R m3 5 b7 9        | 0 3 7 10 14      | C Eb G Bb D      |
+| CAugMaj9  | C+M9  | R 3 a5 7 9         | 0 4 8 11 14      | C E G# B D       |
+| CAugDom9  | C+9   | R 3 a5 b7 9        | 0 4 8 10 14      | C E G# Bb D      |
+| CHDim9    | C09   | R m3 b5 b7 9       | 0 3 6 10 14      | C Eb Gb Bb D     |
+| CHDimMin9 | C0b9  | R m3 b5 b7 9b      | 0 3 6 10 13      | C Eb Gb Bb Db    |
+| CDim9     | Co9   | R m3 b5 bb7 9      | 0 3 6 9 14       | C Eb Gb Bbb D    |
+| CDimMin9  | Cob9  | R m3 b5 bb7 b9     | 0 3 6 9 13       | C Eb Gb Bbb Db   |
+| ----------|-------|--------------------|------------------|------------------|
+| CMaj11    | CM11  | R 3 5 7 9 11       | 0 4 7 11 14 17   | C E G B D F      |
+| CDom11    | C11   | R 3 5 b7 9 11      | 0 4 7 10 14 17   | C E G Bb D F     |
+| CMinMaj11 | CmM11 | R m3 5 7 9 11      | 0 3 7 11 14 17   | C Eb G B D F     |
+| CMin11    | Cm11  | R m3 5 b7 9 11     | 0 3 7 10 14 17   | C Eb G Bb D F    |
+| CAugMaj11 | C+M11 | R 3 a5 7 9 11      | 0 4 8 11 14 17   | C E G# B D F     |
+| CAug11    | C+11  | R 3 a5 b7 9 11     | 0 4 8 10 14 17   | C E G# Bb D F    |
+| CHDim11   | C011  | R m3 b5 b7 b9 11   | 0 3 6 10 13 17   | C Eb Gb Bb Db F  |
+| CDim11    | Co11  | R m3 b5 bb7 b9 b11 | 0 3 6 9 13 17    | C Eb Gb Bbb Db F |
+| ----------|-------|--------------------|------------------|------------------|
+| CMaj13    | CM13  | R 3 5 7 9 11 13    | 0 4 7 11 14 17 21| C E G B D F A    |
+| CDom13    | C13   | R 3 5 b7 9 11 13   | 0 4 7 10 14 17 21| C E G Bb D F A   |
+| CMinMaj13 | CmM13 | R m3 5 7 9 11 13   | 0 3 7 11 14 17 21| C Eb G B D F A   |
+| CMinDom13 | Cm13  | R m3 5 b7 9 11 13  | 0 3 7 10 14 17 21| C Eb G Bb D F A  |
+| CAugMaj13 | C+M13 | R 3 a5 7 9 11 13   | 0 4 8 11 14 17 21| C E G# B D F A   |
+| CAugDom13 | C+13  | R 3 a5 b7 9 11 13  | 0 4 8 10 14 17 21| C E G# Bb D F A  |
+| CHDim13   | C013  | R m3 b5 b7 9 11 13 | 0 3 6 10 14 17 21| C Eb Gb Bb D F A |
+| ----------|-------|--------------------|------------------|------------------|
+| CPower5   | C5    | R 5                | 0 7              | C G              |
+| C7no3     | C7n3  | R 5 7b             | 0 7 10           | C G Bb           |
+| ----------|-------|--------------------|------------------|------------------|
+| Csus2     | Cs2   | R 2 5              | 0 2 7            | C D G            |
+| C7sus2    | C7s2  | R 2 5 b7           | 0 2 7 10         | C D G Bb         |
+| C9sus2    | C9s2  | R 2 5 b7 9         | 0 2 7 10 14      | C D G Bb D       |
+| Csus4     | Cs4   | R 4 5              | 0 5 7            | C F G            |
+| C7sus4    | C7s4  | R 4 5 b7           | 0 5 7 10         | C F G Bb         |
+| C9sus4    | C9s4  | R 4 5 b7 9         | 0 5 7 10 14      | C F G Bb D       |
+| ----------|-------|--------------------|------------------|------------------|
+| Cadd9     | C2    | R 2 3 5            | 0 2 4 7          | C D E G          |
+| Cadd11    | C4    | R 3 4 5            | 0 4 5 7          | C E F G          |
+| Cadd13    | C6    | R 3 5 6            | 0 4 7 9          | C E G A          |
+| CAdd6Add9 | C6/9  | R 3 5 6 9          | 0 4 7 9 14       | C E G A D        |
+| -----------------------------------------------------------------------------|
 '''
 
 '''
