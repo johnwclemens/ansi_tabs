@@ -465,9 +465,12 @@ class Tabs(object):
         self.printTabs()
     
     def quit(self, reason, code=0):
+#        print('lastRow={}'.format(self.lastRow), file=self.dbgFile)
         '''Quit with reason and exit code.'''
         self.printLineInfo('quit(ExitCode={}, reason=\'{}\')'.format(code, reason))
         print(self.CSI + self.styles['CONS'] + self.CSI + '{};{}HExitCode={}, reason=\'{}\''.format(self.lastRow + 1, 1, code, reason))
+#        self.dbgFile.flush()
+#        os.fsync(self.dbgFile)
         self.dbgFile.close()
         exit(code)
      

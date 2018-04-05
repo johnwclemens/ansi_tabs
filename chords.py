@@ -257,6 +257,8 @@ class Chords(object):
                         if   '2' in imap or  '9' in imap:     return '{}M9'.format(r)      # Maj9
                         elif '4' in imap or '11' in imap:     return '{}M11n9'.format(r)   # Maj11(no9)
                         elif '6' in imap or '13' in imap:     return '{}M13n9'.format(r)   # Maj13(no9)
+#                    else: print( 'getChordName() len(imap) == 5', file=self.tabsObj.dbgFile)
+                    elif '2' in imap or '9' in imap and '6' in imap or '13' in imap: return '{}6/9'.format(r)   #Maj6Add9
                 elif len(imap) == 6:
                     if '2' in imap or '9' in imap:
                         if 'b7' in imap:
@@ -282,6 +284,7 @@ class Chords(object):
                         if   '2' in imap or  '9' in imap:     return '{}mM9'.format(r)     # MinMaj9
                         elif '4' in imap or '11' in imap:     return '{}mM11n9'.format(r)  # MinMaj11(no9)
                         elif '6' in imap or '13' in imap:     return '{}mM13n9'.format(r)  # MinMaj13(no9)
+                    elif '2' in imap or '9' in imap and '6' in imap or '13' in imap: return '{}m6/9'.format(r)   #Min6Add9
                 elif len(imap) == 6:
                     if '2' in imap or '9' in imap:
                         if 'b7' in imap:
