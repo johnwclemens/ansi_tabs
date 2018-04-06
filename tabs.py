@@ -3,7 +3,7 @@
 '''Thus all methods are essentially private.  Note some functionality is deemed customizable by the user and is thus factored out into a separate module.  
 e.g. The tab modifications are in mods.py, the string tunings and aliases are in strings.py, and the chord discovery and name calculations are in chords.py.'''
 
-import os, inspect, sys
+import os, sys
 
 impFile = open('tabs_imp.log', 'w')
 
@@ -1485,7 +1485,7 @@ class Tabs(object):
         print('{} numStrings={}, numLines={}, lineDelta={},'.format(reason, self.numStrings, self.numLines, self.lineDelta()), end='', file=self.dbgFile)
         for line in range(0, self.numLines):
             print(' bgnRow{}={}, endRow{}={},'.format(line, self.bgnRow(line), line, self.endRow(line)), end='', file=self.dbgFile)
-        print(' lastRow={}, bgnCol={}, endCol={}'.format(self.lastRow, self.bgnCol(), self.endCol()), file=self.dbgFile)
+        print(' ROW_OFF={} lastRow={}, bgnCol={}, endCol={}'.format(self.ROW_OFF, self.lastRow, self.bgnCol(), self.endCol()), file=self.dbgFile)
     
     def printTabs(self, c=None):
         '''Print tabs using ANSI escape sequences to control the cursor position, foreground and background colors, and brightness'''

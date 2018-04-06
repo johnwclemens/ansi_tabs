@@ -1,6 +1,6 @@
 '''strings.py module.  class list: [Strings].  Users are encouraged to modify this module to customize the aliases dictionary'''
 
-import notes
+import notes, collections
 
 class Strings(object):
     '''Model the musical instrument strings and how they are tuned in ascending order.'''
@@ -14,6 +14,7 @@ class Strings(object):
         self.ALIASES['GUITAR_OPEN_G_OVERTONE']    = ['G2G2D3G3B3D4']
         self.ALIASES['GUITAR_OPEN_GMIN_OVERTONE'] = ['G2G2D3G3Bb3D4']
         self.ALIASES['TENOR_GUITAR']              = ['C3G3D4A4']
+        self.ALIASES['UKULELE']                   = ['G4C4E4A4']
         self.ALIASES['BASS']                      = ['E1A1D2G2']
         self.ALIASES['BASS_5_STRING']             = ['B0E1A1D2G2']
         self.ALIASES['BASS_5_STRING_TENOR']       = ['E1A1D2G2C3']
@@ -25,7 +26,7 @@ class Strings(object):
     def __init__(self, dbgFile, spelling=None, alias=None):
         '''The alias argument overrides the spelling argument.  e.g. alias=['GUITAR'] -> strings=['E2A2D3G3B3E4'] represents a standard 6 string guitar tuning.'''
         self.dbgFile = dbgFile
-        self._map = {}
+        self._map = collections.OrderedDict() #{}
         self._keys = []
         if alias: alias = alias[0].upper()
         self._initAliases()
@@ -66,6 +67,7 @@ class Strings(object):
         
     def _parseSpelling(self, spelling):
         '''Parse string spelling into map of note name -> note index.'''
+        key = None
         if len(spelling) != 1:
             errorMsg = 'Strings.parseSpelling() invalid raw spelling len(spelling)={} expected len(spelling)=1, spelling={}'.format(len(spelling), spelling)
             print(errorMsg, file=self.dbgFile)
@@ -92,7 +94,8 @@ class Strings(object):
                     raise Exception(errorMsg)
                 self.map[key] = notes.Note.INDICES[key]
                 print('Strings.parseSpelling({}) appending {}:{} to map={}'.format(i, key, self.map[key], self.map), file=self.dbgFile)
-        self._keys = sorted(self.map, key=self._mapKeyFunc, reverse=False)
+#        self._keys = sorted(self.map, key=self._mapKeyFunc, reverse=False)
+        self._keys = list(self._map.keys())
         print('Strings.parseSpelling() map={}'.format(self.map), file=self.dbgFile)
         print('Strings.parseSpelling() keys={}'.format(self.keys), file=self.dbgFile)
         print('Strings.parseSpelling() sorted map: {', end='', file=self.dbgFile)
