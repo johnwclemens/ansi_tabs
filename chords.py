@@ -1,10 +1,11 @@
 '''chords.py module.  class list: [Chords].  Users are encouraged to modify this module to customize chord discovery and naming'''
 
 import notes
+import collections
 
 class Chords(object):
-    '''Model chords for stringed instruments.  Discover and name chords'''
-
+    '''Model chords for stringed instruments.  Discover and name chords.'''
+    #Consider chords without a root note (C# E G B -> A9)?
     def __init__(self, tabsObj):
         self.INTERVAL_RANK = { 'R':0, 'b2':1, '2':2, 'm3':3, 'M3':4, '4':5, 'b5':6, '5':7, 'a5':8, '6':9, 'b7':10, '7':11, 'b9':12, '9':13, '11':14, '13':15 }
         self.tabsObj = tabsObj
@@ -136,9 +137,9 @@ class Chords(object):
         return [deltas, intervals]
 
     def getImapAndKeys(self, c, intervals, _notes, indent, dbg=0):
-        imap = dict(zip(intervals, _notes))
-        imapKeys = sorted(imap, key=self.imapKeyFunc, reverse=False)
-        imapNotes = [ imap[k] for k in imapKeys ]
+        imap = collections.OrderedDict(sorted(dict(zip(intervals, _notes)).items(), key=lambda t: self.INTERVAL_RANK[t[0]]))
+        imapKeys = imap.keys()
+        imapNotes = imap.values()
         chordKey = self.getChordKey(imapNotes)
         if dbg:
             print(']\n{}imap        ['.format(indent), end='', file=self.tabsObj.dbgFile)

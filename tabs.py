@@ -52,6 +52,7 @@ import chords
 import mods
 import notes
 import strings
+import collections
 
 class Tabs(object):
     '''Model musical tab notation and tab editor functionality.'''
@@ -71,6 +72,7 @@ class Tabs(object):
         
         self.initFiles(inName, outName, dbgName)
         self.initConsts()
+#        self.testDict()
 #        self.testAnsi2()
         self.registerUiCmds()                                  # register the dictionary for all the user interactive commands
         self.mods = {}                                         # dict of tab modification characters -> contextual descriptions 
@@ -199,6 +201,25 @@ class Tabs(object):
                 self.printHelpInfo(ui=0)                       # display the help info
             self.printTabs()                                   # display all the tabs in the tabs section, optionally display the notes and chords sections and the modes/labels row
             self.moveTo(hi=1)                                  # display the status and hilite the first tab character
+
+    def testDict(self):
+        a = {'one': 1, 'two': 2, 'three': 3, 'four': 4}
+        b = dict(one=1, two=2, three=3, four=4)
+        c = dict(zip(['one', 'two', 'three', 'four'], [1, 2, 3, 4]))
+        d = dict([('two', 2), ('one', 1), ('three', 3), ('four', 4)])
+        e = dict({'three': 3, 'one': 1, 'two': 2, 'four': 4})
+        print('a={}'.format(a), file=self.dbgFile)
+        print('b={}'.format(b), file=self.dbgFile)
+        print('c={}'.format(c), file=self.dbgFile)
+        print('d={}'.format(d), file=self.dbgFile)
+        print('e={}'.format(d), file=self.dbgFile)
+        m = collections.OrderedDict(sorted(a.items(), key=lambda t: t[0])) #one=1, two=2, three=3)
+        print('m={}'.format(m), file=self.dbgFile)
+        m['two'] = 2
+        m['three'] = 3
+        m = collections.OrderedDict(sorted(a.items(), key=lambda t: t[1]))
+        print('m={}'.format(m), file=self.dbgFile)
+        exit()
 
     def testAnsi(self):
         file = None #open('testAnsi.tab', 'w')
@@ -1907,6 +1928,9 @@ Desired new features list:
     Unicode chars
     Display sheet music notation
     Unit tests and or regression tests
+    
+    Consider chords without a root note (C# E G B -> A9)?
+    Consider using color coded chord types on the 2nd chord character (omit m and or M): white for none, blue for m, red for M, magenta for mM)
 '''
 
 '''
