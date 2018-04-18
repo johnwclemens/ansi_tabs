@@ -54,14 +54,14 @@ class Chords(object):
                     print('{:>2}/{:<2}'.format(r + 1, note.name), end=' ', file=self.tabsObj.dbgFile)
         self.getTabs(c, indent, dbg=dbg)
         self.getTabs(c, indent, capoed=1, dbg=dbg)
-        [_notes, indices] = self.getNotesAndIndices(c, indent, dbg=dbg)
+        (_notes, indices) = self.getNotesAndIndices(c, indent, dbg=dbg)
         aliases, limap, count, selected, outerChordName = [], [], 0, 0, ''
         for j in range(len(indices)):
             if dbg: print('{}printChord({}) index={}'.format(indent, c, j), file=self.tabsObj.dbgFile)
-            [deltas, intervals] = self.getDeltasAndIntervals(c, j, indices, indent, dbg=dbg)
-            [imap, imapKeys, imapNotes, chordKey] = self.getImapAndKeys(c, intervals, _notes, indent, dbg=dbg)
+            (deltas, intervals) = self.getDeltasAndIntervals(c, j, indices, indent, dbg=dbg)
+            (imap, imapKeys, imapNotes, chordKey) = self.getImapAndKeys(c, intervals, _notes, indent, dbg=dbg)
             chordName = self.getChordNameAndKey(c, j, chordKey, imap, count, indent, dbg=dbg)
-            [limap, selected] = self.getLimap(imap, limap, chordName, selected)
+            limap = self.getLimap(imap, limap, chordName, selected)
             self.tabsObj.chordInfo[c] = limap
             if len(chordName) > 0:
                 outerChordName = chordName
@@ -113,7 +113,7 @@ class Chords(object):
             for t in range(len(indices)):
                 print('{:>5}'.format(indices[t]), end=' ', file=self.tabsObj.dbgFile)
             print(']', file=self.tabsObj.dbgFile)
-        return [_notes, indices]
+        return (_notes, indices)
 
     def getDeltasAndIntervals(self, c, j, indices, indent, dbg=0):
         deltas = []
@@ -134,7 +134,7 @@ class Chords(object):
             print(']\n{}intervals   ['.format(indent), end='', file=self.tabsObj.dbgFile)
             for t in range(len(deltas)):
                 print('{:>5}'.format(intervals[t]), end=' ', file=self.tabsObj.dbgFile)
-        return [deltas, intervals]
+        return (deltas, intervals)
 
     def getImapAndKeys(self, c, intervals, _notes, indent, dbg=0):
         imap = collections.OrderedDict(sorted(dict(zip(intervals, _notes)).items(), key=lambda t: self.INTERVAL_RANK[t[0]]))
@@ -155,7 +155,7 @@ class Chords(object):
             for k in self.chords:
                 print('({}):{}'.format(k, self.chords[k]), end=', ', file=self.tabsObj.dbgFile)
             print(']', file=self.tabsObj.dbgFile)
-        return [imap, imapKeys, imapNotes, chordKey]
+        return (imap, imapKeys, imapNotes, chordKey)
 
     def getChordNameAndKey(self, c, j, chordKey, imap, count, indent, dbg=0):
         chordName = ''
@@ -194,7 +194,7 @@ class Chords(object):
             limap.remove(imap)
             limap.append(imap)
         self.printLimap(limap)
-        return [limap, selected]
+        return limap
 
     def printLimaps(self, imap, limap, chordName, reason):
         if chordName: print('{} chord={} imap=['.format(reason, chordName), end=' ', file=self.tabsObj.dbgFile)
