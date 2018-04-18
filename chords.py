@@ -9,7 +9,7 @@ class Chords(object):
     def __init__(self, tabsObj):
         self.INTERVAL_RANK = { 'R':0, 'b2':1, '2':2, 'm3':3, 'M3':4, '4':5, 'b5':6, '5':7, 'a5':8, '6':9, 'b7':10, '7':11, 'b9':12, '9':13, '11':14, '13':15 }
         self.tabsObj = tabsObj
-        self.chords = {}                                       # dict of chord spelling -> chord name; cache of discovered chords to avoid calculation
+        self.chords = collections.OrderedDict()                 # dict of chord spelling -> chord name; cache of discovered chords to avoid calculation
         print('Chords() tabsObj={}, chords={}'.format(tabsObj, self.chords), file=tabsObj.dbgFile)
 
     def imapKeyFunc(self, inKey):
@@ -153,7 +153,7 @@ class Chords(object):
                 print('{:>5}'.format(k), end=' ', file=self.tabsObj.dbgFile)
             print(']\n{}chords      ['.format(indent), end=' ', file=self.tabsObj.dbgFile)
             for k in self.chords:
-                print('\'{}\':{}'.format(k, self.chords[k]), end=', ', file=self.tabsObj.dbgFile)
+                print('({}):{}'.format(k, self.chords[k]), end=', ', file=self.tabsObj.dbgFile)
             print(']', file=self.tabsObj.dbgFile)
         return [imap, imapKeys, imapNotes, chordKey]
 
@@ -169,7 +169,7 @@ class Chords(object):
                     print('{}printChord({}) index={}, count={}, Adding Key=\'{}\', value=\'{}\' to chords'.format(indent, c, j, count, chordKey, self.chords[chordKey]), file=self.tabsObj.dbgFile)
                     print('{}chords      ['.format(indent), end=' ', file=self.tabsObj.dbgFile)
                     for k in self.chords:
-                        print('\'{}\':{}'.format(k, self.chords[k]), end=', ', file=self.tabsObj.dbgFile)
+                        print('({}):{}'.format(k, self.chords[k]), end=', ', file=self.tabsObj.dbgFile)
                     print(']', file=self.tabsObj.dbgFile)
             elif dbg: print('{}printChord({}) index={}, Key=\'{}\' not a chord'.format(indent, c, j, chordKey), file=self.tabsObj.dbgFile)
         else:
