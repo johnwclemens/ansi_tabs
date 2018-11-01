@@ -216,11 +216,13 @@ class Chords(object):
         if dbg: print('printChordName() name={}, imap={}'.format(chordName, imap), file=self.tabsObj.dbgFile)
         if len(chordName) > 1 and ( chordName[1] == '#' or chordName[1] == 'b' ):
             chordName = chordName[0] + chordName[2:]
+            if dbg: print('printChordName() strip # or b, name={}'.format(chordName), file=self.tabsObj.dbgFile)
         i = 0
         while i < len(chordName):
             style = self.tabsObj.styles['NAT_CHORD']
             if i == 0:
                 style = self.tabsObj.getEnharmonicStyle(imap['R'], style, self.tabsObj.styles['FLT_CHORD'], self.tabsObj.styles['SHP_CHORD'])
+                if dbg: print('printChordName() style={}'.format(style), file=self.tabsObj.dbgFile)
             elif chordName[i] == 'm':
                 style = self.tabsObj.styles['FLT_CHORD']
             elif chordName[i] == 'n':
@@ -287,7 +289,7 @@ class Chords(object):
                         if   '2' in imap or  '9' in imap:     return '{}mM9'.format(r)     # MinMaj9
                         elif '4' in imap or '11' in imap:     return '{}mM11n9'.format(r)  # MinMaj11(no9)
                         elif '6' in imap or '13' in imap:     return '{}mM13n9'.format(r)  # MinMaj13(no9)
-                    elif '2' in imap or '9' in imap and '6' in imap or '13' in imap: return '{}m6/9'.format(r)   #Min6Add9
+                    elif ( '2' in imap or '9' in imap ) and ( '6' in imap or '13' in imap ): return '{}m6/9'.format(r)   #Min6Add9
                 elif len(imap) == 6:
                     if '2' in imap or '9' in imap:
                         if 'b7' in imap:
@@ -303,6 +305,9 @@ class Chords(object):
                 if   'b7' in imap:
                     if    '2' in imap or  '9' in imap:        return '{}7s2'.format(r)     # 7sus2
                     elif  '4' in imap or '11' in imap:        return '{}7s4'.format(r)     # 7sus4
+                elif '7' in imap:
+                    if    '2' in imap or  '9' in imap:        return '{}M7s2'.format(r)     # M7sus2
+                    elif  '4' in imap or '11' in imap:        return '{}M7s4'.format(r)     # M7sus4
         elif 'b5' in imap:
             if 'm3' in imap:
                 if len(imap) == 3:                            return '{}o'.format(r)       # Dim
@@ -361,16 +366,33 @@ class Chords(object):
                             elif '6' in imap or '13' in imap: return '{}+M13n11'.format(r) # AugMaj13(no11)
         # Maybe omit all the n5 (no 5th) chords for simplicity
         elif 'M3' in imap:
-            if len(imap) == 3:
-                if   'b7' in imap:                        return '{}7n5'.format(r)
-                elif  '7' in imap:                        return '{}M7n5'.format(r)
+            if   len(imap) == 2:                              return '{}M3'.format(r)      # Maj3
+            elif len(imap) == 3:
+                if   'b7' in imap:                            return '{}7n5'.format(r)     # (Dom)7(no5)
+                elif  '7' in imap:                            return '{}M7n5'.format(r)    # Maj7(no5)
             elif len(imap) == 4:
                 if   'b7' in imap:
-                    if '9' in imap:                       return '{}9n5'.format(r)
+                    if   '2' in imap or '9' in imap:          return '{}9n5'.format(r)     # 9(no5)
+                    elif '4' in imap or '11' in imap:         return '{}11n5'.format(r)    # 11(no5)
+                    elif '6' in imap or '13' in imap:         return '{}13n5'.format(r)    # 13(no5)
+                elif '7' in imap:
+                    if   '2' in imap or '9' in imap:          return '{}M9n5'.format(r)    # Maj9(no5)
+                    elif '4' in imap or '11' in imap:         return '{}M11n5'.format(r)   # Maj11(no5)
+                    elif '6' in imap or '13' in imap:         return '{}M13n5'.format(r)   # Maj13(no5)
         elif 'm3' in imap:
+            if   len(imap) == 2:                              return '{}m3'.format(r)      # min3
             if len(imap) == 3:
-                if   'b7' in imap:                        return '{}m7n5'.format(r)
-                elif  '7' in imap:                        return '{}mM7n5'.format(r)
+                if   'b7' in imap:                            return '{}m7n5'.format(r)    # min7(no5)
+                elif  '7' in imap:                            return '{}mM7n5'.format(r)   # minMaj7(no5)
+            elif len(imap) == 4:
+                if   'b7' in imap:
+                    if   '2' in imap or '9' in imap:          return '{}m9n5'.format(r)    # min9(no5)
+                    elif '4' in imap or '11' in imap:         return '{}m11n5'.format(r)   # min11(no5)
+                    elif '6' in imap or '13' in imap:         return '{}m13n5'.format(r)   # min13(no5)
+                elif '7' in imap:
+                    if   '2' in imap or '9' in imap:          return '{}mM9n5'.format(r)   # minMaj9(no5)
+                    elif '4' in imap or '11' in imap:         return '{}mM11n5'.format(r)  # minMaj11(no5)
+                    elif '6' in imap or '13' in imap:        return '{}mM13n5'.format(r)   # minMaj13(no5)
         return ''
 
 '''
