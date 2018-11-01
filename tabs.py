@@ -182,7 +182,7 @@ class Tabs(object):
             if 'i' in self.argMap and len(self.argMap['i']) == 0:
                 self.toggleCursorDir(dbg=1)                    # toggle automatic cursor movement direction from down to up
             if 'k' in self.argMap and len(self.argMap['k']) > 0:
-                self.setCapo(c=self.argMap['k'][0])                 # set capo at desired fret
+                self.setCapo(c=self.argMap['k'][0])            # set capo at desired fret
             if 'a' in self.argMap and len(self.argMap['a']) == 0:
                 self.toggleDisplayLabels(printTabs=False)      # toggle the display of the edit mode, cursor mode, and column number labels in first row for each line
             if 'b' in self.argMap and len(self.argMap['b']) == 0:
