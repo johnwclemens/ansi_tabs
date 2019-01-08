@@ -26,7 +26,7 @@ class Chords(object):
         for r in range(self.tabsObj.CHORDS_LEN):
             self.tabsObj.prints(' ', r + row, col, self.tabsObj.styles['NAT_CHORD'])
 
-    def printChords(self):
+    def printChords_OLD(self):
         print('printChords({}, {}) bgn {} =?= {} * {}'.format(self.tabsObj.row, self.tabsObj.col, self.tabsObj.numTabsPerString, self.tabsObj.numLines, self.tabsObj.numTabsPerStringPerLine), file=self.tabsObj.dbgFile)
         for c in range(self.tabsObj.numTabsPerString):
             noteCount = 0
@@ -37,6 +37,17 @@ class Chords(object):
                         self.printChord(c=c)
                         break
                     noteCount += 1
+            print(file=self.tabsObj.outFile)
+        print('printChords({}, {}) end {} =?= {} * {}'.format(self.tabsObj.row, self.tabsObj.col, self.tabsObj.numTabsPerString, self.tabsObj.numLines, self.tabsObj.numTabsPerStringPerLine), file=self.tabsObj.dbgFile)
+
+    def printChords(self):
+        print('printChords({}, {}) bgn {} =?= {} * {}'.format(self.tabsObj.row, self.tabsObj.col, self.tabsObj.numTabsPerString, self.tabsObj.numLines, self.tabsObj.numTabsPerStringPerLine), file=self.tabsObj.dbgFile)
+        for c in range(self.tabsObj.numTabsPerString):
+            self.eraseChord(c)
+            for r in range(self.tabsObj.numStrings):
+                if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][c])):
+                    self.printChord(c=c)
+                    break
             print(file=self.tabsObj.outFile)
         print('printChords({}, {}) end {} =?= {} * {}'.format(self.tabsObj.row, self.tabsObj.col, self.tabsObj.numTabsPerString, self.tabsObj.numLines, self.tabsObj.numTabsPerStringPerLine), file=self.tabsObj.dbgFile)
 
@@ -227,11 +238,11 @@ class Chords(object):
                 style = self.tabsObj.styles['FLT_CHORD']
             elif chordName[i] == 'n':
                 chordName = chordName[:i] + chordName[i+1:]
-                style = '30;43m'
+                style = self.tabsObj.styles['TABS']
             elif chordName[i] == 'b':
                 chordName = chordName[:i] + chordName[i+1:]
                 style = self.tabsObj.styles['FLT_CHORD']
-            elif chordName[i] == 'a':
+            elif chordName[i] == 'a' or chordName[i] == '#':
                 chordName = chordName[:i] + chordName[i+1:]
                 style = self.tabsObj.styles['SHP_CHORD']
             self.tabsObj.prints(chordName[i], i + row, col, style)
@@ -262,8 +273,7 @@ class Chords(object):
                         if   '2' in imap or  '9' in imap:     return '{}M9'.format(r)      # Maj9
                         elif '4' in imap or '11' in imap:     return '{}M11n9'.format(r)   # Maj11(no9)
                         elif '6' in imap or '13' in imap:     return '{}M13n9'.format(r)   # Maj13(no9)
-#                    else: print( 'getChordName() len(imap) == 5', file=self.tabsObj.dbgFile)
-                    elif '2' in imap or '9' in imap and '6' in imap or '13' in imap: return '{}6/9'.format(r)   #Maj6Add9
+                    elif ('2' in imap or '9' in imap) and ('6' in imap or '13' in imap): return '{}6/9'.format(r)   #Maj6Add9
                 elif len(imap) == 6:
                     if '2' in imap or '9' in imap:
                         if 'b7' in imap:
@@ -289,7 +299,7 @@ class Chords(object):
                         if   '2' in imap or  '9' in imap:     return '{}mM9'.format(r)     # MinMaj9
                         elif '4' in imap or '11' in imap:     return '{}mM11n9'.format(r)  # MinMaj11(no9)
                         elif '6' in imap or '13' in imap:     return '{}mM13n9'.format(r)  # MinMaj13(no9)
-                    elif ( '2' in imap or '9' in imap ) and ( '6' in imap or '13' in imap ): return '{}m6/9'.format(r)   #Min6Add9
+                    elif ('2' in imap or '9' in imap) and ('6' in imap or '13' in imap): return '{}m6/9'.format(r)   #Min6Add9
                 elif len(imap) == 6:
                     if '2' in imap or '9' in imap:
                         if 'b7' in imap:
@@ -370,20 +380,29 @@ class Chords(object):
             elif len(imap) == 3:
                 if   'b7' in imap:                            return '{}7n5'.format(r)     # (Dom)7(no5)
                 elif  '7' in imap:                            return '{}M7n5'.format(r)    # Maj7(no5)
+                elif  '2' in imap or '9' in imap:             return '{}2n5'.format(r)     # Maj2(no5)
+                elif  '4' in imap or '11' in imap:            return '{}4n5'.format(r)     # Maj4(no5)
+                elif  '6' in imap or '13' in imap:            return '{}6n5'.format(r)     # Maj6(no5)
             elif len(imap) == 4:
                 if   'b7' in imap:
                     if   '2' in imap or '9' in imap:          return '{}9n5'.format(r)     # 9(no5)
                     elif '4' in imap or '11' in imap:         return '{}11n5'.format(r)    # 11(no5)
                     elif '6' in imap or '13' in imap:         return '{}13n5'.format(r)    # 13(no5)
+                    elif 'm3' in imap:                        return '{}7#9n5'.format(r)   # 7#9(no5)
                 elif '7' in imap:
                     if   '2' in imap or '9' in imap:          return '{}M9n5'.format(r)    # Maj9(no5)
                     elif '4' in imap or '11' in imap:         return '{}M11n5'.format(r)   # Maj11(no5)
                     elif '6' in imap or '13' in imap:         return '{}M13n5'.format(r)   # Maj13(no5)
+                    elif 'm3' in imap:                        return '{}M7#9n5'.format(r)  # Maj7#9(no5)
+                elif ('2' in imap or '9' in imap) and ('6' in imap or '13' in imap): return '{}6/9n5'.format(r)   #Maj6Add9(no5)
         elif 'm3' in imap:
             if   len(imap) == 2:                              return '{}m3'.format(r)      # min3
-            if len(imap) == 3:
+            elif len(imap) == 3:
                 if   'b7' in imap:                            return '{}m7n5'.format(r)    # min7(no5)
                 elif  '7' in imap:                            return '{}mM7n5'.format(r)   # minMaj7(no5)
+                elif  '2' in imap or '9' in imap:             return '{}m2n5'.format(r)    # min2(no5)
+                elif  '4' in imap or '11' in imap:            return '{}m4n5'.format(r)    # min4(no5)
+                elif  '6' in imap or '13' in imap:            return '{}m6n5'.format(r)    # min6(no5)
             elif len(imap) == 4:
                 if   'b7' in imap:
                     if   '2' in imap or '9' in imap:          return '{}m9n5'.format(r)    # min9(no5)
@@ -392,7 +411,19 @@ class Chords(object):
                 elif '7' in imap:
                     if   '2' in imap or '9' in imap:          return '{}mM9n5'.format(r)   # minMaj9(no5)
                     elif '4' in imap or '11' in imap:         return '{}mM11n5'.format(r)  # minMaj11(no5)
-                    elif '6' in imap or '13' in imap:        return '{}mM13n5'.format(r)   # minMaj13(no5)
+                    elif '6' in imap or '13' in imap:         return '{}mM13n5'.format(r)  # minMaj13(no5)
+                elif ('2' in imap or '9' in imap) and ('6' in imap or '13' in imap): return '{}m6/9n5'.format(r)   #Min6Add9(no5)
+        else:
+            if len(imap) == 2:
+                if   '2' in imap or '9' in imap:              return '{}s2n5'.format(r)    # sus2(no5)
+                elif '4' in imap or '11' in imap:             return '{}s4n5'.format(r)    # sus4(no5)
+            elif len(imap) == 3:
+                if   'b7' in imap:
+                    if   '2' in imap or '9' in imap:          return '{}7s2n5'.format(r)   # 7sus2(no5)
+                    elif '4' in imap or '11' in imap:         return '{}7s4n5'.format(r)   # 7sus4(no5)
+                elif '7' in imap:
+                    if   '2' in imap or '9' in imap:          return '{}M7s2n5'.format(r)  # Maj7sus2(no5)
+                    elif '4' in imap or '11' in imap:         return '{}M7s4n5'.format(r)  # Maj7sus4(no5)
         return ''
 
 '''

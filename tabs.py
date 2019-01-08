@@ -258,15 +258,29 @@ class Tabs(object):
      
     def initFiles(self, inName, outName, dbgName):
         self.dbgFile = open(dbgName, "w")
-        self.inName = inName
+        self.inName = inName        
         self.inFile = None
         self.outName = outName
         self.outFile = None
         
     def initConsts(self): # foreground 30-37, background 40-47, 0=black, 1=red, 2=green, 3=yellow, 4= blue, 5=magenta, 6=cyan, 7=white
-        self.styles = { 'NAT_NOTE':'32;47m', 'NAT_H_NOTE':'37;43m', 'NAT_CHORD':'37;43m', 'MIN_COL_NUM':'32;40m',   'TABS':'32;40m', 'NUT_UP':'31;43m', 'NORMAL':'22;',
-                        'FLT_NOTE':'35;47m', 'FLT_H_NOTE':'35;43m', 'FLT_CHORD':'35;43m', 'MAJ_COL_NUM':'33;40m', 'H_TABS':'33;40m', 'NUT_DN':'35;43m', 'BRIGHT':'1;',
-                        'SHP_NOTE':'31;47m', 'SHP_H_NOTE':'31;43m', 'SHP_CHORD':'31;43m',      'STATUS':'37;40m',  'MODES':'35;47m',  'ERROR':'31;43m',   'CONS':'37;40m' }
+        self.COLORS = { 'BLACK':'0', 'RED':'1', 'GREEN':'2', 'YELLOW':'3', 'BLUE':'4', 'MAGENTA':'5', 'CYAN':'6', 'WHITE':'7' }
+        self.RED_WHITE = self.initText('RED', 'WHITE')
+        self.BLUE_WHITE = self.initText('BLUE', 'WHITE')
+        self.CYAN_WHITE = self.initText('CYAN', 'WHITE')
+        self.BLACK_WHITE = self.initText('BLACK', 'WHITE')
+        self.GREEN_WHITE = self.initText('GREEN', 'WHITE')
+        self.YELLOW_WHITE = self.initText('YELLOW', 'WHITE')
+        self.MAGENTA_WHITE = self.initText('MAGENTA', 'WHITE')
+        self.BLACK_YELLOW = self.initText('BLACK', 'YELLOW')
+        self.GREEN_YELLOW = self.initText('GREEN', 'YELLOW')
+        self.BLUE_YELLOW = self.initText('BLUE', 'YELLOW')
+        self.RED_YELLOW = self.initText('RED', 'YELLOW')
+#        self.WHITE_GREEN = self.initText('WHITE', 'GREEN')
+#        self.GREEN_BLACK = self.initText('GREEN', 'BLACK')
+        self.styles = { 'NAT_NOTE':self.GREEN_WHITE, 'NAT_H_NOTE':self.GREEN_YELLOW, 'NAT_CHORD':self.GREEN_WHITE, 'MIN_COL_NUM':self.RED_WHITE,     'TABS':self.BLACK_WHITE,  'NUT_UP':self.BLUE_YELLOW,  'NORMAL':'22;',
+                        'FLT_NOTE':self.BLUE_WHITE,  'FLT_H_NOTE':self.BLUE_YELLOW,  'FLT_CHORD':self.BLUE_WHITE,  'MAJ_COL_NUM':self.BLACK_WHITE, 'H_TABS':self.BLACK_YELLOW, 'NUT_DN':self.RED_YELLOW, 'BRIGHT':'1;',
+                        'SHP_NOTE':self.RED_WHITE,   'SHP_H_NOTE':self.RED_YELLOW,   'SHP_CHORD':self.RED_WHITE,       'STATUS':self.MAGENTA_WHITE,   'MODES':self.GREEN_WHITE,   'ERROR':self.RED_YELLOW,   'CONS':self.BLACK_WHITE }
         self.INTERVALS = { 0:'R',  1:'b2',  2:'2',  3:'m3',  4:'M3',  5:'4',   6:'b5',  7:'5',  8:'a5',  9:'6',  10:'b7', 11:'7', 
                           12:'R', 13:'b9', 14:'2', 15:'m3', 16:'M3', 17:'4',  18:'b5', 19:'5', 20:'a5', 21:'6',  22:'b7', 23:'7',
                           24:'R', 25:'b9', 26:'2', 27:'m3', 28:'M3', 29:'4',  30:'b5', 31:'5', 32:'a5', 33:'6',  34:'b7', 35:'7', 
@@ -282,6 +296,10 @@ class Tabs(object):
         self.DISPLAY_LABELS = { 'DISABLED':0, 'ENABLED':1 }
         self.DISPLAY_NOTES = { 'DISABLED':0, 'ENABLED':1 }
         self.DISPLAY_CHORDS = { 'DISABLED':0, 'ENABLED':1 }
+    
+    def initText(self, FG, BG):
+        return '3' + self.COLORS[FG] + ';4' + self.COLORS[BG] + 'm'
+#        return '3' + FG + ';4' + BG + 'm'
     
     def initStrings(self, alias=None, spelling=None):
         print('initStrings(alias={}, spelling={})'.format(alias, spelling), file=self.dbgFile)
@@ -420,23 +438,24 @@ class Tabs(object):
 
     def appendTabs(self, tmp, htmp, rowStr):
         rowStr = '{}'.format(int(rowStr) + 1)
+        stringStr = '{}'.format(int(rowStr) - self.ROW_OFF)
         tabDataRow = tmp[self.COL_OFF-1 : self.COL_OFF-1 + self.numTabsPerStringPerLine]
         htabDataRow = htmp[self.COL_OFF-1 : self.COL_OFF-1 + self.numTabsPerStringPerLine]
         self.tabCount += len(tabDataRow)
-        print('appendTabs({}) checking  \'{}\' , numTabsPerString={}, numLines={}, numTabsPerStringPerLine={}, tabCount={}'.format(rowStr, ''.join([chr(t) for t in tabDataRow]), self.numTabsPerString, self.numLines, self.numTabsPerStringPerLine, self.tabCount), file=self.dbgFile)
+        print('appendTabs({}) [{}, {}, {}, {}, {}] checking     \'{}\''.format(rowStr, self.numTabsPerStringPerLine, self.numLines, stringStr, self.numTabsPerString, self.tabCount, ''.join([chr(t) for t in tabDataRow])), file=self.dbgFile)
         if self.tabCount > self.numStrings * self.numTabsPerStringPerLine:
-            if self.tabCount == (self.numStrings + 1) * self.numTabsPerStringPerLine or self.tabCount == (2 * self.numStrings + 1) * self.numTabsPerStringPerLine:
+            if ((self.tabCount - self.numTabsPerStringPerLine) % (self.numStrings * self.numTabsPerStringPerLine)) == 0:
                 self.appendLine(printTabs=False)
             if int(rowStr) - (self.numLines - 1) * self.numStrings - self.ROW_OFF <= self.numStrings:
                 r = (int(rowStr) - self.ROW_OFF - 1) % self.numStrings
                 for c in range(0, len(tabDataRow)):
                     self.tabs[r][c + (self.numLines - 1) * self.numTabsPerStringPerLine] = tabDataRow[c]
                     self.htabs[r][c + (self.numLines - 1) * self.numTabsPerStringPerLine] = ord('0')
-                print('appendTabs({},{}) appending \'{}\' to tabs[line={}, string={}], numTabsPerString={}, numLines={}, numTabsPerStringPerLine={}, tabCount={}'.format(rowStr, r, ''.join([chr(t) for t in tabDataRow]), self.numLines, '{}'.format(int(rowStr) - (self.numLines-1)*self.numStrings - self.ROW_OFF), self.numTabsPerString, self.numLines, self.numTabsPerStringPerLine, self.tabCount), file=self.dbgFile)
+                print('appendTabs({}) [{}, {}, {}, {}, {}] appending[{}] \'{}\''.format(rowStr, self.numTabsPerStringPerLine, self.numLines, stringStr, self.numTabsPerString, self.tabCount, r, ''.join([chr(t) for t in tabDataRow])), file=self.dbgFile)
         else:
             self.tabs.append(tabDataRow)
             self.htabs.append(htabDataRow)
-            print('appendTabs({}) appending \'{}\' to tabs[line={}, string={}], numTabsPerString={}, numLines={}, numTabsPerStringPerLine={}, tabCount={}'.format(rowStr, ''.join([chr(t) for t in tabDataRow]), self.numLines, '{}'.format(int(rowStr) - self.ROW_OFF), self.numTabsPerString, self.numLines, self.numTabsPerStringPerLine, self.tabCount), file=self.dbgFile)
+            print('appendTabs({}) [{}, {}, {}, {}, {}] appending[ ] \'{}\''.format(rowStr, self.numTabsPerStringPerLine, self.numLines, stringStr, self.numTabsPerString, self.tabCount, ''.join([chr(t) for t in tabDataRow])), file=self.dbgFile)
         tmp, htmp = [], []
         return [tmp, htmp, rowStr]
         
@@ -811,10 +830,10 @@ class Tabs(object):
             for r in range(0, self.numStrings):
                 if self.cursorDir == self.CURSOR_DIRS['DOWN']:
                     self.prints(chr(self.capo), r + self.bgnRow(line), self.cursorModeCol, self.styles['NUT_DN'])
-                    self.prints(chr(self.capo), r + self.endRow(line), self.cursorModeCol, self.styles['NUT_DN'])
+                    self.prints(chr(self.capo), r + self.endRow(line) + 1, self.cursorModeCol, self.styles['NUT_DN'])
                 elif self.cursorDir == self.CURSOR_DIRS['UP']:
                     self.prints(chr(self.capo), r + self.bgnRow(line), self.cursorModeCol, self.styles['NUT_UP'])
-                    self.prints(chr(self.capo), r + self.endRow(line), self.cursorModeCol, self.styles['NUT_UP'])
+                    self.prints(chr(self.capo), r + self.endRow(line) + 1, self.cursorModeCol, self.styles['NUT_UP'])
         if dbg: self.printLineInfo('toggleCursorDir({}, {}, {}, {})'.format(self.row, self.col, self.cursorDir, self.CURSOR_DIRS[self.cursorDir]))
         self.resetPos()
 
@@ -1620,12 +1639,12 @@ class Tabs(object):
     def printFretStatus(self, tab, r, c):
         s, ss = r + 1, self.getOrdSfx(r + 1)
         f, fs = self.getFretNum(ord(tab)), self.getOrdSfx(self.getFretNum(ord(tab)))
-        statStyle, fretStyle, typeStyle, noteStyle = self.CSI + self.styles['STATUS'], self.CSI + '32;40m', self.CSI + '33;40m', self.CSI + '32;40m'
+        statStyle, fretStyle, typeStyle, noteStyle = self.CSI + self.styles['STATUS'], self.CSI + self.styles['TABS'], self.CSI + self.styles['TABS'], self.CSI + self.styles['TABS']
         if self.htabs[r][c] == ord('1'): n, noteType, tabStyle = self.getHarmonicNote(s, ord(tab)), 'harmonic', self.CSI + self.styles['H_TABS']
         else:                            n, noteType, tabStyle = self.getNote(s, ord(tab)), None, self.CSI + self.styles['TABS']
         if len(n.name) > 1:
-            if n.name[1] == '#': noteStyle = self.CSI + '31;40m'
-            else:                noteStyle = self.CSI + '36;40m'
+            if n.name[1] == '#': noteStyle = self.CSI + self.styles['SHP_NOTE']
+            else:                noteStyle = self.CSI + self.styles['FLT_NOTE']
         print('printFretStatus({}) r={}, c={}, tab={}, n.n={}, n.o={}, n.i={}, {}'.format(noteType, r, c, tab, n.name, n.getOctaveNum(), n.index, n.getPhysProps()), file=self.dbgFile)
         print(tabStyle + self.CSI + '{};{}H{}'.format(self.lastRow, 1, tab), end='', file=self.outFile)
         if f != 0: print(fretStyle + ' {}{}'.format(s, ss) + statStyle + ' string ' + fretStyle + '{}{}'.format(f, fs) + statStyle + ' fret ', end='', file=self.outFile)
@@ -1724,9 +1743,9 @@ class Tabs(object):
         self.clearRow(arg=0, row=self.lastRow, col=self.chordStatusCol, file=self.outFile)
         style = self.CSI + self.styles['TABS']
         if len(chordName) > 0:
-            style = self.getEnharmonicStyle(chordName, '37;40m', '36;40m', '31;40m')
+            style = self.getEnharmonicStyle(chordName, self.styles['NAT_NOTE'], self.styles['FLT_NOTE'], self.styles['SHP_NOTE'])
             print(self.CSI + style + self.CSI + '{};{}H{}'.format(self.lastRow, infoCol, chordName), end='', file=self.outFile)
-            print(self.CSI + self.styles['H_TABS'] + '{}'.format(chordDelim), end='', file=self.outFile)
+            print(self.CSI + self.styles['STATUS'] + '{}'.format(chordDelim), end='', file=self.outFile)
         else: print(style + self.CSI + '{};{}H{}'.format(self.lastRow, infoCol, chordName), end='', file=self.outFile)
         for k in imapKeys:
             if k == hk: style = self.CSI + self.styles['TABS']
