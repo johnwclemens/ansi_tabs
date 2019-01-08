@@ -278,9 +278,10 @@ class Tabs(object):
         self.RED_YELLOW = self.initText('RED', 'YELLOW')
 #        self.WHITE_GREEN = self.initText('WHITE', 'GREEN')
 #        self.GREEN_BLACK = self.initText('GREEN', 'BLACK')
-        self.styles = { 'NAT_NOTE':self.GREEN_WHITE, 'NAT_H_NOTE':self.GREEN_YELLOW, 'NAT_CHORD':self.GREEN_WHITE, 'MIN_COL_NUM':self.RED_WHITE,     'TABS':self.BLACK_WHITE,  'NUT_UP':self.BLUE_YELLOW,  'NORMAL':'22;',
-                        'FLT_NOTE':self.BLUE_WHITE,  'FLT_H_NOTE':self.BLUE_YELLOW,  'FLT_CHORD':self.BLUE_WHITE,  'MAJ_COL_NUM':self.BLACK_WHITE, 'H_TABS':self.BLACK_YELLOW, 'NUT_DN':self.RED_YELLOW, 'BRIGHT':'1;',
-                        'SHP_NOTE':self.RED_WHITE,   'SHP_H_NOTE':self.RED_YELLOW,   'SHP_CHORD':self.RED_WHITE,       'STATUS':self.MAGENTA_WHITE,   'MODES':self.GREEN_WHITE,   'ERROR':self.RED_YELLOW,   'CONS':self.BLACK_WHITE }
+        self.styles = { 'NAT_NOTE':self.GREEN_WHITE, 'NAT_H_NOTE':self.GREEN_YELLOW, 'NAT_CHORD':self.GREEN_WHITE, 'MIN_COL_NUM':self.RED_WHITE,      'TABS':self.BLACK_WHITE,  'NUT_UP':self.BLUE_YELLOW,  'NORMAL':'22;',
+                        'FLT_NOTE':self.BLUE_WHITE,  'FLT_H_NOTE':self.BLUE_YELLOW,  'FLT_CHORD':self.BLUE_WHITE,  'MAJ_COL_NUM':self.BLACK_WHITE,  'H_TABS':self.BLACK_YELLOW, 'NUT_DN':self.RED_YELLOW,   'BRIGHT':'1;',
+                        'SHP_NOTE':self.RED_WHITE,   'SHP_H_NOTE':self.RED_YELLOW,   'SHP_CHORD':self.RED_WHITE,        'STATUS':self.MAGENTA_WHITE, 'MODES':self.GREEN_WHITE,   'ERROR':self.RED_YELLOW,   'CONS':self.BLACK_WHITE,
+                        'HLT_STUS':self.CYAN_WHITE }
         self.INTERVALS = { 0:'R',  1:'b2',  2:'2',  3:'m3',  4:'M3',  5:'4',   6:'b5',  7:'5',  8:'a5',  9:'6',  10:'b7', 11:'7', 
                           12:'R', 13:'b9', 14:'2', 15:'m3', 16:'M3', 17:'4',  18:'b5', 19:'5', 20:'a5', 21:'6',  22:'b7', 23:'7',
                           24:'R', 25:'b9', 26:'2', 27:'m3', 28:'M3', 29:'4',  30:'b5', 31:'5', 32:'a5', 33:'6',  34:'b7', 35:'7', 
@@ -853,6 +854,7 @@ class Tabs(object):
         elif self.displayLabels == self.DISPLAY_LABELS['DISABLED']:
             self.ROW_OFF = 1
             self.row -= 1
+            self.clearScreen()
         self.setLastRow()
         self.printLineInfo('toggleDisplayLabels({}) row,col=({}, {}), line={},'.format(self.displayLabels, self.row, self.col, line))
         if printTabs: self.printTabs()
@@ -867,6 +869,7 @@ class Tabs(object):
         elif self.displayNotes == self.DISPLAY_NOTES['DISABLED']:
             self.row -= line * self.NOTES_LEN
             self.NOTES_LEN = 0
+            self.clearScreen()
         self.setLastRow()
         self.printLineInfo('toggleDisplayNotes({}) row,col=({}, {}), line={}'.format(self.displayNotes, self.row, self.col, line))
         if printTabs: self.printTabs()
@@ -884,6 +887,7 @@ class Tabs(object):
         elif self.displayChords == self.DISPLAY_CHORDS['DISABLED']:
             self.row -= line * self.CHORDS_LEN
             self.CHORDS_LEN = 0
+            self.clearScreen()
         self.setLastRow()
         self.printLineInfo('toggleDisplayChords({}) row,col=({}, {}), line={}'.format(self.displayChords, self.row, self.col, line))
         if printTabs: self.printTabs()
@@ -1030,7 +1034,7 @@ class Tabs(object):
                 self.prints(chr(tab), row + self.numStrings, col, style + self.styles['NAT_NOTE'])
     
     def toggleHarmonicNote(self):
-        '''Toggle between normal and harmonic note.  Modify note modelling the closest natural harmonic note in the tab fret number.'''
+        '''Toggle between normal and harmonic note.  Modify note modeling the closest natural harmonic note in the tab fret number.'''
         line = self.row2Line(self.row)
         r, c = self.rowCol2Indices(self.row, self.col)
         tab = self.tabs[r][c]
@@ -1741,14 +1745,14 @@ class Tabs(object):
         else: self.chordStatusCol = infoCol
         print('printChordInfo() info={}, chordName={}, col={}, cols[c]={}'.format(info, chordName, infoCol, self.chordStatusCol), file=self.dbgFile)
         self.clearRow(arg=0, row=self.lastRow, col=self.chordStatusCol, file=self.outFile)
-        style = self.CSI + self.styles['TABS']
+        style = self.CSI + self.styles['HLT_STUS']
         if len(chordName) > 0:
             style = self.getEnharmonicStyle(chordName, self.styles['NAT_NOTE'], self.styles['FLT_NOTE'], self.styles['SHP_NOTE'])
             print(self.CSI + style + self.CSI + '{};{}H{}'.format(self.lastRow, infoCol, chordName), end='', file=self.outFile)
             print(self.CSI + self.styles['STATUS'] + '{}'.format(chordDelim), end='', file=self.outFile)
         else: print(style + self.CSI + '{};{}H{}'.format(self.lastRow, infoCol, chordName), end='', file=self.outFile)
         for k in imapKeys:
-            if k == hk: style = self.CSI + self.styles['TABS']
+            if k == hk: style = self.CSI + self.styles['HLT_STUS']
             else:       style = self.CSI + self.styles['STATUS']
             print(style + '{}'.format(info[i]), end='', file=self.outFile)
             i += 1
@@ -1965,3 +1969,6 @@ ESC [ n D       # move cursor n characters backward
 #159, 151 ALT END, ALT HOME
 #118, 134 CTRL DOWN, CTRL UP
 #161, 153 ALT DOWN, ALT UP 
+
+# python tabs.py -anb -t 208 -f data/208/SDan/DoItAgain.tab
+# 211 x 73 @ 16 Lucida Sans Typewriter
