@@ -22,24 +22,28 @@ class Mods(object):
         self.mods['+']  = self._frmt(' hammer {} to '.format(self.dir2), pn, nn, ph, nh)
         self.mods['/']  = self._frmt(' slide {} to '.format(self.dir1), pn, nn, ph, nh)
         self.mods['\\'] = self._frmt(' bend {} to '.format(self.dir1), pn, nn, ph, nh)
+        self.mods['['] = self._frmt(' bgn_group {} ', pn, nn, ph, nh, shrt=1)
+        self.mods[']'] = self._frmt(' end_group {} ', pn, nn, ph, nh, shrt=1)
+        self.mods['|']  = self._frmt(' bar ', pn, nn, ph, nh, shrt=1)
+        self.mods['%']  = self._frmt(' repeat ', pn, nn, ph, nh, shrt=1)
 
     def _frmt(self, modText, pn, nn, ph, nh, shrt=0):
         '''Internal method to format the tab modifiers dictionary string values.'''
         CSI, pnt, nnt = self.tabsObj.CSI, '', ''
-        stStyle, ntStyle, fStyle, pnStyle, nnStyle = CSI + '37;40m', CSI + '33;40m', CSI + '32;40m', CSI + '32;40m', CSI + '32;40m'
+        stStyle, ntStyle, fStyle, pnStyle, nnStyle = CSI + '30;47m', CSI + '33;47m', CSI + '32;47m', CSI + '32;47m', CSI + '32;47m'
         if ph: pnt = ' Harmonic'
         if nh: nnt = ' Harmonic'
         pfs, pnn, pno, nfs, nnn, nno = '', '', '', '', '', ''
         if isinstance(self.prevFN, int) and pn:
             pfs, pnn, pno = self.tabsObj.getOrdSfx(self.prevFN), ' ' + pn.name, pn.getOctaveNum()
             if len(pn.name) > 1:
-                if pn.name[1] == '#': pnStyle = CSI + '31;40m'
-                else:                 pnStyle = CSI + '36;40m'
+                if pn.name[1] == '#': pnStyle = CSI + '31;47m'
+                else:                 pnStyle = CSI + '36;47m'
         if isinstance(self.nextFN, int) and nn:
             nfs, nnn, nno = self.tabsObj.getOrdSfx(self.nextFN), ' ' + nn.name, nn.getOctaveNum()
             if len(nn.name) > 1:
-                if nn.name[1] == '#': nnStyle = CSI + '31;40m'
-                else:                 nnStyle = CSI + '36;40m'
+                if nn.name[1] == '#': nnStyle = CSI + '31;47m'
+                else:                 nnStyle = CSI + '36;47m'
         if self.prevFN != 0: pfn = '{}{}'.format(self.prevFN, pfs)
         else:                pfn = 'open' 
         if self.nextFN != 0: nfn = '{}{}'.format(self.nextFN, nfs)

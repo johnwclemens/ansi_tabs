@@ -107,6 +107,7 @@ class Tabs(object):
         self.COL_OFF = 3                                       # offset between cursor column number and tabs column index
         self.CHORDS_LEN = 0                                    # number of rows used to display chords on a given line
         self.NOTES_LEN = 0                                     # number of rows used to display notes  on a given line
+        self.INTERVALS_LEN = 0                                 # number of rows used to display intervals on a given line
         self.NUM_FRETS = 24                                    # number of frets (might make this a list for each string)?
         
         self.hiliteCount = 0                                   # statistic for measuring efficiency
@@ -121,6 +122,7 @@ class Tabs(object):
         
         self.displayLabels = self.DISPLAY_LABELS['DISABLED']   # enable or disable the display of the modes and labels section before each line
         self.displayNotes = self.DISPLAY_NOTES['DISABLED']     # enable or disable the display of the notes section for each line
+        self.displayIntervals = self.DISPLAY_INTERVALS['DISABLED']
         self.displayChords = self.DISPLAY_CHORDS['DISABLED']   # enable or disable the display of the chords section for each line
         self.cursorDir = self.CURSOR_DIRS['DOWN']              # affects the automatic cursor movement (up/down) when entering a tab in chord or arpeggio mode
         self.enharmonic = self.ENHARMONICS['SHARP']            # toggle between displaying enharmonic notes as flat or sharp
@@ -187,6 +189,8 @@ class Tabs(object):
                 self.toggleDisplayLabels(printTabs=False)      # toggle the display of the edit mode, cursor mode, and column number labels in first row for each line
             if 'b' in self.argMap and len(self.argMap['b']) == 0:
                 self.toggleDisplayChords(printTabs=False)      # enable the chords section display
+            if 'o' in self.argMap and len(self.argMap['o']) == 0:
+                self.toggleDisplayIntervals(printTabs=False)   # enable the intervals section display
             if 'n' in self.argMap and len(self.argMap['n']) == 0:
                 self.toggleDisplayNotes(printTabs=False)       # enable the notes section display
             if 'l' in self.argMap and len(self.argMap['l']) == 0:
@@ -278,14 +282,10 @@ class Tabs(object):
         self.RED_YELLOW = self.initText('RED', 'YELLOW')
 #        self.WHITE_GREEN = self.initText('WHITE', 'GREEN')
 #        self.GREEN_BLACK = self.initText('GREEN', 'BLACK')
-        self.styles = { 'NAT_NOTE':self.GREEN_WHITE, 'NAT_H_NOTE':self.GREEN_YELLOW, 'NAT_CHORD':self.GREEN_WHITE, 'MIN_COL_NUM':self.RED_WHITE,      'TABS':self.BLACK_WHITE,  'NUT_UP':self.BLUE_YELLOW,  'NORMAL':'22;',
-                        'FLT_NOTE':self.BLUE_WHITE,  'FLT_H_NOTE':self.BLUE_YELLOW,  'FLT_CHORD':self.BLUE_WHITE,  'MAJ_COL_NUM':self.BLACK_WHITE,  'H_TABS':self.BLACK_YELLOW, 'NUT_DN':self.RED_YELLOW,   'BRIGHT':'1;',
-                        'SHP_NOTE':self.RED_WHITE,   'SHP_H_NOTE':self.RED_YELLOW,   'SHP_CHORD':self.RED_WHITE,        'STATUS':self.MAGENTA_WHITE, 'MODES':self.GREEN_WHITE,   'ERROR':self.RED_YELLOW,   'CONS':self.BLACK_WHITE,
+        self.styles = { 'NAT_NOTE':self.GREEN_WHITE, 'NAT_H_NOTE':self.YELLOW_WHITE, 'NAT_CHORD':self.GREEN_WHITE, 'MIN_COL_NUM':self.RED_WHITE,      'TABS':self.BLACK_WHITE,  'NUT_UP':self.BLUE_YELLOW,  'NORMAL':'22;',
+                        'FLT_NOTE':self.BLUE_WHITE,  'FLT_H_NOTE':self.CYAN_WHITE,  'FLT_CHORD':self.BLUE_WHITE,  'MAJ_COL_NUM':self.BLACK_WHITE,  'H_TABS':self.BLACK_YELLOW, 'NUT_DN':self.RED_YELLOW,   'BRIGHT':'1;',
+                        'SHP_NOTE':self.RED_WHITE,   'SHP_H_NOTE':self.MAGENTA_WHITE,   'SHP_CHORD':self.RED_WHITE,        'STATUS':self.MAGENTA_WHITE, 'MODES':self.GREEN_WHITE,   'ERROR':self.RED_YELLOW,   'CONS':self.BLACK_WHITE,
                         'HLT_STUS':self.CYAN_WHITE }
-        self.INTERVALS = { 0:'R',  1:'b2',  2:'2',  3:'m3',  4:'M3',  5:'4',   6:'b5',  7:'5',  8:'a5',  9:'6',  10:'b7', 11:'7', 
-                          12:'R', 13:'b9', 14:'2', 15:'m3', 16:'M3', 17:'4',  18:'b5', 19:'5', 20:'a5', 21:'6',  22:'b7', 23:'7',
-                          24:'R', 25:'b9', 26:'2', 27:'m3', 28:'M3', 29:'4',  30:'b5', 31:'5', 32:'a5', 33:'6',  34:'b7', 35:'7', 
-                          36:'R', 37:'b9', 38:'2', 39:'m3', 40:'M3', 41:'4',  42:'b5', 43:'5', 44:'a5', 45:'6',  46:'b7', 47:'7', 48:'R' }
         self.HARMONIC_FRETS = { 12:12, 7:19, 19:19, 5:24, 24:24, 4:28, 9:28, 16:28, 28:28 }
 #        self.FRET_INDICES = { 0:0, 1:1, 2:2, 3:3, 4:4, 5:5, 6:6, 7:7, 8:8, 9:9, 10:'a' }  # for moving along the fretboard?
 #        self.MAJ_INDICES = [ 0, 2, 4, 5, 7, 9, 11, 12 ]                                   # for key signatures and or scales?
@@ -296,6 +296,7 @@ class Tabs(object):
         self.ENHARMONICS = { 'FLAT':0, 'SHARP':1 }
         self.DISPLAY_LABELS = { 'DISABLED':0, 'ENABLED':1 }
         self.DISPLAY_NOTES = { 'DISABLED':0, 'ENABLED':1 }
+        self.DISPLAY_INTERVALS = { 'DISABLED':0, 'ENABLED':1 }
         self.DISPLAY_CHORDS = { 'DISABLED':0, 'ENABLED':1 }
     
     def initText(self, FG, BG):
@@ -558,6 +559,7 @@ class Tabs(object):
         self.registerUiCmd('Shift L',             self.goToLastTab)
         self.registerUiCmd('Ctrl M or Enter',     self.toggleCursorMode)
         self.registerUiCmd('Ctrl N',              self.toggleDisplayNotes)
+        self.registerUiCmd('Ctrl O',              self.toggleDisplayIntervals)
         self.registerUiCmd('Ctrl P',              self.printTabs)
         self.registerUiCmd('Ctrl Q',              self.quit)
         self.registerUiCmd('Shift Q',             self.selectChord)
@@ -622,6 +624,7 @@ class Tabs(object):
             elif b == 76:  self.uiCmds['Shift L']()               # goToLastTab()          # cmd line opt -L
             elif b == 13:  self.uiCmds['Ctrl M or Enter']()       # toggleCursorMode()     # cmd line opt -m
             elif b == 14:  self.uiCmds['Ctrl N']()                # toggleDisplayNotes()   # cmd line opt -n
+            elif b == 15:  self.uiCmds['Ctrl O']()                # toggleDisplayIntervals()   # cmd line opt -o
             elif b == 16:  self.uiCmds['Ctrl P']()                # printTabs()            # DBG?
             elif b == 17:  self.uiCmds['Ctrl Q'](self.QUIT_STR)   # quit()                 # DBG?
             elif b == 81:  self.uiCmds['Shift Q']()               # selectChord()          # N/A
@@ -785,7 +788,7 @@ class Tabs(object):
         return self.COL_OFF + self.numTabsPerStringPerLine - 1
         
     def lineDelta(self):
-        return self.numStrings + self.NOTES_LEN + self.CHORDS_LEN + 1
+        return self.numStrings + self.NOTES_LEN + self.INTERVALS_LEN + self.CHORDS_LEN + 1
         
     def bgnRow(self, line):
         return self.ROW_OFF + line * self.lineDelta()
@@ -872,6 +875,21 @@ class Tabs(object):
             self.clearScreen()
         self.setLastRow()
         self.printLineInfo('toggleDisplayNotes({}) row,col=({}, {}), line={}'.format(self.displayNotes, self.row, self.col, line))
+        if printTabs: self.printTabs()
+    
+    def toggleDisplayIntervals(self, printTabs=True):
+        '''Toggle (enable or disable) display of intervals section.  [cmd line opt -???????]'''
+        self.displayIntervals = (self.displayIntervals + 1) % len(self.DISPLAY_INTERVALS)
+        line = self.row2Line(self.row)
+        if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
+            self.INTERVALS_LEN = self.numStrings
+            self.row += line * self.INTERVALS_LEN
+        elif self.displayIntervals == self.DISPLAY_INTERVALS['DISABLED']:
+            self.row -= line * self.INTERVALS_LEN
+            self.INTERVALS_LEN = 0
+            self.clearScreen()
+        self.setLastRow()
+        self.printLineInfo('toggleDisplayIntervals({}) row,col=({}, {}), line={}'.format(self.displayIntervals, self.row, self.col, line))
         if printTabs: self.printTabs()
     
     def toggleDisplayChords(self, printTabs=True):
@@ -1090,9 +1108,81 @@ class Tabs(object):
         print('findMaxFret() maxFN={}'.format(maxFN), file=self.dbgFile)
         return self.getFretByte(maxFN)
         
+#        f, fs = self.getFretNum(ord(tab)), self.getOrdSfx(self.getFretNum(ord(tab)))
     def setTab(self, tab):
         '''Set given tab byte at the current row and col, print the corresponding tab character and then move cursor according to the cursor mode.'''
-        print('setTab({}, {}) tabc={}, tabc={}, bgn: check row/col'.format(self.row, self.col, chr(tab), tab), file=self.dbgFile)
+        row, col = self.row, self.col
+        rr, cc = self.rowCol2Indices(row, col)
+        s, ss = rr + 1, self.getOrdSfx(rr + 1)
+        print('setTab({}, {}, {}, {}) tab={}({}), {}({}{}) string, bgn'.format(rr, cc, self.row, self.col, tab, chr(tab), self.getNote(s, 0).name, s, ss), file=self.dbgFile)
+        if self.bgnCol() > self.col > self.endCol() or self.ROW_OFF > self.row > self.ROW_OFF + self.numLines * self.lineDelta():
+            return self.printe('row/col out of range setTab({},{},{}, {}) tab={}({})'.format(rr, cc, self.row, self.col, tab, chr(tab)))
+        if self.editMode == self.EDIT_MODES['INSERT']:
+            for c in range(len(self.tabs[rr]) - 1, cc, - 1):
+                self.tabs[rr][c] = self.tabs[rr][c - 1]
+                self.htabs[rr][c] = self.htabs[rr][c - 1]
+        prevTab = self.tabs[rr][cc]
+        capTab = self.tabs[rr][cc] = tab
+        print('setTab({}({})) tabs={}({}) htabs={}({}) check isFret()'.format(tab, chr(tab), self.tabs[rr][cc], chr(self.tabs[rr][cc]), self.htabs[rr][cc], chr(self.htabs[rr][cc])), file=self.dbgFile)
+        if self.isFret(chr(tab)):
+            tabFN = self.getFretNum(tab)
+            maxFN = self.getFretNum(self.maxFret)
+            capFN = self.getFretNum(self.capo)
+            print('setTab() maxFN={}({}) check tabFN:{}({}) + capFN:{}({}) > {}?'.format(self.maxFret, maxFN, tab, tabFN, self.capo, capFN, self.NUM_FRETS), file=self.dbgFile)
+            if tabFN + capFN > self.NUM_FRETS:
+                return self.printe('setTab() capFN:{} + tabFN:{} > {}! tabc={}, tab={}, chr(capo)={}, capo={}'.format(capFN, tabFN, self.NUM_FRETS, chr(tab), tab, chr(self.capo), self.capo))
+            print('setTab() check tabFn:{} > maxFn:{}?'.format(tabFN, maxFN), file=self.dbgFile)
+            if tabFN > maxFN: 
+                self.maxFret = tab
+                print('setTab() updating maxFret: chr(mf)={}, maxFret={}, maxFN={}'.format(chr(self.maxFret), self.maxFret, self.getFretNum(self.maxFret)), file=self.dbgFile)
+            capTab = self.getFretByte(tabFN + capFN)
+            print('setTab() setting capTab:{}({}) = self.getFretByte(tabFN:{}({}) + capFN:{}({}))'.format(capTab, chr(capTab), tab, tabFN, self.capo, capFN), file=self.dbgFile)
+        if self.editMode == self.EDIT_MODES['INSERT']:
+            self.printTabs()
+        elif self.editMode == self.EDIT_MODES['REPLACE']:
+            self.prints(chr(capTab), row, col, self.styles['TABS'])
+            if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
+                if self.isFret(chr(capTab)):
+                    n = self.getNote(s, capTab)
+                    self.printNote(row + self.numStrings, col, n)
+                    print('setTab(DISPLAY_NOTES) capTab={}({}) note={}'.format(capTab, chr(capTab), n.name), file=self.dbgFile)
+                else:
+                    self.prints(chr(capTab), row + self.numStrings, col, self.styles['NAT_NOTE'])
+            if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
+                noteCount = 0
+                for r in range(0, self.numStrings):
+                    if self.isFret(chr(self.tabs[r][cc])):
+                        noteCount += 1
+                        if noteCount > 1:
+                            print('setTab(DISPLAY_CHORDS) r={}, increment noteCount={}'.format(r, noteCount), file=self.dbgFile)
+                            self.chordsObj.printChord(c=cc)
+                            break
+                        else: print('setTab(DISPLAY_CHORDS) r={}, noteCount={}'.format(r, noteCount), file=self.dbgFile)
+            if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
+                if self.isFret(chr(capTab)):
+                    ival = 'R'
+                    print('setTab(DISPLAY_INTERVALS) cc={} chordInfo={}'.format(cc, self.chordInfo), file=self.dbgFile)
+                    if cc not in self.chordInfo:
+                        print('setTab(DISPLAY_INTERVALS) row={} col={} ival={}'.format(row, col, ival), file=self.dbgFile)
+                        self.printInterval(row + self.numStrings + self.numStrings, col, ival)
+                    else:
+                        imap = self.chordInfo[cc][-1]
+                        im = {imap[k]:k for k in imap}
+                        for r in range(self.numStrings):
+                            if self.isFret(chr(self.tabs[r][cc])):
+                                row = self.indices2Row(r, cc)
+                                n = self.getNote(r + 1, self.tabs[r][cc])
+                                print('setTab(DISPLAY_INTERVALS) r={}, row={}, nn={}'.format(r, row, n.name), file=self.dbgFile)
+                                if n.name in im:
+                                    ival = im[n.name]
+                                    print('setTab(DISPLAY_INTERVALS) row={} col={} ival={}'.format(row, col, ival), file=self.dbgFile)
+                                    self.printInterval(row + self.numStrings + self.numStrings, col, ival)
+        self.moveCursor()
+        self.dumpTabs('setTab() end')
+
+    def setTab_OLD(self, tab):
+        '''Set given tab byte at the current row and col, print the corresponding tab character and then move cursor according to the cursor mode.'''
+        print('setTab({}, {}) tab={}({}), bgn: check row/col'.format(self.row, self.col, tab, chr(tab)), file=self.dbgFile)
         if self.bgnCol() <= self.col <= self.endCol() and self.ROW_OFF <= self.row < self.ROW_OFF + self.numLines * self.lineDelta():
             row, col = self.row, self.col
             rr, cc = self.rowCol2Indices(row, col)
@@ -1126,14 +1216,25 @@ class Tabs(object):
             if self.editMode == self.EDIT_MODES['INSERT']:
                 self.printTabs()
             elif self.editMode == self.EDIT_MODES['REPLACE']:
+                self.prints(chr(tab), row, col, self.styles['TABS'])
                 if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
                     if self.isFret(chr(capTab)):
-                        note = self.getNote(rr + 1, tab)
-                        self.printNote(row + self.numStrings, col, note)
-                        print('setTab() chr(capTab)={} note={}'.format(chr(capTab), note.name), file=self.dbgFile)
+                        n = self.getNote(rr + 1, tab)
+                        self.printNote(row + self.numStrings, col, n)
+                        print('setTab() notes capTab={}({}) note={}'.format(capTab, chr(capTab), n.name), file=self.dbgFile)
                     else:
                         self.prints(chr(capTab), row + self.numStrings, col, self.styles['NAT_NOTE'])
-                self.prints(chr(tab), row, col, self.styles['TABS'])
+                if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
+                    if self.isFret(chr(capTab)):
+#                        row = rr + line * self.lineDelta() + self.endRow(0) + self.NOTES_LEN + 1
+                        if cc in self.chordInfo:
+                            imap = self.chordInfo[cc][-1]
+                            im = {imap[k]:k for k in imap}
+                            print('printIntervals() r={}, c={}, row={}, imap={}, im={}, chordInfo={}'.format(rr, cc, row, imap, im, self.chordInfo), file=self.dbgFile)
+                        n = self.getNote(rr + 1, tab)
+                        ival = 'x'
+                        self.printInterval(row + self.numStrings + self.numStrings, col, ival)
+                        print('setTab() intervals capTab={}({}) note={} interval={} row={} col={} ci={}'.format(capTab, chr(capTab), n.name, ival, row, col, self.chordInfo), file=self.dbgFile)
                 if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
                     noteCount = 0
                     for r in range(0, self.numStrings):
@@ -1488,11 +1589,11 @@ class Tabs(object):
                     if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
                         if self.isFret(chr(tab)):
                             if self.htabs[r][c] == ord('1'):
-                                note = self.getHarmonicNote(r + 1, tab)
-                                self.printNote(row + r + self.numStrings, col, note, hn=1)
+                                n = self.getHarmonicNote(r + 1, tab)
+                                self.printNote(row + r + self.numStrings, col, n, hn=1)
                             else:
-                                note = self.getNote(r + 1, tab)
-                                self.printNote(row + self.numStrings, col, note)
+                                n = self.getNote(r + 1, tab)
+                                self.printNote(row + self.numStrings, col, n)
                         else:
                             self.prints(chr(tab), row + self.numStrings, col, self.styles['NAT_NOTE'])
                     if self.htabs[r][c] == ord('1'):
@@ -1561,36 +1662,16 @@ class Tabs(object):
         self.printFileMark('<END_TABS_SECTION>')
         if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
             self.printFileMark('<BGN_NOTES_SECTION>')
-            for line in range(0, self.numLines):
-                for r in range(0, self.numStrings):
-                    row = r + line * self.lineDelta() + self.endRow(0) + 1
-                    for c in range (0, self.numTabsPerStringPerLine):
-                        capTab = tab = self.tabs[r][c + line * self.numTabsPerStringPerLine]
-                        if self.isFret(chr(tab)):
-                            capTab = self.getFretByte(self.getFretNum(tab) + self.getFretNum(self.capo))
-                        if c == 0:
-                            n = self.getNote(r + 1, ord('0'))
-                            self.printNote(row, self.editModeCol, n)
-                            if self.cursorDir == self.CURSOR_DIRS['DOWN']:
-                                self.prints(chr(self.capo), row, self.cursorModeCol, self.styles['NUT_DN'])
-                            elif self.cursorDir == self.CURSOR_DIRS['UP']:
-                                self.prints(chr(self.capo), row, self.cursorModeCol, self.styles['NUT_UP'])
-                        if self.isFret(chr(capTab)):
-                            if chr(self.htabs[r][c + line * self.numTabsPerStringPerLine]) == '1':
-                                print('printTabs() tab={}, capTab={}, tabc={}, chr(capTab)={}, tabFN={}, capoFN={}'.format(tab, capTab, chr(tab), chr(capTab), self.getFretNum(tab), self.getFretNum(capTab)), file=self.dbgFile)
-                                n = self.getHarmonicNote(r + 1, tab)
-                                self.printNote(row, c + self.COL_OFF, n, hn=1)
-                            else:
-                                n = self.getNote(r + 1, tab)
-                                self.printNote(row, c + self.COL_OFF, n)
-                        else: self.prints(chr(tab), row, c + self.COL_OFF, self.styles['NAT_NOTE'])
-                    print(file=self.outFile)
-                print()
+            self.printNotes()
             self.printFileMark('<END_NOTES_SECTION>')
         if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
             self.printFileMark('<BGN_CHORDS_SECTION>')
             self.chordsObj.printChords()
             self.printFileMark('<END_CHORDS_SECTION>')
+        if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
+            self.printFileMark('<BGN_INTERVALS_SECTION>')
+            self.printIntervals()
+            self.printFileMark('<END_INTERVALS_SECTION>')
         if self.displayLabels == self.DISPLAY_LABELS['ENABLED']:
             self.printFileMark('<BGN_LABELS_SECTION>')
             for line in range(0, self.numLines):
@@ -1614,7 +1695,7 @@ class Tabs(object):
             else:
                 print(self.CSI + self.styles['NORMAL'] + self.styles['CONS'] + self.CSI + '{};{}H{}'.format(1, 1, mark), file=self.outFile)
     
-    def getNoteStyle(self, note, style, hn=None):
+    def getNoteStyle(self, n, style, hn=None):
         if hn is None:
             natStyle = style + self.styles['NAT_NOTE']
             fltStyle = style + self.styles['FLT_NOTE']
@@ -1623,11 +1704,73 @@ class Tabs(object):
             natStyle = style + self.styles['NAT_H_NOTE']
             fltStyle = style + self.styles['FLT_H_NOTE']
             shpStyle = style + self.styles['SHP_H_NOTE']
-        return self.getEnharmonicStyle(note.name, natStyle, fltStyle, shpStyle)
+        return self.getEnharmonicStyle(n.name, natStyle, fltStyle, shpStyle)
     
-    def printNote(self, row, col, note, style='', hn=None):
-        style = self.getNoteStyle(note, style, hn)
-        self.prints(note.name[0], row, col, style)
+    def printNotes(self):
+        for line in range(0, self.numLines):
+            for r in range(0, self.numStrings):
+                row = r + line * self.lineDelta() + self.endRow(0) + 1
+                for c in range (0, self.numTabsPerStringPerLine):
+                    capTab = tab = self.tabs[r][c + line * self.numTabsPerStringPerLine]
+                    if self.isFret(chr(tab)):
+                        capTab = self.getFretByte(self.getFretNum(tab) + self.getFretNum(self.capo))
+                    if c == 0:
+                        n = self.getNote(r + 1, ord('0'))
+                        self.printNote(row, self.editModeCol, n)
+                        if self.cursorDir == self.CURSOR_DIRS['DOWN']:
+                            self.prints(chr(self.capo), row, self.cursorModeCol, self.styles['NUT_DN'])
+                        elif self.cursorDir == self.CURSOR_DIRS['UP']:
+                            self.prints(chr(self.capo), row, self.cursorModeCol, self.styles['NUT_UP'])
+                    if self.isFret(chr(capTab)):
+                        if chr(self.htabs[r][c + line * self.numTabsPerStringPerLine]) == '1':
+                            print('printNotes() tab={}, capTab={}, tabc={}, chr(capTab)={}, tabFN={}, capoFN={}'.format(tab, capTab, chr(tab), chr(capTab), self.getFretNum(tab), self.getFretNum(capTab)), file=self.dbgFile)
+                            n = self.getHarmonicNote(r + 1, tab)
+                            self.printNote(row, c + self.COL_OFF, n, hn=1)
+                        else:
+                            n = self.getNote(r + 1, tab)
+                            self.printNote(row, c + self.COL_OFF, n)
+                    else: self.prints(chr(tab), row, c + self.COL_OFF, self.styles['NAT_NOTE'])
+                print(file=self.outFile)
+            print()
+    
+    def printNote(self, row, col, n, style='', hn=None):
+        style = self.getNoteStyle(n, style, hn)
+        self.prints(n.name[0], row, col, style)
+    
+    def printIntervals(self):
+        for line in range(0, self.numLines):
+            for c in range (0, self.numTabsPerStringPerLine):
+                for r in range(0, self.numStrings):
+                    row = r + line * self.lineDelta() + self.endRow(0) + self.NOTES_LEN + 1
+                    if c in self.chordInfo:
+                        imap = self.chordInfo[c][-1]
+                        im = {imap[k]:k for k in imap}
+                        print('printIntervals() line={}, c={}, imap={}, im={}, cinfo={}'.format(line, c, imap, im, self.chordInfo), file=self.dbgFile)
+                        capTab = tab = self.tabs[r][c + line * self.numTabsPerStringPerLine]
+                        if self.isFret(chr(tab)):
+                            capTab = self.getFretByte(self.getFretNum(tab) + self.getFretNum(self.capo))
+                            if self.isFret(chr(capTab)):
+                                if chr(self.htabs[r][c + line * self.numTabsPerStringPerLine]) == '1':
+                                    n = self.getHarmonicNote(r + 1, tab)
+                                else:
+                                    n = self.getNote(r + 1, tab)
+                                nn = n.name
+                                if nn in im:
+                                    print('printIntervals() r={}, row={}, tab={}, capTab={}, note={}, ival={}'.format(r, row, chr(tab), chr(capTab), nn, im[nn]), file=self.dbgFile)
+                                    self.printInterval(row, c + self.COL_OFF, im[nn])
+                                else: print('printIntervals(?) nn={} NOT IN im={}'.format(nn, im), file=self.dbgFile) 
+                            else: self.prints(chr(capTab), row, c + self.COL_OFF, self.styles['NAT_H_NOTE'])
+                        else: self.prints(chr(tab), row, c + self.COL_OFF, self.styles['NAT_H_NOTE'])
+                    else: self.prints('-', row, c + self.COL_OFF, self.styles['NAT_H_NOTE'])
+
+    def printInterval(self, row, col, ival):
+        style = self.styles['NAT_H_NOTE']
+        print('printInterval() row={},col={}, ival={}'.format(row, col, ival), file=self.dbgFile)
+        if len(ival) > 1:
+            if ival == 'm2' or ival == 'm3' or ival == 'b5' or ival == 'b7': style = self.styles['FLT_H_NOTE']
+            elif ival == 'a5': style = self.styles['SHP_H_NOTE']
+            ival = ival[1]
+        self.prints(ival, row, col, style)
 
     def printStatus(self):
         r, c = self.rowCol2Indices(self.row, self.col)
@@ -1795,9 +1938,9 @@ class Tabs(object):
         fret = self.getFretNum(tab)
         hfret = self.HARMONIC_FRETS[fret]
         chfret = hfret + self.getFretNum(self.capo)
-        note = notes.Note(self.getNoteIndex(str, chfret), self.enharmonic)
-        print('getHarmonicNote({}, {}) f={}, hf={}, chf={}, n.i={}, n.n={}, n.o={})'.format(str, tab, fret, hfret, chfret, note.index, note.name, note.getOctaveNum()), file=self.dbgFile)
-        return note
+        n = notes.Note(self.getNoteIndex(str, chfret), self.enharmonic)
+        print('getHarmonicNote({}, {}) f={}, hf={}, chf={}, n.i={}, n.n={}, n.o={})'.format(str, tab, fret, hfret, chfret, n.index, n.name, n.getOctaveNum()), file=self.dbgFile)
+        return n
         
     def getNoteIndex(self, str, f):
         '''Converts string numbering from 1 based with str=1 denoting the high E first string and str=numStrings the low E sixth string.'''
