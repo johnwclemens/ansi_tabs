@@ -1179,25 +1179,6 @@ class Tabs(object):
                                 ival = im[n.name]
                                 print('setTab(DISPLAY_INTERVALS) row={} col={} ival={}'.format(row, col, ival), file=self.dbgFile)
                                 self.printInterval(row + self.numStrings + self.numStrings, col, ival)
-            '''
-                if self.isFret(chr(capTab)):
-                    print('setTab(DISPLAY_INTERVALS) cc={} chordInfo={}'.format(cc, self.chordInfo), file=self.dbgFile)
-                    if cc not in self.chordInfo:
-                        print('setTab(DISPLAY_INTERVALS) row={} col={} ival={}'.format(row, col, 'R'), file=self.dbgFile)
-                        self.printInterval(row + self.numStrings + self.numStrings, col, 'R')
-                    else:
-                        imap = self.chordInfo[cc][-1]
-                        im = {imap[k]:k for k in imap}
-                        for r in range(self.numStrings):
-                            if self.isFret(chr(self.tabs[r][cc])):
-                                row = self.indices2Row(r, cc)
-                                n = self.getNote(r + 1, self.tabs[r][cc])
-                                print('setTab(DISPLAY_INTERVALS) r={}, row={}, nn={}'.format(r, row, n.name), file=self.dbgFile)
-                                if n.name in im:
-                                    ival = im[n.name]
-                                    print('setTab(DISPLAY_INTERVALS) row={} col={} ival={}'.format(row, col, ival), file=self.dbgFile)
-                                    self.printInterval(row + self.numStrings + self.numStrings, col, ival)
-            '''
         self.moveCursor()
         self.dumpTabs('setTab() end')
 
@@ -1684,13 +1665,13 @@ class Tabs(object):
                 print(file=self.outFile)
             print()
     
-    def printNote(self, row, col, n, style='', hn=None):
-        print('printNote() row={},col={}, nn={}'.format(row, col, n.name), file=self.dbgFile)
+    def printNote(self, row, col, n, style='', hn=None, dbg=0):
+        if dbg: print('printNote() row={},col={}, nn={}'.format(row, col, n.name), file=self.dbgFile)
         style = self.getNoteStyle(n, style, hn)
         self.prints(n.name[0], row, col, style)
     
-    def printIntervals(self):
-        print('printIntervals() cinfo={}'.format(self.chordInfo), file=self.dbgFile)
+    def printIntervals(self, dbg=0):
+        if dbg: print('printIntervals() cinfo={}'.format(self.chordInfo), file=self.dbgFile)
         for line in range(0, self.numLines):
             for c in range (0, self.numTabsPerStringPerLine):
                 for r in range(0, self.numStrings):
@@ -1699,7 +1680,7 @@ class Tabs(object):
                     if cc in self.chordInfo:
                         imap = self.chordInfo[cc][-1]
                         im = {imap[k]:k for k in imap}
-                        print('printIntervals() row={} r={} c={} cc={} line={} imap={} ci[c]={}'.format(row, r, c, cc, line, imap, self.chordInfo[cc][-1]), file=self.dbgFile)
+                        if dbg: print('printIntervals() row={} r={} c={} cc={} line={} imap={} ci[c]={}'.format(row, r, c, cc, line, imap, self.chordInfo[cc][-1]), file=self.dbgFile)
                         capTab = tab = self.tabs[r][c + line * self.numTabsPerStringPerLine]
                         if self.isFret(chr(tab)):
                             capTab = self.getFretByte(self.getFretNum(tab) + self.getFretNum(self.capo))
@@ -1710,16 +1691,16 @@ class Tabs(object):
                                     n = self.getNote(r + 1, tab)
                                 nn = n.name
                                 if nn in im:
-                                    print('printIntervals() r={}, row={}, tab={}, capTab={}, note={}, ival={}'.format(r, row, chr(tab), chr(capTab), nn, im[nn]), file=self.dbgFile)
+                                    if dbg: print('printIntervals() r={}, row={}, tab={}, capTab={}, note={}, ival={}'.format(r, row, chr(tab), chr(capTab), nn, im[nn]), file=self.dbgFile)
                                     self.printInterval(row, c + self.COL_OFF, im[nn])
-                                else: print('printIntervals(?) nn={} NOT IN im={} imap={}'.format(nn, im, imap), file=self.dbgFile) 
+                                elif dbg: print('printIntervals(?) nn={} NOT IN im={} imap={}'.format(nn, im, imap), file=self.dbgFile) 
                             else: self.prints(chr(capTab), row, c + self.COL_OFF, self.styles['NAT_H_NOTE'])
                         else: self.prints(chr(tab), row, c + self.COL_OFF, self.styles['NAT_H_NOTE'])
                     else: self.prints('-', row, c + self.COL_OFF, self.styles['NAT_H_NOTE'])
 
-    def printInterval(self, row, col, ival):
+    def printInterval(self, row, col, ival, dbg=0):
         style = self.styles['NAT_H_NOTE']
-        print('printInterval() row={},col={}, ival={}'.format(row, col, ival), file=self.dbgFile)
+        if dbg: print('printInterval() row={},col={}, ival={}'.format(row, col, ival), file=self.dbgFile)
         if len(ival) > 1:
             if ival == 'm2' or ival == 'm3' or ival == 'b5' or ival == 'b7': style = self.styles['FLT_H_NOTE']
             elif ival == 'a5': style = self.styles['SHP_H_NOTE']
@@ -1815,12 +1796,13 @@ class Tabs(object):
             self.printTabs(c=c)
         self.resetPos()
        
-    def printChordInfo(self, tab, r, c, m):
+    def printChordInfo(self, tab, r, c, m, dbg=0):
         imap = self.chordInfo[c][m]
         imapKeys = sorted(imap, key=self.chordsObj.imapKeyFunc, reverse=False)
-        print('printChordInfo() imap[{}]= [ '.format(m), end='', file=self.dbgFile)
-        for k in imapKeys: print('{}:{} '.format(k, imap[k]), end='', file=self.dbgFile)
-        print('], tab={}, r={}, c={}'.format(tab, r, c), file=self.dbgFile)
+        if dbg: 
+            print('printChordInfo() imap[{}]= [ '.format(m), end='', file=self.dbgFile)
+            for k in imapKeys: print('{}:{} '.format(k, imap[k]), end='', file=self.dbgFile)
+            print('], tab={}, r={}, c={}'.format(tab, r, c), file=self.dbgFile)
         info, infoLen, i, n, hk, chordKey, chordName, chordDelim = [], 0, 0, None, '', '', '', ' > '
         if self.isFret(tab):
             if self.htabs[r][c] == ord('1'): n = self.getHarmonicNote(r + 1, ord(tab)).name
@@ -1830,7 +1812,7 @@ class Tabs(object):
             info.append('{}:{} '.format(k, imap[k]))
             infoLen += len(info[-1])
             if imap[k] == n: hk = k
-            print('printChordInfo({}) infoLen={}, info={}, imap[{}]={}, n={}, hk={}, chordKey={}'.format(len(info)-1, infoLen, info, k, imap[k], n, hk, chordKey), file=self.dbgFile)
+            if dbg: print('printChordInfo({}) infoLen={}, info={}, imap[{}]={}, n={}, hk={}, chordKey={}'.format(len(info)-1, infoLen, info, k, imap[k], n, hk, chordKey), file=self.dbgFile)
         infoCol = self.numTabsPerStringPerLine + self.COL_OFF - infoLen + 1
         if info: info[-1] = info[-1][:-1]
         if chordKey: chordKey = chordKey[:-1]
@@ -1840,7 +1822,7 @@ class Tabs(object):
         if self.chordStatusCol is not None:
             if infoCol < self.chordStatusCol: self.chordStatusCol = infoCol
         else: self.chordStatusCol = infoCol
-        print('printChordInfo() info={}, chordName={}, col={}, cols[c]={}'.format(info, chordName, infoCol, self.chordStatusCol), file=self.dbgFile)
+        if dbg: print('printChordInfo() info={}, chordName={}, col={}, cols[c]={}'.format(info, chordName, infoCol, self.chordStatusCol), file=self.dbgFile)
         self.clearRow(arg=0, row=self.lastRow, col=self.chordStatusCol, file=self.outFile)
         style = self.CSI + self.styles['HLT_STUS']
         if len(chordName) > 0:
@@ -1903,7 +1885,7 @@ class Tabs(object):
 #        print('getNoteIndex() str={}, s={}, f={}, i={}, sk={}, sm={}'.format(str, s, f, i, self.stringKeys[s], self.stringMap[self.stringKeys[s]]), file=self.dbgFile)
         return i
     
-    def printChord(self, c=None, dbg=1):
+    def printChord(self, c=None, dbg=0):
         '''Analyse the notes at the given column and if they form a chord print the chord in the chords section.'''
         self.chordsObj.printChord(c, dbg)
         

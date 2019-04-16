@@ -49,15 +49,11 @@ class Chords(object):
             self.c = self.tabsObj.col - self.tabsObj.COL_OFF
         self.eraseChord(self.c)
         row, col = self.tabsObj.indices2RowCol(self.tabsObj.numStrings + self.tabsObj.NOTES_LEN + self.tabsObj.INTERVALS_LEN, self.c)
+        print('printChord({}) ({},{}) bgn: len(chords)={} dbg={}'.format(self.c, row, col, len(self.chords), dbg), file=self.tabsObj.dbgFile)
         if dbg:
-            print('printChord({}) ({},{}) bgn: len(chords)={}'.format(self.c, row, col, len(self.chords)), file=self.tabsObj.dbgFile)
-            print('{}Strings     ['.format(self.indent), end='', file=self.tabsObj.dbgFile)
-            for r in range(self.tabsObj.numStrings - 1, -1, -1):
-                if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][self.c])):
-                    note = self.tabsObj.getNote(r + 1, 0)
-                    print('{:>2}/{:<2}'.format(r + 1, note.name), end=' ', file=self.tabsObj.dbgFile)
-        self.getTabs(dbg=dbg)
-        self.getTabs(capoed=1, dbg=dbg)
+            self.printStrings()
+            self.printTabs()
+            self.printTabs(capoed=1)
         (_notes, indices) = self.getNotesAndIndices(dbg=dbg)
         aliases, limap, count, selected, outerChordName = [], [], 0, 0, ''
         for j in range(len(indices)):
@@ -78,7 +74,14 @@ class Chords(object):
             print('printChord() inner={}, outer={}'.format(chordName, outerChordName), file=self.tabsObj.dbgFile)
             self.printChordName(row, col, outerChordName, imap)
 
-    def getTabs(self, capoed=0, dbg=0):
+    def printStrings(self):
+        print('{}Strings     ['.format(self.indent), end='', file=self.tabsObj.dbgFile)
+        for r in range(self.tabsObj.numStrings - 1, -1, -1):
+            if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][self.c])):
+                note = self.tabsObj.getNote(r + 1, 0)
+                print('{:>2}/{:<2}'.format(r + 1, note.name), end=' ', file=self.tabsObj.dbgFile)
+
+    def printTabs(self, capoed=0):
         tbs = []
         if capoed: label = ']\n{}capoed tabs ['.format(self.indent)
         else:      label = ']\n{}tabs        ['.format(self.indent)
@@ -87,10 +90,9 @@ class Chords(object):
                 if capoed: tab = chr(self.tabsObj.getFretByte(self.tabsObj.getFretNum(self.tabsObj.tabs[r][self.c]) + self.tabsObj.getFretNum(self.tabsObj.capo)))
                 else:      tab = chr(self.tabsObj.tabs[r][self.c])
                 tbs.insert(0, tab)
-        if dbg:
-            print('{}'.format(label), end='', file=self.tabsObj.dbgFile)
-            for t in range(len(tbs)):
-                print('{:>5}'.format(tbs[t]), end=' ', file=self.tabsObj.dbgFile)
+        print('{}'.format(label), end='', file=self.tabsObj.dbgFile)
+        for t in range(len(tbs)):
+            print('{:>5}'.format(tbs[t]), end=' ', file=self.tabsObj.dbgFile)
 
     def getNotesAndIndices(self, dbg=0):
         _notes = []
@@ -135,15 +137,6 @@ class Chords(object):
             print(']\n{}intervals   ['.format(self.indent), end='', file=self.tabsObj.dbgFile)
             for t in range(len(deltas)):
                 print('{:>5}'.format(intervals[t]), end=' ', file=self.tabsObj.dbgFile)
-        '''
-        relIntervals = [self.INTERVALS[0]]
-        for i in range(1, len(deltas)):
-            relIntervals.append(self.INTERVALS[abs(deltas[i]-deltas[i-1])])
-        if dbg:
-            print(']\n{}relIntervals['.format(self.indent), end='', file=self.tabsObj.dbgFile)
-            for t in range(len(relIntervals)):
-                print('{:>5}'.format(relIntervals[t]), end=' ', file=self.tabsObj.dbgFile)
-         '''
         return intervals
 
     def getImapAndKeys(self, intervals, _notes, dbg=0):
@@ -184,7 +177,11 @@ class Chords(object):
 
     def updateChords(self, j, chordKey, imap, count, dbg=0):
         chordName = ''
-        if chordKey not in self.chords:
+        if chordKey in self.chords:
+            chordName = self.chords[chordKey]
+            count += 1
+            if dbg: print('{}printChord({}) index={}, count={}, Found key=\'{}\', value=\'{}\' in chords'.format(self.indent, self.c, j, count, chordKey, self.chords[chordKey]), file=self.tabsObj.dbgFile)
+        else:
             if dbg: print('{}printChord({}) index={}, Key=\'{}\' not in chords - calculating value'.format(self.indent, self.c, j, chordKey), file=self.tabsObj.dbgFile)
             chordName = self.getChordName(imap)
             if len(chordName) > 0:
@@ -197,25 +194,21 @@ class Chords(object):
                         print('({}):{}'.format(k, self.chords[k]), end=', ', file=self.tabsObj.dbgFile)
                     print(']', file=self.tabsObj.dbgFile)
             elif dbg: print('{}printChord({}) index={}, Key=\'{}\' not a chord'.format(self.indent, self.c, j, chordKey), file=self.tabsObj.dbgFile)
-        else:
-            chordName = self.chords[chordKey]
-            count += 1
-            if dbg: print('{}printChord({}) index={}, count={}, Found key=\'{}\', value=\'{}\' in chords'.format(self.indent, self.c, j, count, chordKey, self.chords[chordKey]), file=self.tabsObj.dbgFile)
         return chordName
 
     def getLimap(self, imap, limap, chordName, selected):
         if imap not in limap:
             if len(chordName) == 0:
-                self.printLimaps(imap, limap, chordName, 'printChord() prepend ')
+                self.printLimaps(imap, limap, chordName, 'printChord(getLimap()) prepend ')
                 limap.insert(0, imap)
             elif selected == 1:
-                self.printLimaps(imap, limap, chordName, 'printChord() insert ')
+                self.printLimaps(imap, limap, chordName, 'printChord(getLimap()) insert ')
                 limap.insert(len(limap) - 1, imap)
             else:
-                self.printLimaps(imap, limap, chordName, 'printChord() append ')
+                self.printLimaps(imap, limap, chordName, 'printChord(getLimap()) append ')
                 limap.append(imap)
         elif len(chordName) > 0 and imap != limap[-1]:
-            self.printLimaps(imap, limap, chordName, 'printChord() remove and append ')
+            self.printLimaps(imap, limap, chordName, 'printChord(getLimap()) remove and append ')
             limap.remove(imap)
             limap.append(imap)
         self.printLimap(limap)
