@@ -1168,7 +1168,7 @@ class Tabs(object):
                     if self.isFret(chr(capTab)):
                         self.printInterval(row + self.numStrings + self.numStrings, col, 'R')
                 else:
-                    imap = self.chordInfo[cc][-1]
+                    imap = self.chordInfo[cc][0]
                     im = {imap[k]:k for k in imap}
                     for r in range(self.numStrings):
                         if self.isFret(chr(self.tabs[r][cc])):
@@ -1670,7 +1670,7 @@ class Tabs(object):
         style = self.getNoteStyle(n, style, hn)
         self.prints(n.name[0], row, col, style)
     
-    def printIntervals(self, dbg=0):
+    def printIntervals(self, dbg=1):
         if dbg: print('printIntervals() cinfo={}'.format(self.chordInfo), file=self.dbgFile)
         for line in range(0, self.numLines):
             for c in range (0, self.numTabsPerStringPerLine):
@@ -1678,9 +1678,9 @@ class Tabs(object):
                     row = r + line * self.lineDelta() + self.endRow(0) + self.NOTES_LEN + 1
                     cc = c + line * self.numTabsPerStringPerLine
                     if cc in self.chordInfo:
-                        imap = self.chordInfo[cc][-1]
+                        imap = self.chordInfo[cc][0]
                         im = {imap[k]:k for k in imap}
-                        if dbg: print('printIntervals() row={} r={} c={} cc={} line={} imap={} ci[c]={}'.format(row, r, c, cc, line, imap, self.chordInfo[cc][-1]), file=self.dbgFile)
+                        if dbg: print('printIntervals() row={} r={} c={} cc={} line={} imap={} ci[c]={}'.format(row, r, c, cc, line, imap, self.chordInfo[cc][0]), file=self.dbgFile)
                         capTab = tab = self.tabs[r][c + line * self.numTabsPerStringPerLine]
                         if self.isFret(chr(tab)):
                             capTab = self.getFretByte(self.getFretNum(tab) + self.getFretNum(self.capo))
@@ -1698,7 +1698,7 @@ class Tabs(object):
                         else: self.prints(chr(tab), row, c + self.COL_OFF, self.styles['NAT_H_NOTE'])
                     else: self.prints('-', row, c + self.COL_OFF, self.styles['NAT_H_NOTE'])
 
-    def printInterval(self, row, col, ival, dbg=0):
+    def printInterval(self, row, col, ival, dbg=1):
         style = self.styles['NAT_H_NOTE']
         if dbg: print('printInterval() row={},col={}, ival={}'.format(row, col, ival), file=self.dbgFile)
         if len(ival) > 1:
@@ -1769,7 +1769,7 @@ class Tabs(object):
     def printChordStatus(self, tab, r, c):
         if c in self.chordInfo:
             print('printChordStatus() len(chordInfo[{}])={}, chordInfo[{}]={}'.format(c, len(self.chordInfo[c]), c, self.chordInfo[c]), file=self.dbgFile)
-            for m in range(len(self.chordInfo[c])):
+            for m in range(len(self.chordInfo[c])-1, -1, -1):
                 self.printChordInfo(tab, r, c, m)
 
     def analyzeChord(self):

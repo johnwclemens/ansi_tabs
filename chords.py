@@ -55,24 +55,24 @@ class Chords(object):
             self.printTabs()
             self.printTabs(capoed=1)
         (_notes, indices) = self.getNotesAndIndices(dbg=dbg)
-        aliases, limap, count, selected, outerChordName = [], [], 0, 0, ''
-        for j in range(len(indices)):
-            if dbg: print('{}printChord({}) index={}'.format(self.indent, self.c, j), file=self.tabsObj.dbgFile)
-            intervals = self.getIntervals(j, indices, dbg=dbg)
+        aliases, limap, count, selected, chordName = [], [], 0, 0, ''
+        for i in range(len(indices)-1, -1, -1):
+            if dbg: print('{}printChord({}) index={}'.format(self.indent, self.c, i), file=self.tabsObj.dbgFile)
+            intervals = self.getIntervals(i, indices, dbg=dbg)
             (imap, imapKeys, imapNotes, chordKey) = self.getImapAndKeys(intervals, _notes, dbg=dbg)
-            chordName = self.updateChords(j, chordKey, imap, count, dbg=dbg)
-            limap = self.getLimap(imap, limap, chordName, selected)
+            currentName = self.updateChords(i, chordKey, imap, count, dbg=dbg)
+            limap = self.getLimap(imap, limap, currentName, selected)
             self.tabsObj.chordInfo[self.c] = limap
-            if len(chordName) > 0:
-                outerChordName = chordName
+            if len(currentName) > 0:
+                chordName = currentName
                 if chordName in self.tabsObj.selectChords:
-                    print('printChord() found chordName={} selectChords[{}]={} imapKeys={} '.format(chordName, chordName, self.tabsObj.selectChords[chordName], imapKeys), file=self.tabsObj.dbgFile)
+                    print('printChord() found selected chordName={} in selectChords[{}]={} imapKeys={} '.format(chordName, chordName, self.tabsObj.selectChords[chordName], imapKeys), file=self.tabsObj.dbgFile)
                     selected = 1
                     self.printChordName(row, col, chordName, imap)
         if selected == 0 and len(limap):
-            imap = limap[-1]
-            print('printChord() inner={}, outer={}'.format(chordName, outerChordName), file=self.tabsObj.dbgFile)
-            self.printChordName(row, col, outerChordName, imap)
+            imap = limap[0]
+            print('printChord() currentName={} chordName={} imap={}'.format(currentName, chordName, imap), file=self.tabsObj.dbgFile)
+            self.printChordName(row, col, chordName, imap)
 
     def printStrings(self):
         print('{}Strings     ['.format(self.indent), end='', file=self.tabsObj.dbgFile)
@@ -198,19 +198,16 @@ class Chords(object):
 
     def getLimap(self, imap, limap, chordName, selected):
         if imap not in limap:
-            if len(chordName) == 0:
+            if len(chordName) > 0:
                 self.printLimaps(imap, limap, chordName, 'printChord(getLimap()) prepend ')
                 limap.insert(0, imap)
-            elif selected == 1:
-                self.printLimaps(imap, limap, chordName, 'printChord(getLimap()) insert ')
-                limap.insert(len(limap) - 1, imap)
             else:
                 self.printLimaps(imap, limap, chordName, 'printChord(getLimap()) append ')
                 limap.append(imap)
-        elif len(chordName) > 0 and imap != limap[-1]:
-            self.printLimaps(imap, limap, chordName, 'printChord(getLimap()) remove and append ')
+        elif len(chordName) > 0 and imap != limap[0]:
+            self.printLimaps(imap, limap, chordName, 'printChord(getLimap()) remove and prepend ')
             limap.remove(imap)
-            limap.append(imap)
+            limap.insert(0, imap)
         self.printLimap(limap)
         return limap
 
@@ -324,6 +321,7 @@ class Chords(object):
                 elif '7' in imap:
                     if    '2' in imap or  '9' in imap:        return '{}M7s2'.format(r)     # M7sus2
                     elif  '4' in imap or '11' in imap:        return '{}M7s4'.format(r)     # M7sus4
+                elif ('2' in imap or '9' in imap) and ('6' in imap or '13' in imap): return '{}6/9n3'.format(r)   # 6Add9no3
         elif 'b5' in imap:
             if 'm3' in imap:
                 if len(imap) == 3:                            return '{}o'.format(r)       # Dim
