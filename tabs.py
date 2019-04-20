@@ -1108,7 +1108,6 @@ class Tabs(object):
         print('findMaxFret() maxFN={}'.format(maxFN), file=self.dbgFile)
         return self.getFretByte(maxFN)
         
-#        f, fs = self.getFretNum(ord(tab)), self.getOrdSfx(self.getFretNum(ord(tab)))
     def setTab(self, tab):
         '''Set given tab byte at the current row and col, print the corresponding tab character and then move cursor according to the cursor mode.'''
         row, col = self.row, self.col
@@ -1271,7 +1270,7 @@ class Tabs(object):
         tabFN = self.getFretNum(tab)
         maxFN = self.getFretNum(self.maxFret)
         if self.editMode == self.EDIT_MODES['INSERT']:
-            print('deleteTab({},{},{},{}) tab={}, tabc={}, tabFN={}, EM=I'.format(row, col, r, c, tab, chr(tab), tabFN, maxFN), file=self.dbgFile)
+            print('deleteTab({},{},{},{}) tab={}, tabc={}, tabFN={}, EDIT_MODES[INSERT]'.format(row, col, r, c, tab, chr(tab), tabFN, maxFN), file=self.dbgFile)
             for cc in range(c, len(self.tabs[r]) - 1):
                 self.tabs[r][cc]  = self.tabs[r][cc + 1]
                 self.htabs[r][cc] = self.htabs[r][cc + 1]
@@ -1281,7 +1280,7 @@ class Tabs(object):
             if back: self.moveLeft()
             self.printTabs()
         elif self.editMode == self.EDIT_MODES['REPLACE']:
-            print('deleteTab({},{},{},{}) tab={}, tabc={}, tabFN={}, EM=R'.format(row, col, r, c, tab, chr(tab), tabFN, maxFN), file=self.dbgFile)
+            print('deleteTab({},{},{},{}) tab={}, tabc={}, tabFN={}, EDIT_MODES[REPLACE]'.format(row, col, r, c, tab, chr(tab), tabFN, maxFN), file=self.dbgFile)
             self.tabs[r][c] = ord('-')
             self.htabs[r][c] = ord('0')
             self.prints(chr(self.tabs[r][c]), row, col, self.styles['TABS'])
@@ -1290,6 +1289,8 @@ class Tabs(object):
             if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
                 self.chordsObj.eraseChord(c)
                 self.chordsObj.printChord(c=c)
+            if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
+                self.prints(chr(self.tabs[r][c]), row + self.numStrings + self.NOTES_LEN, col, self.styles['NAT_NOTE'])
             if back: self.moveLeft()
             else:    self.moveRight()
         if self.isFret(chr(tab)) and tabFN == maxFN:
