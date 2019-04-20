@@ -1177,7 +1177,7 @@ class Tabs(object):
                             if n.name in im:
                                 ival = im[n.name]
                                 print('setTab(DISPLAY_INTERVALS) row={} col={} ival={}'.format(row, col, ival), file=self.dbgFile)
-                                self.printInterval(row + self.numStrings + self.numStrings, col, ival)
+                                self.printInterval(row + self.numStrings + self.NOTES_LEN, col, ival)
         self.moveCursor()
         self.dumpTabs('setTab() end')
 
@@ -1286,11 +1286,11 @@ class Tabs(object):
             self.prints(chr(self.tabs[r][c]), row, col, self.styles['TABS'])
             if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
                 self.prints(chr(self.tabs[r][c]), row + self.numStrings, col, self.styles['NAT_NOTE'])
+            if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
+                self.prints(chr(self.tabs[r][c]), row + self.numStrings + self.NOTES_LEN, col, self.styles['NAT_NOTE'])
             if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
                 self.chordsObj.eraseChord(c)
                 self.chordsObj.printChord(c=c)
-            if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
-                self.prints(chr(self.tabs[r][c]), row + self.numStrings + self.NOTES_LEN, col, self.styles['NAT_NOTE'])
             if back: self.moveLeft()
             else:    self.moveRight()
         if self.isFret(chr(tab)) and tabFN == maxFN:
@@ -1437,10 +1437,9 @@ class Tabs(object):
                     print('deleteTabs() deleting chordInfo[{}]={}'.format(cc, self.chordInfo[cc]), file=self.dbgFile)
                     del self.chordInfo[cc]
                 if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
-                    if self.isFret(chr(tab)):
-                        self.printNote(r + row + self.numStrings, col, self.getNote(r + 1, tab))
-                    else:
-                        self.prints(chr(tab), r + row + self.numStrings, col, self.styles['NAT_NOTE'])
+                    self.prints(chr(tab), r + row + self.numStrings, col, self.styles['NAT_NOTE'])
+                if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
+                    self.prints(chr(tab), r + row + self.numStrings + self.NOTES_LEN, col, self.styles['NAT_NOTE'])
                 self.prints(chr(tab), r + row, col, self.styles['TABS'])
 #        self.dumpTabs('deleteTabs({}, {}) col={} end: '.format(self.row, self.col, col))
 
@@ -1519,6 +1518,10 @@ class Tabs(object):
                     row = self.indices2Row(r, c)
                     tab = self.tabs[r][c]
                     print('pasteSelectTabs(loop2) row={}, col={}, r={}, c={}, tabc[{}][{}]={}'.format(row, col, r, c, r, c, chr(tab)), file=self.dbgFile)
+                    if self.htabs[r][c] == ord('1'):
+                        self.prints(chr(tab), row, col, self.styles['H_TABS'])
+                    else:
+                        self.prints(chr(tab), row, col, self.styles['TABS'])
                     if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
                         if self.isFret(chr(tab)):
                             if self.htabs[r][c] == ord('1'):
@@ -1529,10 +1532,8 @@ class Tabs(object):
                                 self.printNote(row + self.numStrings, col, n)
                         else:
                             self.prints(chr(tab), row + self.numStrings, col, self.styles['NAT_NOTE'])
-                    if self.htabs[r][c] == ord('1'):
-                        self.prints(chr(tab), row, col, self.styles['H_TABS'])
-                    else:
-                        self.prints(chr(tab), row, col, self.styles['TABS'])
+                    if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
+                        self.prints(chr(tab), row + self.numStrings + self.NOTES_LEN, col, self.styles['NAT_NOTE'])
             self.resetPos()
         if not rangeError:
             self.selectTabs, self.selectHTabs, self.selectCols, self.selectRows = [], [], [], []
