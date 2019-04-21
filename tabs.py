@@ -881,6 +881,7 @@ class Tabs(object):
         '''Toggle (enable or disable) display of intervals section.  [cmd line opt -???????]'''
         self.displayIntervals = (self.displayIntervals + 1) % len(self.DISPLAY_INTERVALS)
         line = self.row2Line(self.row)
+        self.printLineInfo('toggleDisplayIntervals({} {}) row,col=({}, {}), line={} bgn'.format(self.displayIntervals, printTabs, self.row, self.col, line))
         if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
             self.INTERVALS_LEN = self.numStrings
             self.row += line * self.INTERVALS_LEN
@@ -889,7 +890,7 @@ class Tabs(object):
             self.INTERVALS_LEN = 0
             self.clearScreen()
         self.setLastRow()
-        self.printLineInfo('toggleDisplayIntervals({}) row,col=({}, {}), line={}'.format(self.displayIntervals, self.row, self.col, line))
+        self.printLineInfo('toggleDisplayIntervals({} {}) row,col=({}, {}), line={} end'.format(self.displayIntervals, printTabs, self.row, self.col, line))
         if printTabs: self.printTabs()
     
     def toggleDisplayChords(self, printTabs=True):
@@ -1673,10 +1674,13 @@ class Tabs(object):
         self.prints(n.name[0], row, col, style)
     
     def printIntervals(self, dbg=1):
-        if dbg: print('printIntervals() cinfo={}'.format(self.chordInfo), file=self.dbgFile)
+        if dbg: print('printIntervals() chordInfo={}'.format(self.chordInfo), file=self.dbgFile)
         for line in range(0, self.numLines):
-            for c in range (0, self.numTabsPerStringPerLine):
-                for r in range(0, self.numStrings):
+            for r in range(0, self.numStrings):
+                for c in range(1, self.COL_OFF):
+                    row = r + line * self.lineDelta() + self.endRow(0) + self.NOTES_LEN + 1
+                    self.prints(' ', row, c, self.styles['NAT_H_NOTE'])
+                for c in range (0, self.numTabsPerStringPerLine):
                     row = r + line * self.lineDelta() + self.endRow(0) + self.NOTES_LEN + 1
                     cc = c + line * self.numTabsPerStringPerLine
                     if cc in self.chordInfo:
@@ -1693,11 +1697,11 @@ class Tabs(object):
                                     n = self.getNote(r + 1, tab)
                                 nn = n.name
                                 if nn in im:
-                                    if dbg: print('printIntervals() r={}, row={}, tab={}, capTab={}, note={}, ival={}'.format(r, row, chr(tab), chr(capTab), nn, im[nn]), file=self.dbgFile)
+                                    if dbg: print('printIntervals() row={}, r={}, tab={}, capTab={}, note={}, ival={}'.format(row, r, chr(tab), chr(capTab), nn, im[nn]), file=self.dbgFile)
                                     self.printInterval(row, c + self.COL_OFF, im[nn])
                                 elif dbg: print('printIntervals(?) nn={} NOT IN im={} imap={}'.format(nn, im, imap), file=self.dbgFile) 
-                            else: self.prints(chr(capTab), row, c + self.COL_OFF, self.styles['NAT_H_NOTE'])
-                        else: self.prints(chr(tab), row, c + self.COL_OFF, self.styles['NAT_H_NOTE'])
+                            else: self.prints('-', row, c + self.COL_OFF, self.styles['NAT_H_NOTE'])
+                        else: self.prints('-', row, c + c, self.styles['NAT_H_NOTE'])
                     else: self.prints('-', row, c + self.COL_OFF, self.styles['NAT_H_NOTE'])
 
     def printInterval(self, row, col, ival, dbg=1):

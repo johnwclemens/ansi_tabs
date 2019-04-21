@@ -32,7 +32,7 @@ class Chords(object):
             self.tabsObj.prints(' ', r + row, col, self.tabsObj.styles['NAT_CHORD'])
 
     def printChords(self):
-        print('printChords({}, {}) bgn {} =?= {} * {}'.format(self.tabsObj.row, self.tabsObj.col, self.tabsObj.numTabsPerString, self.tabsObj.numLines, self.tabsObj.numTabsPerStringPerLine), file=self.tabsObj.dbgFile)
+        print('printChords({} {}) {} =?= {} * {}'.format(self.tabsObj.row, self.tabsObj.col, self.tabsObj.numTabsPerString, self.tabsObj.numLines, self.tabsObj.numTabsPerStringPerLine), file=self.tabsObj.dbgFile)
         for c in range(self.tabsObj.numTabsPerString):
             self.eraseChord(c)
             for r in range(self.tabsObj.numStrings):
@@ -40,7 +40,11 @@ class Chords(object):
                     self.printChord(c=c)
                     break
             print(file=self.tabsObj.outFile)
-        print('printChords({}, {}) end {} =?= {} * {}'.format(self.tabsObj.row, self.tabsObj.col, self.tabsObj.numTabsPerString, self.tabsObj.numLines, self.tabsObj.numTabsPerStringPerLine), file=self.tabsObj.dbgFile)
+        for line in range(self.tabsObj.numLines):
+            row = self.tabsObj.ROW_OFF + line * self.tabsObj.lineDelta() + self.tabsObj.numStrings + self.tabsObj.NOTES_LEN + self.tabsObj.INTERVALS_LEN
+            for c in range(1, self.tabsObj.COL_OFF):
+                for r in range(self.tabsObj.CHORDS_LEN):
+                    self.tabsObj.prints(' ', r + row, c, self.tabsObj.styles['NAT_CHORD'])
 
     def printChord(self, c=None, dbg=1):
         '''Analyze notes in given column index and if a valid chord is discovered then print it in the appropriate chords section.'''
