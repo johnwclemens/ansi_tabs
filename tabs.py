@@ -3,7 +3,7 @@
 '''Thus all methods are essentially private.  Note some functionality is deemed customizable by the user and is thus factored out into a separate module.  
 e.g. The tab modifications are in mods.py, the string tunings and aliases are in strings.py, and the chord discovery and name calculations are in chords.py.'''
 
-import os, sys
+import os, sys, shutil
 
 impFile = open('tabs_imp.log', 'w')
 
@@ -139,6 +139,9 @@ class Tabs(object):
         if 'f' in self.argMap and len(self.argMap['f']) > 0:
             self.inName = self.argMap['f'][0]                       # file to read from
             self.outName = self.argMap['f'][0]                      # file to write to, only written to with the saveTabs command
+            backupName = self.outName + '.bak'
+            print('saving backup file: {}'.format(backupName), file=self.dbgFile)
+            shutil.copy2(self.outName, backupName)
         if 't' in self.argMap and len(self.argMap['t']) > 0:
             self.initTabLen(self.argMap['t'])                       # set number of tabs/columns per line (and per string)
         if 'S' in self.argMap and len(self.argMap['S']) > 0:
@@ -1309,6 +1312,8 @@ class Tabs(object):
             for c in range(0, len(self.tabs[r])):
                 self.tabs[r][c] = ord('-')
                 self.htabs[r][c] = ord('0')
+                if c in self.chordInfo:
+                    del self.chordInfo[c]
         self.maxFret = ord('0')
         self.printTabs()
 
