@@ -7,6 +7,7 @@ class Chords(object):
     '''Model chords for stringed instruments.  Discover and name chords.'''
     #Consider chords without a root note (C# E G B -> A9)?
     def __init__(self, tabsObj):
+        self.CHORD_LABEL = 'CHORD'
         self.c = None
         self.indent = '    '
         self.INTERVALS = { 0:'R',  1:'b2',  2:'2',  3:'m3',  4:'M3',  5:'4',   6:'b5',  7:'5',  8:'a5',  9:'6',  10:'b7', 11:'7', 12:'R'}
@@ -33,6 +34,12 @@ class Chords(object):
 
     def printChords(self):
         print('printChords({} {}) {} =?= {} * {}'.format(self.tabsObj.row, self.tabsObj.col, self.tabsObj.numTabsPerString, self.tabsObj.numLines, self.tabsObj.numTabsPerStringPerLine), file=self.tabsObj.dbgFile)
+        for line in range(self.tabsObj.numLines):
+            row = self.tabsObj.ROW_OFF + line * self.tabsObj.lineDelta() + self.tabsObj.numStrings + self.tabsObj.NOTES_LEN + self.tabsObj.INTERVALS_LEN
+            for r in range(self.tabsObj.CHORDS_LEN):
+                self.tabsObj.prints(self.CHORD_LABEL[r], r + row, 1, self.tabsObj.styles['NAT_CHORD'])
+                for c in range(2, self.tabsObj.COL_OFF):
+                    self.tabsObj.prints(' ', r + row, c, self.tabsObj.styles['NAT_CHORD'])
         for c in range(self.tabsObj.numTabsPerString):
             self.eraseChord(c)
             for r in range(self.tabsObj.numStrings):
@@ -40,11 +47,6 @@ class Chords(object):
                     self.printChord(c=c)
                     break
             print(file=self.tabsObj.outFile)
-        for line in range(self.tabsObj.numLines):
-            row = self.tabsObj.ROW_OFF + line * self.tabsObj.lineDelta() + self.tabsObj.numStrings + self.tabsObj.NOTES_LEN + self.tabsObj.INTERVALS_LEN
-            for c in range(1, self.tabsObj.COL_OFF):
-                for r in range(self.tabsObj.CHORDS_LEN):
-                    self.tabsObj.prints(' ', r + row, c, self.tabsObj.styles['NAT_CHORD'])
 
     def printChord(self, c=None, dbg=1):
         '''Analyze notes in given column index and if a valid chord is discovered then print it in the appropriate chords section.'''

@@ -111,6 +111,7 @@ class Tabs(object):
         self.NOTES_LEN = 0                                     # number of rows used to display notes  on a given line
         self.INTERVALS_LEN = 0                                 # number of rows used to display intervals on a given line
         self.NUM_FRETS = 24                                    # number of frets (might make this a list for each string)?
+        self.IVAL_LABEL = 'INTRVL'
         
         self.hiliteCount = 0                                   # statistic for measuring efficiency
         self.hiliteColNum = 0                                  # used to hilite the current cursor column and unhilite the previous cursor column
@@ -287,10 +288,10 @@ class Tabs(object):
         self.RED_YELLOW = self.initText('RED', 'YELLOW')
 #        self.WHITE_GREEN = self.initText('WHITE', 'GREEN')
 #        self.GREEN_BLACK = self.initText('GREEN', 'BLACK')
-        self.styles = { 'NAT_NOTE':self.GREEN_WHITE, 'NAT_H_NOTE':self.YELLOW_WHITE, 'NAT_CHORD':self.GREEN_WHITE, 'MIN_COL_NUM':self.RED_WHITE,      'TABS':self.BLACK_WHITE,  'NUT_UP':self.BLUE_YELLOW,  'NORMAL':'22;',
-                        'FLT_NOTE':self.BLUE_WHITE,  'FLT_H_NOTE':self.CYAN_WHITE,  'FLT_CHORD':self.BLUE_WHITE,  'MAJ_COL_NUM':self.BLACK_WHITE,  'H_TABS':self.BLACK_YELLOW, 'NUT_DN':self.RED_YELLOW,   'BRIGHT':'1;',
-                        'SHP_NOTE':self.RED_WHITE,   'SHP_H_NOTE':self.MAGENTA_WHITE,   'SHP_CHORD':self.RED_WHITE,        'STATUS':self.MAGENTA_WHITE, 'MODES':self.GREEN_WHITE,   'ERROR':self.RED_YELLOW,   'CONS':self.BLACK_WHITE,
-                        'HLT_STUS':self.CYAN_WHITE }
+        self.styles = { 'NAT_NOTE':self.GREEN_WHITE, 'NAT_H_NOTE':self.YELLOW_WHITE,  'NAT_CHORD':self.GREEN_WHITE, 'MIN_COL_NUM':self.RED_WHITE,      'TABS':self.BLACK_WHITE,  'NUT_UP':self.BLUE_YELLOW,  'NORMAL':'22;',
+                        'FLT_NOTE':self.BLUE_WHITE,  'FLT_H_NOTE':self.CYAN_WHITE,    'FLT_CHORD':self.BLUE_WHITE,  'MAJ_COL_NUM':self.BLACK_WHITE,  'H_TABS':self.BLACK_YELLOW, 'NUT_DN':self.RED_YELLOW,   'BRIGHT':'1;',
+                        'SHP_NOTE':self.RED_WHITE,   'SHP_H_NOTE':self.MAGENTA_WHITE, 'SHP_CHORD':self.RED_WHITE,        'STATUS':self.MAGENTA_WHITE, 'MODES':self.BLUE_WHITE,   'ERROR':self.RED_YELLOW,   'CONS':self.BLACK_WHITE,
+                        'HLT_STUS':self.CYAN_WHITE,  'IVAL_LABEL':self.YELLOW_WHITE,  'CHORD_LABEL':self.GREEN_WHITE }
         self.HARMONIC_FRETS = { 12:12, 7:19, 19:19, 5:24, 24:24, 4:28, 9:28, 16:28, 28:28 }
 #        self.FRET_INDICES = { 0:0, 1:1, 2:2, 3:3, 4:4, 5:5, 6:6, 7:7, 8:8, 9:9, 10:'a' }  # for moving along the fretboard?
 #        self.MAJ_INDICES = [ 0, 2, 4, 5, 7, 9, 11, 12 ]                                   # for key signatures and or scales?
@@ -1684,11 +1685,11 @@ class Tabs(object):
         if dbg: print('printIntervals() chordInfo={}'.format(self.chordInfo), file=Tabs.DBG_FILE)
         for line in range(0, self.numLines):
             for r in range(0, self.numStrings):
-                for c in range(1, self.COL_OFF):
-                    row = r + line * self.lineDelta() + self.endRow(0) + self.NOTES_LEN + 1
-                    self.prints(' ', row, c, self.styles['NAT_H_NOTE'])
+                row = r + line * self.lineDelta() + self.endRow(0) + self.NOTES_LEN + 1
+                self.prints(self.IVAL_LABEL[r], row, 1, self.styles['IVAL_LABEL'])
+                for c in range(2, self.COL_OFF):
+                    self.prints(' ', row, c, self.styles['IVAL_LABEL'])
                 for c in range (0, self.numTabsPerStringPerLine):
-                    row = r + line * self.lineDelta() + self.endRow(0) + self.NOTES_LEN + 1
                     cc = c + line * self.numTabsPerStringPerLine
                     if cc in self.chordInfo:
                         imap = self.chordInfo[cc][0]
@@ -1809,7 +1810,7 @@ class Tabs(object):
             self.printTabs(c=c)
         self.resetPos()
        
-    def printChordInfo(self, tab, r, c, m, dbg=0):
+    def printChordInfo(self, tab, r, c, m, dbg=1):
         imap = self.chordInfo[c][m]
         imapKeys = sorted(imap, key=self.chordsObj.imapKeyFunc, reverse=False)
         if dbg: 
