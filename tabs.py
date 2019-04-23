@@ -70,9 +70,9 @@ class Tabs(object):
     def init(self, inName='tabs.tab', outName='tabs.tab'):
         '''Initialize class instance, enable automatic reset of console after each call via implicit print(colorama.Style.RESET_ALL).'''
         colorama.init(autoreset=True)
-        self.initFiles(inName, outName)
-
         Tabs.clearScreen()
+
+        self.initFiles(inName, outName)
         self.initConsts()
 #        self.testDict()
 #        self.testAnsi2()
@@ -87,8 +87,8 @@ class Tabs(object):
         self.tabCount = 0                                      # used by appendTabs() 
         self.tabs = []                                         # list of bytearrays, one for each string; for all the tabs
         self.chordInfo = {}                                    # dict column -> (list of dict intervals -> note names) i.e. dict col -> list of imaps for status chord info
-        self.selectChords = {}
-        self.selectImaps = {}
+        self.selectChords = {}                                 # dict chord name -> imap, for displaying the selected chord name and imap
+        self.selectImaps = {}                                  # dict imap string -> imap, for displaying intervals corresponding to selected chord name & imap
         self.analyzeIndex = -1                                 # index being analyzed for chord info
         self.chordStatusCol = None                             # tab column index used to display chord info on status row
         
@@ -1618,20 +1618,12 @@ class Tabs(object):
             self.printFileMark('<END_INTERVALS_SECTION>')
         if self.displayLabels == self.DISPLAY_LABELS['ENABLED']:
             self.printFileMark('<BGN_LABELS_SECTION>')
-            for line in range(0, self.numLines):
-                r = line * self.lineDelta() + 1
-                if self.outFile == None:
-                    self.printCursorAndEditModes(r)
-                else: 
-                    self.printPageAndLine(r, line)
-                    if self.outFile != None: print(file=self.outFile)
-                self.printColNums(r)
-                if self.outFile != None: print(file=self.outFile)
+            self.printLabels()
 #            self.printFileMark('<END_LABELS_SECTION>')
         if self.row > 0 and self.col > 0:
             print(self.CSI + self.styles['NORMAL'] + self.styles['CONS'] + self.CSI + '{};{}H'.format(self.row, self.col), end='') # restore the console cursor to the given position (row, col) and set the foreground and background color
         self.printLineInfo('printTabs({}, {}) end'.format(self.row, self.col))
-
+    
     def printFileMark(self, mark):
         if self.outFile != None:
             if mark == '<BGN_TABS_SECTION>' or mark == '<END_TABS_SECTION>':
@@ -1682,7 +1674,7 @@ class Tabs(object):
         style = self.getNoteStyle(n, style, hn)
         self.prints(n.name[0], row, col, style)
     
-    def printIntervals(self, dbg=1):
+    def printIntervals(self, dbg=0):
         if dbg: print('printIntervals() chordInfo={}'.format(self.chordInfo), file=Tabs.DBG_FILE)
         print('printIntervals() selectChords={}'.format(self.selectChords), file=Tabs.DBG_FILE)
         for line in range(0, self.numLines):
@@ -1696,9 +1688,10 @@ class Tabs(object):
                     if cc in self.chordInfo:
                         imap = self.chordInfo[cc][0]
                         imapstr = Tabs.imap2String(imap)
-                        print('printIntervals() imapstr={} selectImaps={}'.format(imapstr, self.selectImaps), file=Tabs.DBG_FILE)
+                        if dbg: print('printIntervals() imap={} imapstr={} selectImaps={}'.format(imap, imapstr, self.selectImaps), file=Tabs.DBG_FILE)
                         if imapstr in self.selectImaps:
                             imap = self.selectImaps[imapstr]
+                            print('printIntervals() found imapstr={} in selectImaps={} swapping imap={}'.format(imapstr, self.selectImaps, imap), file=Tabs.DBG_FILE)
                         im = {imap[k]:k for k in imap}
                         if dbg: print('printIntervals() row={} r={} c={} cc={} line={} im={} imap={} ci[c]={}'.format(row, r, c, cc, line, im, imap, self.chordInfo[cc][0]), file=Tabs.DBG_FILE)
                         capTab = tab = self.tabs[r][c + line * self.numTabsPerStringPerLine]
@@ -1711,9 +1704,9 @@ class Tabs(object):
                                     n = self.getNote(r + 1, tab)
                                 nn = n.name
                                 if nn in im:
-                                    if dbg: print('printIntervals() row={}, r={}, tab={}, capTab={}, note={}, ival={}'.format(row, r, chr(tab), chr(capTab), nn, im[nn]), file=Tabs.DBG_FILE)
-                                    self.printInterval(row, c + self.COL_OFF, im[nn])
-                                elif dbg: print('printIntervals(?) nn={} NOT IN im={} imap={}'.format(nn, im, imap), file=Tabs.DBG_FILE) 
+                                    print('printIntervals() row={} r={} tab={} capTab={} nn={} im[nn]={} imapstr={}'.format(row, r, chr(tab), chr(capTab), nn, im[nn], imapstr), file=Tabs.DBG_FILE)
+                                    self.printInterval(row, c + self.COL_OFF, im[nn], dbg=dbg)
+                                else: print('printIntervals(?) nn={} NOT IN im={} imap={}'.format(nn, im, imap), file=Tabs.DBG_FILE) 
                             else: self.prints('-', row, c + self.COL_OFF, self.styles['NAT_H_NOTE'])
                         else: self.prints('-', row, c + c, self.styles['NAT_H_NOTE'])
                     else: self.prints('-', row, c + self.COL_OFF, self.styles['NAT_H_NOTE'])
@@ -1733,6 +1726,17 @@ class Tabs(object):
         for k in imap:
             s += '{}:{} '.format(k, imap[k])
         return s.strip()
+    
+    def printLabels(self):
+        for line in range(0, self.numLines):
+            r = line * self.lineDelta() + 1
+            if self.outFile == None:
+                self.printCursorAndEditModes(r)
+            else: 
+                self.printPageAndLine(r, line)
+                if self.outFile != None: print(file=self.outFile)
+            self.printColNums(r)
+            if self.outFile != None: print(file=self.outFile)
     
     def printStatus(self):
         r, c = self.rowCol2Indices(self.row, self.col)
