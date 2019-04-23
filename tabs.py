@@ -88,6 +88,7 @@ class Tabs(object):
         self.tabs = []                                         # list of bytearrays, one for each string; for all the tabs
         self.chordInfo = {}                                    # dict column -> (list of dict intervals -> note names) i.e. dict col -> list of imaps for status chord info
         self.selectChords = {}
+        self.selectImaps = {}
         self.analyzeIndex = -1                                 # index being analyzed for chord info
         self.chordStatusCol = None                             # tab column index used to display chord info on status row
         
@@ -1683,6 +1684,7 @@ class Tabs(object):
     
     def printIntervals(self, dbg=1):
         if dbg: print('printIntervals() chordInfo={}'.format(self.chordInfo), file=Tabs.DBG_FILE)
+        print('printIntervals() selectChords={}'.format(self.selectChords), file=Tabs.DBG_FILE)
         for line in range(0, self.numLines):
             for r in range(0, self.numStrings):
                 row = r + line * self.lineDelta() + self.endRow(0) + self.NOTES_LEN + 1
@@ -1693,8 +1695,12 @@ class Tabs(object):
                     cc = c + line * self.numTabsPerStringPerLine
                     if cc in self.chordInfo:
                         imap = self.chordInfo[cc][0]
+                        imapstr = Tabs.imap2String(imap)
+                        print('printIntervals() imapstr={} selectImaps={}'.format(imapstr, self.selectImaps), file=Tabs.DBG_FILE)
+                        if imapstr in self.selectImaps:
+                            imap = self.selectImaps[imapstr]
                         im = {imap[k]:k for k in imap}
-                        if dbg: print('printIntervals() row={} r={} c={} cc={} line={} imap={} ci[c]={}'.format(row, r, c, cc, line, imap, self.chordInfo[cc][0]), file=Tabs.DBG_FILE)
+                        if dbg: print('printIntervals() row={} r={} c={} cc={} line={} im={} imap={} ci[c]={}'.format(row, r, c, cc, line, im, imap, self.chordInfo[cc][0]), file=Tabs.DBG_FILE)
                         capTab = tab = self.tabs[r][c + line * self.numTabsPerStringPerLine]
                         if Tabs.isFret(chr(tab)):
                             capTab = self.getFretByte(self.getFretNum(tab) + self.getFretNum(self.capo))
@@ -1711,7 +1717,7 @@ class Tabs(object):
                             else: self.prints('-', row, c + self.COL_OFF, self.styles['NAT_H_NOTE'])
                         else: self.prints('-', row, c + c, self.styles['NAT_H_NOTE'])
                     else: self.prints('-', row, c + self.COL_OFF, self.styles['NAT_H_NOTE'])
-
+    
     def printInterval(self, row, col, ival, dbg=1):
         style = self.styles['NAT_H_NOTE']
         if dbg: print('printInterval() row={},col={}, ival={}'.format(row, col, ival), file=Tabs.DBG_FILE)
@@ -1720,7 +1726,14 @@ class Tabs(object):
             elif ival == 'a5': style = self.styles['SHP_H_NOTE']
             ival = ival[1]
         self.prints(ival, row, col, style)
-
+    
+    @staticmethod
+    def imap2String(imap):
+        s = ''
+        for k in imap:
+            s += '{}:{} '.format(k, imap[k])
+        return s.strip()
+    
     def printStatus(self):
         r, c = self.rowCol2Indices(self.row, self.col)
         tab = chr(self.tabs[r][c])
@@ -1731,7 +1744,7 @@ class Tabs(object):
         Tabs.clearRow(arg=0, file=self.outFile)
         self.printChordStatus(tab, r, c)
         self.resetPos()
-        
+    
     def printFretStatus(self, tab, r, c):
         s, ss = r + 1, self.getOrdSfx(r + 1)
         f, fs = self.getFretNum(ord(tab)), self.getOrdSfx(self.getFretNum(ord(tab)))
@@ -1800,16 +1813,24 @@ class Tabs(object):
         
     def selectChord(self):
         r, c = self.rowCol2Indices(self.row, self.col)
-        print('selectChord({}, {}) r={}, c={}'.format(self.row, self.col, r, c), file=Tabs.DBG_FILE)
+        print('selectChord() row={} col={} r={} c={}'.format(self.row, self.col, r, c), file=Tabs.DBG_FILE)
         if c in self.chordInfo:
-            print('selectChord() len(chordInfo[{}])={}'.format(c, len(self.chordInfo[c])), file=Tabs.DBG_FILE)
+            print('selectChord() len(chordInfo[{}])={} chordInfo[{}]={}'.format(c, len(self.chordInfo[c]), c, self.chordInfo[c]), file=Tabs.DBG_FILE)
             m = self.analyzeIndex % len(self.chordInfo[c])
             name, imap = self.printChordInfo(chr(self.tabs[r][c]), r, c, m)
             self.selectChords[name] = imap
             print('selectChord() m={} analyzeIndex={} selectChords[{}]={}'.format(m, self.analyzeIndex, name, self.selectChords[name]), file=Tabs.DBG_FILE)
+            im = self.chordInfo[c][0]
+            imk = ''
+            for k in im: 
+                imk += '{}:{} '.format(k, im[k])
+            imk = imk.strip()
+            print('selectChord() adding imap={} : {} to selectImaps={}'.format(im, imap, self.selectImaps), file=Tabs.DBG_FILE)
+            self.selectImaps[imk] = imap
+            print('selectChord() selectImaps={}'.format(self.selectImaps), file=Tabs.DBG_FILE)
             self.printTabs(c=c)
         self.resetPos()
-       
+    
     def printChordInfo(self, tab, r, c, m, dbg=1):
         imap = self.chordInfo[c][m]
         imapKeys = sorted(imap, key=self.chordsObj.imapKeyFunc, reverse=False)

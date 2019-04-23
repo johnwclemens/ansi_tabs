@@ -67,7 +67,7 @@ class Chords(object):
             intervals = self.getIntervals(i, indices, dbg=dbg)
             (imap, imapKeys, imapNotes, chordKey) = self.getImapAndKeys(intervals, _notes, dbg=dbg)
             currentName = self.updateChords(i, chordKey, imap, count, dbg=dbg)
-            limap = self.getLimap(imap, limap, currentName, selected)
+            limap = self.getLimap(imap, limap, currentName)
             self.tabsObj.chordInfo[self.c] = limap
             if len(currentName) > 0:
                 chordName = currentName
@@ -202,7 +202,7 @@ class Chords(object):
             elif dbg: print('{}printChord({}) index={}, Key=\'{}\' not a chord'.format(self.indent, self.c, j, chordKey), file=self.tabsObj.dbgFile)
         return chordName
 
-    def getLimap(self, imap, limap, chordName, selected):
+    def getLimap(self, imap, limap, chordName):
         if imap not in limap:
             if len(chordName) > 0:
                 self.printLimaps(imap, limap, chordName, 'printChord(getLimap()) prepend ')
