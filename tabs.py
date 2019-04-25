@@ -1684,6 +1684,7 @@ class Tabs(object):
                 for c in range(2, self.COL_OFF):
                     self.prints(' ', row, c, self.styles['IVAL_LABEL'])
                 for c in range (0, self.numTabsPerStringPerLine):
+                    self.prints('-', row, c + self.COL_OFF, self.styles['NAT_H_NOTE'])
                     cc = c + line * self.numTabsPerStringPerLine
                     if cc in self.chordInfo:
                         imap = self.chordInfo[cc][0]
@@ -1704,12 +1705,9 @@ class Tabs(object):
                                     n = self.getNote(r + 1, tab)
                                 nn = n.name
                                 if nn in im:
-                                    print('printIntervals() row={} r={} tab={} capTab={} nn={} im[nn]={} imapstr={}'.format(row, r, chr(tab), chr(capTab), nn, im[nn], imapstr), file=Tabs.DBG_FILE)
+                                    print('printIntervals() row={} r={} c={} cc={} tab={} capTab={} nn={} im[nn]={} imapstr={}'.format(row, r, c, cc, chr(tab), chr(capTab), nn, im[nn], imapstr), file=Tabs.DBG_FILE)
                                     self.printInterval(row, c + self.COL_OFF, im[nn], dbg=dbg)
-                                else: print('printIntervals(?) nn={} NOT IN im={} imap={}'.format(nn, im, imap), file=Tabs.DBG_FILE) 
-                            else: self.prints('-', row, c + self.COL_OFF, self.styles['NAT_H_NOTE'])
-                        else: self.prints('-', row, c + c, self.styles['NAT_H_NOTE'])
-                    else: self.prints('-', row, c + self.COL_OFF, self.styles['NAT_H_NOTE'])
+                                else: self.printe('printIntervals() nn={} NOT IN im={} imap={}'.format(nn, im, imap))
     
     def printInterval(self, row, col, ival, dbg=1):
         style = self.styles['NAT_H_NOTE']
