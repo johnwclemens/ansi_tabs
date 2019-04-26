@@ -945,9 +945,10 @@ class Tabs(object):
         '''123456789112345678921234567893123456789412345678951234567896123456789712345678981234567899123456789012345678911234567892123456789312345678941234567895'''
         if c % 10: style += self.styles['MIN_COL_NUM']
         else:      style += self.styles['MAJ_COL_NUM']
-        self.prints('{}'.format(self.getColMod(c)), row, c + self.COL_OFF - 1, style)
+        self.prints('{}'.format(Tabs.getColMod(c)), row, c + self.COL_OFF - 1, style)
 
-    def getColMod(self, c):
+    @staticmethod
+    def getColMod(c):
         if c % 10:    return c % 10
         elif c < 100: return c // 10
         else:         return ((c - 100) // 10)
@@ -1560,7 +1561,7 @@ class Tabs(object):
                 if r == 0:
                     print('L={}: '.format(line), end='', file=Tabs.DBG_FILE)
                     for c in range(0, self.numTabsPerStringPerLine):
-                        print('{}'.format(self.getColMod(c)), end='', file=Tabs.DBG_FILE)
+                        print('{}'.format(Tabs.getColMod(c)), end='', file=Tabs.DBG_FILE)
                     print(file=Tabs.DBG_FILE)
                 print('R={}: '.format(r), end='', file=Tabs.DBG_FILE)
                 for c in range(0, self.numTabsPerStringPerLine):
@@ -1687,19 +1688,20 @@ class Tabs(object):
                     self.prints('-', row, c + self.COL_OFF, self.styles['NAT_H_NOTE'])
                     cc = c + line * self.numTabsPerStringPerLine
                     if cc in self.chordInfo:
-                        imap = self.chordInfo[cc][0]
-                        imapstr = Tabs.imap2String(imap)
-                        if dbg: print('printIntervals() imap={} imapstr={} selectImaps={}'.format(imap, imapstr, self.selectImaps), file=Tabs.DBG_FILE)
-                        if imapstr in self.selectImaps:
-                            imap = self.selectImaps[imapstr]
-                            print('printIntervals() found imapstr={} in selectImaps={} swapping imap={}'.format(imapstr, self.selectImaps, imap), file=Tabs.DBG_FILE)
-                        im = {imap[k]:k for k in imap}
-                        if dbg: print('printIntervals() row={} r={} c={} cc={} line={} im={} imap={} ci[c]={}'.format(row, r, c, cc, line, im, imap, self.chordInfo[cc][0]), file=Tabs.DBG_FILE)
-                        capTab = tab = self.tabs[r][c + line * self.numTabsPerStringPerLine]
+                        if r == 0:
+                            imap = self.chordInfo[cc][0]
+                            imapstr = Tabs.imap2String(imap)
+                            if dbg: print('printIntervals() imap={} imapstr={} selectImaps={}'.format(imap, imapstr, self.selectImaps), file=Tabs.DBG_FILE)
+                            if imapstr in self.selectImaps:
+                                imap = self.selectImaps[imapstr]
+                                print('printIntervals() found imapstr={} in selectImaps={} swapping imap={}'.format(imapstr, self.selectImaps, imap), file=Tabs.DBG_FILE)
+                            im = {imap[k]:k for k in imap}
+                            if dbg: print('printIntervals() row={} r={} c={} cc={} line={} im={} imap={} ci[c]={}'.format(row, r, c, cc, line, im, imap, self.chordInfo[cc][0]), file=Tabs.DBG_FILE)
+                        capTab = tab = self.tabs[r][cc]
                         if Tabs.isFret(chr(tab)):
                             capTab = self.getFretByte(self.getFretNum(tab) + self.getFretNum(self.capo))
                             if Tabs.isFret(chr(capTab)):
-                                if chr(self.htabs[r][c + line * self.numTabsPerStringPerLine]) == '1':
+                                if chr(self.htabs[r][cc]) == '1':
                                     n = self.getHarmonicNote(r + 1, tab)
                                 else:
                                     n = self.getNote(r + 1, tab)
