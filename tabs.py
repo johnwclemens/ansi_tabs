@@ -1675,7 +1675,7 @@ class Tabs(object):
         style = self.getNoteStyle(n, style, hn)
         self.prints(n.name[0], row, col, style)
     
-    def printIntervals(self, dbg=0):
+    def printIntervals(self, dbg=1):
         if dbg: print('printIntervals() chordInfo={}'.format(self.chordInfo), file=Tabs.DBG_FILE)
         print('printIntervals() selectChords={}'.format(self.selectChords), file=Tabs.DBG_FILE)
         for line in range(0, self.numLines):
@@ -1691,12 +1691,11 @@ class Tabs(object):
                         if r == 0:
                             imap = self.chordInfo[cc][0]
                             imapstr = Tabs.imap2String(imap)
-                            if dbg: print('printIntervals() imap={} imapstr={} selectImaps={}'.format(imap, imapstr, self.selectImaps), file=Tabs.DBG_FILE)
+                            if dbg: print('printIntervals() imapstr={} imap={} selectImaps={}'.format(imapstr, imap, self.selectImaps), file=Tabs.DBG_FILE)
                             if imapstr in self.selectImaps:
                                 imap = self.selectImaps[imapstr]
-                                print('printIntervals() found imapstr={} in selectImaps={} swapping imap={}'.format(imapstr, self.selectImaps, imap), file=Tabs.DBG_FILE)
+                                print('printIntervals() FOUND imapstr={} in selectImaps={} swapping imap={}'.format(imapstr, self.selectImaps, imap), file=Tabs.DBG_FILE)
                             im = {imap[k]:k for k in imap}
-                            if dbg: print('printIntervals() row={} r={} c={} cc={} line={} im={} imap={} ci[c]={}'.format(row, r, c, cc, line, im, imap, self.chordInfo[cc][0]), file=Tabs.DBG_FILE)
                         capTab = tab = self.tabs[r][cc]
                         if Tabs.isFret(chr(tab)):
                             capTab = self.getFretByte(self.getFretNum(tab) + self.getFretNum(self.capo))
@@ -1707,13 +1706,13 @@ class Tabs(object):
                                     n = self.getNote(r + 1, tab)
                                 nn = n.name
                                 if nn in im:
-                                    print('printIntervals() row={} r={} c={} cc={} tab={} capTab={} nn={} im[nn]={} imapstr={}'.format(row, r, c, cc, chr(tab), chr(capTab), nn, im[nn], imapstr), file=Tabs.DBG_FILE)
+                                    print('printIntervals() line={} row={} r={} c={} cc={} tab={} capTab={} nn={} im[nn]={} im={}'.format(line, row, r, c, cc, chr(tab), chr(capTab), nn, im[nn], im), file=Tabs.DBG_FILE)
                                     self.printInterval(row, c + self.COL_OFF, im[nn], dbg=dbg)
                                 else: self.printe('printIntervals() nn={} NOT IN im={} imap={}'.format(nn, im, imap))
     
     def printInterval(self, row, col, ival, dbg=1):
         style = self.styles['NAT_H_NOTE']
-        if dbg: print('printInterval() row={},col={}, ival={}'.format(row, col, ival), file=Tabs.DBG_FILE)
+        if dbg: print('printInterval() row={} col={} ival={}'.format(row, col, ival), file=Tabs.DBG_FILE)
         if len(ival) > 1:
             if ival == 'm2' or ival == 'm3' or ival == 'b5' or ival == 'b7': style = self.styles['FLT_H_NOTE']
             elif ival == 'a5': style = self.styles['SHP_H_NOTE']
