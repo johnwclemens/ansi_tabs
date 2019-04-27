@@ -1688,25 +1688,25 @@ class Tabs(object):
                     self.prints('-', row, c + self.COL_OFF, self.styles['NAT_H_NOTE'])
                     cc = c + line * self.numTabsPerStringPerLine
                     if cc in self.chordInfo:
-                        if r == 0:
-                            imap = self.chordInfo[cc][0]
-                            imapstr = Tabs.imap2String(imap)
-                            if dbg: print('printIntervals() imapstr={} imap={} selectImaps={}'.format(imapstr, imap, self.selectImaps), file=Tabs.DBG_FILE)
-                            if imapstr in self.selectImaps:
-                                imap = self.selectImaps[imapstr]
-                                print('printIntervals() FOUND imapstr={} in selectImaps={} swapping imap={}'.format(imapstr, self.selectImaps, imap), file=Tabs.DBG_FILE)
-                            im = {imap[k]:k for k in imap}
-                        capTab = tab = self.tabs[r][cc]
+#                        if r == 0:
+                        imap = self.chordInfo[cc][0]
+                        imapstr = Tabs.imap2String(imap)
+                        if dbg: print('printIntervals() line={} row={} r={} c={} cc={} imapstr={} imap={} selectImaps={}'.format(line, row, r, c, cc, imapstr, imap, self.selectImaps), file=Tabs.DBG_FILE)
+                        if imapstr in self.selectImaps:
+                            imap = self.selectImaps[imapstr]
+                            print('printIntervals() FOUND imapstr={} in selectImaps={} swapping imap={}'.format(imapstr, self.selectImaps, imap), file=Tabs.DBG_FILE)
+                        im = {imap[k]:k for k in imap}
+                        tab = self.tabs[r][cc]
                         if Tabs.isFret(chr(tab)):
-                            capTab = self.getFretByte(self.getFretNum(tab) + self.getFretNum(self.capo))
-                            if Tabs.isFret(chr(capTab)):
+                            tab = self.getFretByte(self.getFretNum(tab) + self.getFretNum(self.capo))
+                            if Tabs.isFret(chr(tab)):
                                 if chr(self.htabs[r][cc]) == '1':
                                     n = self.getHarmonicNote(r + 1, tab)
                                 else:
                                     n = self.getNote(r + 1, tab)
                                 nn = n.name
                                 if nn in im:
-                                    print('printIntervals() line={} row={} r={} c={} cc={} tab={} capTab={} nn={} im[nn]={} im={}'.format(line, row, r, c, cc, chr(tab), chr(capTab), nn, im[nn], im), file=Tabs.DBG_FILE)
+                                    print('printIntervals() line={} row={} r={} c={} cc={} tab={} nn={} im[nn]={} im={}'.format(line, row, r, c, cc, chr(tab), nn, im[nn], im), file=Tabs.DBG_FILE)
                                     self.printInterval(row, c + self.COL_OFF, im[nn], dbg=dbg)
                                 else: self.printe('printIntervals() nn={} NOT IN im={} imap={}'.format(nn, im, imap))
     
