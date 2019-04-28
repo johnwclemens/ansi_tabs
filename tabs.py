@@ -1458,36 +1458,36 @@ class Tabs(object):
         nc, rangeError, row, col, rr, cc = 0, 0, self.row, self.col, 0, 0
         line, ns, nt, nsr, nsc, nst = self.row2Line(self.row), self.numStrings, len(self.tabs[0]), len(self.selectRows), len(self.selectCols), len(self.selectTabs)
         if nst == 0:
-            self.printe('pasteSelectTabs() no tabs to paste, nsr={}, nsc={}, nst={}, use CTRL/SHIFT C or X to copy or cut selected tabs'.format(nsr, nsc, nst))
+            self.printe('_initPasteInfo() no tabs to paste, nsr={}, nsc={}, nst={}, use CTRL/SHIFT C or X to copy or cut selected tabs'.format(nsr, nsc, nst))
 #            return rangeError, nc, row, col, rr, cc, line, ns, nt, nsr, nsc, nst
             return rangeError, nc, row, col, self.row2Index(row), cc, line, ns, nt, nsr, nsc, nst
         nst, br, er = len(self.selectTabs[0]), self.bgnRow(line), self.endRow(line)
-        print('pasteSelectTabs({},{}) ({},{}) bgn ns={}, nt={}, nsr={}, nsc={}, nst={}, line={}, br={}, er={}'.format(self.arpeggiate, self.cursorDir, row, col, ns, nt, nsr, nsc, nst, line, br, er), file=Tabs.DBG_FILE)
+        print('_initPasteInfo({},{}) ({},{}) bgn ns={}, nt={}, nsr={}, nsc={}, nst={}, line={}, br={}, er={}'.format(self.arpeggiate, self.cursorDir, row, col, ns, nt, nsr, nsc, nst, line, br, er), file=Tabs.DBG_FILE)
         while row + nsr - 1 > er:
             row -= 1
-            if row < br: self.printe('pasteSelectTabs() tried to adjust row={} < br={}, nsr={}'.format(row, br, nsr))
-            print('pasteSelectTabs(--row) row={} + nsr={} - 1 <= er={}'.format(row, nsr, er), file=Tabs.DBG_FILE)
+            if row < br: self.printe('_initPasteInfo() tried to adjust row={} < br={}, nsr={}'.format(row, br, nsr))
+            print('_initPasteInfo(--row) row={} + nsr={} - 1 <= er={}'.format(row, nsr, er), file=Tabs.DBG_FILE)
         rr, cc = self.rowCol2Indices(row, col)
         if self.arpeggiate is None: nc = nsc
         else:                       nc = nst
-        print('pasteSelectTabs({},{}) row={}, col={}, rr={}, cc={}, nc={}'.format(self.arpeggiate, self.cursorDir, row, col, rr, cc, nc), file=Tabs.DBG_FILE)
+        print('_initPasteInfo({},{}) row={}, col={}, rr={}, cc={}, nc={}'.format(self.arpeggiate, self.cursorDir, row, col, rr, cc, nc), file=Tabs.DBG_FILE)
         if self.editMode == self.EDIT_MODES['INSERT']:
             for c in range(nt - 1, cc - 1, -1):
                 for r in range(0, nsr):
                     if c >= nc + cc:
                         self.tabs[r][c] = self.tabs[r][c - nc]
                         self.htabs[r][c] = self.htabs[r][c - nc]
-                        print('pasteSelectTabs(INSERT) c={} >= cc={} + nc={}, tabs[{}][{}]={}'.format(c, cc, nc, r, c, chr(self.tabs[r][c])), file=Tabs.DBG_FILE)
+                        print('_initPasteInfo(INSERT) c={} >= cc={} + nc={}, tabs[{}][{}]={}'.format(c, cc, nc, r, c, chr(self.tabs[r][c])), file=Tabs.DBG_FILE)
                     elif self.arpeggiate:
                         self.tabs[r][c] = ord('-')
                         self.htabs[r][c] = ord('-')
-                        print('pasteSelectTabs(INSERT) c={} < cc={} + nst={}, tabs[{}][{}]={}'.format(c, cc, nst, r, c, chr(self.tabs[r][c])), file=Tabs.DBG_FILE)
+                        print('_initPasteInfo(INSERT) c={} < cc={} + nst={}, tabs[{}][{}]={}'.format(c, cc, nst, r, c, chr(self.tabs[r][c])), file=Tabs.DBG_FILE)
         elif self.editMode == self.EDIT_MODES['REPLACE'] and self.arpeggiate and cc + nst < nt:
             for c in range(cc, cc + nst):
                 for r in range(0, nsr):
                     self.tabs[r][c] = ord('-')
                     self.htabs[r][c] = ord('-')
-                    print('pasteSelectTabs(REPLACE) tabs[{}][{}]={}'.format(r, c, chr(self.tabs[r][c])), file=Tabs.DBG_FILE)
+                    print('_initPasteInfo(REPLACE) tabs[{}][{}]={}'.format(r, c, chr(self.tabs[r][c])), file=Tabs.DBG_FILE)
         for c in range(0, nsc):
             if rangeError: break
             for r in range(0, nsr):
@@ -1495,7 +1495,7 @@ class Tabs(object):
                     if   self.cursorDir == self.CURSOR_DIRS['DOWN']: ccc = c * nsr + r
                     elif self.cursorDir == self.CURSOR_DIRS['UP']:   ccc = (c + 1) * nsr - r - 1
                 else: ccc = c
-                print('pasteSelectTabs(check) r={}, rr={}, c={}, cc={}, ccc={}, nt={}, nst={}'.format(r, rr, c, cc, ccc, nt, nst), end='', file=Tabs.DBG_FILE)
+                print('_initPasteInfo(check) r={}, rr={}, c={}, cc={}, ccc={}, nt={}, nst={}'.format(r, rr, c, cc, ccc, nt, nst), end='', file=Tabs.DBG_FILE)
                 if c < nst:
                     if ccc + cc < nt:
                         self.tabs[r + rr][ccc + cc] = self.selectTabs[r][ccc]
@@ -1503,10 +1503,10 @@ class Tabs(object):
                         print(', selectTabs[{}][{}]={}, tabs[{}][{}]={}'.format(r, ccc, chr(self.selectTabs[r][ccc]), r + rr, ccc + cc, chr(self.tabs[r + rr][ccc + cc])), file=Tabs.DBG_FILE)
                     else:
                         print(file=Tabs.DBG_FILE)
-                        self.printe('pasteSelectTabs() ccc={} + cc={} >= len(tabs[0])={} skip remaining rows and columns'.format(ccc, cc, len(self.tabs[0])))
+                        self.printe('_initPasteInfo() ccc={} + cc={} >= len(tabs[0])={} skip remaining rows and columns'.format(ccc, cc, len(self.tabs[0])))
                         rangeError = 1
                         break
-            print('pasteSelectTabs(loop1) c={}, sc={}'.format(c, self.selectCols[c]), file=Tabs.DBG_FILE)
+            print('_initPasteInfo(loop1) c={} selectCols[c]={} selectCols={}'.format(c, self.selectCols[c], self.selectCols), file=Tabs.DBG_FILE)
             if not rangeError: self.selectStyle(self.selectCols[c], self.styles['NORMAL'], rList=self.selectRows)
         return rangeError, nc, row, col, rr, cc, line, ns, nt, nsr, nsc, nst
         
@@ -1544,7 +1544,23 @@ class Tabs(object):
                         else:
                             self.prints(chr(tab), row + self.numStrings, col, self.styles['NAT_NOTE'])
                     if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
-                        self.prints(chr(tab), row + self.numStrings + self.NOTES_LEN, col, self.styles['NAT_NOTE'])
+                        row = r + line * self.lineDelta() + self.endRow(0) + self.NOTES_LEN + 1
+                        print('pasteSelectTabs(DISPLAY_INTERVALS) row={} col={} r={} c={} tab={} self.selectCols={} chordInfo={}'.format(row, col, r, c, chr(tab), self.selectCols, self.chordInfo), file=Tabs.DBG_FILE)
+                        for sc in self.selectCols:
+                            if sc in self.chordInfo:
+                                imap = self.chordInfo[sc][0]
+                                imapstr = Tabs.imap2String(imap)
+                                im = {imap[k]:k for k in imap}
+                                if Tabs.isFret(chr(tab)):
+                                    tab = self.getFretByte(self.getFretNum(tab) + self.getFretNum(self.capo))
+                                    if Tabs.isFret(chr(tab)):
+                                        if chr(self.htabs[r][sc]) == '1':
+                                            n = self.getHarmonicNote(r + 1, tab)
+                                        else:
+                                            n = self.getNote(r + 1, tab)
+                                        nn = n.name
+                                        if nn in im:
+                                            self.printInterval(row, col, im[nn], dbg=1)
             self.resetPos()
         if not rangeError:
             self.selectTabs, self.selectHTabs, self.selectCols, self.selectRows = [], [], [], []
@@ -1688,7 +1704,6 @@ class Tabs(object):
                     self.prints('-', row, c + self.COL_OFF, self.styles['NAT_H_NOTE'])
                     cc = c + line * self.numTabsPerStringPerLine
                     if cc in self.chordInfo:
-#                        if r == 0:
                         imap = self.chordInfo[cc][0]
                         imapstr = Tabs.imap2String(imap)
                         if dbg: print('printIntervals() line={} row={} r={} c={} cc={} imapstr={} imap={} selectImaps={}'.format(line, row, r, c, cc, imapstr, imap, self.selectImaps), file=Tabs.DBG_FILE)
