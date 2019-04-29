@@ -1399,7 +1399,7 @@ class Tabs(object):
             
     def deleteSelectTabs(self, delSel=True):
         '''Delete selected tabs.'''
-        self.printLineInfo('deleteSelectTabs({}, {})'.format(self.row, self.col))
+        self.printLineInfo('deleteSelectTabs({}, {}) delSel={} selectCols={}'.format(self.row, self.col, delSel, self.selectCols))
         self.selectCols.sort(key = int, reverse = True)
         for c in range(0, len(self.selectCols)):
             self.deleteTabs(self.selectCols[c])
@@ -1429,6 +1429,7 @@ class Tabs(object):
         if cc in self.chordInfo:
             print('deleteTabs() deleting chordInfo[{}]={}'.format(cc, self.chordInfo[cc]), file=Tabs.DBG_FILE)
             del self.chordInfo[cc]
+            print('deleteTabs() chordInfo={}'.format(self.chordInfo), file=Tabs.DBG_FILE)
 #        self.dumpTabs('deleteTabs({}, {}) (row,col)=({},{}), cc={} bgn: '.format(self.row, self.col, row, col, cc))
         if self.editMode == self.EDIT_MODES['INSERT']:
             for r in range(0, self.numStrings):
@@ -1441,17 +1442,18 @@ class Tabs(object):
             self.printTabs()
         elif self.editMode == self.EDIT_MODES['REPLACE']:
             for r in range(0, self.numStrings):
-                tab = ord('-')
-                self.tabs[r][cc] = tab
+                tab = '-'
+                self.tabs[r][cc] = ord(tab)
                 self.htabs[r][cc] = ord('0')
-                if cc in self.chordInfo:
-                    print('deleteTabs() deleting chordInfo[{}]={}'.format(cc, self.chordInfo[cc]), file=Tabs.DBG_FILE)
-                    del self.chordInfo[cc]
+                self.prints(tab, r + row, col, self.styles['TABS'])
                 if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
-                    self.prints(chr(tab), r + row + self.numStrings, col, self.styles['NAT_NOTE'])
+                    rr = r + row + self.numStrings
+                    print('deleteTabs(DISPLAY_NOTES) prints({}, {}, {})'.format(tab, rr, col), file=Tabs.DBG_FILE)
+                    self.prints(tab, rr, col, self.styles['NAT_NOTE'])
                 if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
-                    self.prints(chr(tab), r + row + self.numStrings + self.NOTES_LEN, col, self.styles['NAT_NOTE'])
-                self.prints(chr(tab), r + row, col, self.styles['TABS'])
+                    rr = r + row + self.numStrings + self.NOTES_LEN
+                    print('deleteTabs(DISPLAY_INTERVALS) prints({}, {}, {})'.format(tab, rr, col), file=Tabs.DBG_FILE)
+                    self.prints(tab, rr, col, self.styles['NAT_NOTE'])
 #        self.dumpTabs('deleteTabs({}, {}) col={} end: '.format(self.row, self.col, col))
 
     def _initPasteInfo(self):
@@ -1459,7 +1461,6 @@ class Tabs(object):
         line, ns, nt, nsr, nsc, nst = self.row2Line(self.row), self.numStrings, len(self.tabs[0]), len(self.selectRows), len(self.selectCols), len(self.selectTabs)
         if nst == 0:
             self.printe('_initPasteInfo() no tabs to paste, nsr={}, nsc={}, nst={}, use CTRL/SHIFT C or X to copy or cut selected tabs'.format(nsr, nsc, nst))
-#            return rangeError, nc, row, col, rr, cc, line, ns, nt, nsr, nsc, nst
             return rangeError, nc, row, col, self.row2Index(row), cc, line, ns, nt, nsr, nsc, nst
         nst, br, er = len(self.selectTabs[0]), self.bgnRow(line), self.endRow(line)
         print('_initPasteInfo({},{}) ({},{}) bgn ns={}, nt={}, nsr={}, nsc={}, nst={}, line={}, br={}, er={}'.format(self.arpeggiate, self.cursorDir, row, col, ns, nt, nsr, nsc, nst, line, br, er), file=Tabs.DBG_FILE)
@@ -1514,6 +1515,8 @@ class Tabs(object):
         '''Paste selected tabs as is or either stretched in time (like arpeggios) or compressed in time.'''
         rangeError, nc, row, col, rr, cc, line, ns, nt, nsr, nsc, nst = self._initPasteInfo()
         if nst == 0: return
+        if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
+            self.chordsObj.printChords()
         if self.editMode == self.EDIT_MODES['INSERT']:
             self.printTabs(cc)
         elif self.editMode == self.EDIT_MODES['REPLACE']:
@@ -1545,27 +1548,24 @@ class Tabs(object):
                             self.prints(chr(tab), row + self.numStrings, col, self.styles['NAT_NOTE'])
                     if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
                         row = r + line * self.lineDelta() + self.endRow(0) + self.NOTES_LEN + 1
-                        print('pasteSelectTabs(DISPLAY_INTERVALS) row={} col={} r={} c={} tab={} self.selectCols={} chordInfo={}'.format(row, col, r, c, chr(tab), self.selectCols, self.chordInfo), file=Tabs.DBG_FILE)
-                        for sc in self.selectCols:
-                            if sc in self.chordInfo:
-                                imap = self.chordInfo[sc][0]
-                                imapstr = Tabs.imap2String(imap)
-                                im = {imap[k]:k for k in imap}
+                        print('pasteSelectTabs(DISPLAY_INTERVALS) row={} col={} r={} c={} tab={} selectCols={} chordInfo={}'.format(row, col, r, c, chr(tab), self.selectCols, self.chordInfo), file=Tabs.DBG_FILE)
+                        if cc in self.chordInfo:
+                            imap = self.chordInfo[cc][0]
+                            imapstr = Tabs.imap2String(imap)
+                            im = {imap[k]:k for k in imap}
+                            if Tabs.isFret(chr(tab)):
+                                tab = self.getFretByte(self.getFretNum(tab) + self.getFretNum(self.capo))
                                 if Tabs.isFret(chr(tab)):
-                                    tab = self.getFretByte(self.getFretNum(tab) + self.getFretNum(self.capo))
-                                    if Tabs.isFret(chr(tab)):
-                                        if chr(self.htabs[r][sc]) == '1':
-                                            n = self.getHarmonicNote(r + 1, tab)
-                                        else:
-                                            n = self.getNote(r + 1, tab)
-                                        nn = n.name
-                                        if nn in im:
-                                            self.printInterval(row, col, im[nn], dbg=1)
+                                    if chr(self.htabs[r][cc]) == '1':
+                                        n = self.getHarmonicNote(r + 1, tab)
+                                    else:
+                                        n = self.getNote(r + 1, tab)
+                                    nn = n.name
+                                    if nn in im:
+                                        self.printInterval(row, col, im[nn], dbg=1)
             self.resetPos()
         if not rangeError:
             self.selectTabs, self.selectHTabs, self.selectCols, self.selectRows = [], [], [], []
-        if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
-            self.chordsObj.printChords()
         self.resetPos()
         self.arpeggiate, self.selectFlag = 0, 0
         self.dumpTabs('pasteSelectTabs({},{}) end row={}, col={}'.format(self.arpeggiate, self.cursorDir, row, col))
