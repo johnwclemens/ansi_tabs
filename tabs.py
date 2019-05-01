@@ -1176,17 +1176,8 @@ class Tabs(object):
                     if Tabs.isFret(chr(capTab)):
                         self.printInterval(row + self.numStrings + self.numStrings, col, 'R')
                 else:
-                    imap = self.chordInfo[cc][0]
-                    im = {imap[k]:k for k in imap}
                     for r in range(self.numStrings):
-                        if Tabs.isFret(chr(self.tabs[r][cc])):
-                            row = self.indices2Row(r, cc)
-                            n = self.getNote(r + 1, self.tabs[r][cc])
-                            print('setTab(DISPLAY_INTERVALS) r={}, row={}, nn={}'.format(r, row, n.name), file=Tabs.DBG_FILE)
-                            if n.name in im:
-                                ival = im[n.name]
-                                print('setTab(DISPLAY_INTERVALS) row={} col={} ival={}'.format(row, col, ival), file=Tabs.DBG_FILE)
-                                self.printInterval(row + self.numStrings + self.NOTES_LEN, col, ival)
+                        self.wrapPrintInterval(r, cc)
         self.moveCursor()
         self.dumpTabs('setTab() end')
 
@@ -1548,21 +1539,9 @@ class Tabs(object):
                             self.prints(chr(tab), row + self.numStrings, col, self.styles['NAT_NOTE'])
                     if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
                         row = r + line * self.lineDelta() + self.endRow(0) + self.NOTES_LEN + 1
-                        print('pasteSelectTabs(DISPLAY_INTERVALS) row={} col={} r={} c={} tab={} selectCols={} chordInfo={}'.format(row, col, r, c, chr(tab), self.selectCols, self.chordInfo), file=Tabs.DBG_FILE)
-                        if cc in self.chordInfo:
-                            imap = self.chordInfo[cc][0]
-                            imapstr = Tabs.imap2String(imap)
-                            im = {imap[k]:k for k in imap}
-                            if Tabs.isFret(chr(tab)):
-                                tab = self.getFretByte(self.getFretNum(tab) + self.getFretNum(self.capo))
-                                if Tabs.isFret(chr(tab)):
-                                    if chr(self.htabs[r][cc]) == '1':
-                                        n = self.getHarmonicNote(r + 1, tab)
-                                    else:
-                                        n = self.getNote(r + 1, tab)
-                                    nn = n.name
-                                    if nn in im:
-                                        self.printInterval(row, col, im[nn], dbg=1)
+                        print('pasteSelectTabs(DISPLAY_INTERVALS) row={} col={} r={} c={} cc={} tab={} selectCols={} chordInfo={}'.format(row, col, r, c, cc, chr(tab), self.selectCols, self.chordInfo), file=Tabs.DBG_FILE)
+                        if c in self.chordInfo:
+                            self.wrapPrintInterval(r, c)
             self.resetPos()
         if not rangeError:
             self.selectTabs, self.selectHTabs, self.selectCols, self.selectRows = [], [], [], []
@@ -1703,27 +1682,8 @@ class Tabs(object):
                 for c in range (0, self.numTabsPerStringPerLine):
                     self.prints('-', row, c + self.COL_OFF, self.styles['NAT_H_NOTE'])
                     cc = c + line * self.numTabsPerStringPerLine
-                    if cc in self.chordInfo:
-                        imap = self.chordInfo[cc][0]
-                        imapstr = Tabs.imap2String(imap)
-                        if dbg: print('printIntervals() line={} row={} r={} c={} cc={} imapstr={} imap={} selectImaps={}'.format(line, row, r, c, cc, imapstr, imap, self.selectImaps), file=Tabs.DBG_FILE)
-                        if imapstr in self.selectImaps:
-                            imap = self.selectImaps[imapstr]
-                            print('printIntervals() FOUND imapstr={} in selectImaps={} swapping imap={}'.format(imapstr, self.selectImaps, imap), file=Tabs.DBG_FILE)
-                        im = {imap[k]:k for k in imap}
-                        tab = self.tabs[r][cc]
-                        if Tabs.isFret(chr(tab)):
-                            tab = self.getFretByte(self.getFretNum(tab) + self.getFretNum(self.capo))
-                            if Tabs.isFret(chr(tab)):
-                                if chr(self.htabs[r][cc]) == '1':
-                                    n = self.getHarmonicNote(r + 1, tab)
-                                else:
-                                    n = self.getNote(r + 1, tab)
-                                nn = n.name
-                                if nn in im:
-                                    print('printIntervals() line={} row={} r={} c={} cc={} tab={} nn={} im[nn]={} im={}'.format(line, row, r, c, cc, chr(tab), nn, im[nn], im), file=Tabs.DBG_FILE)
-                                    self.printInterval(row, c + self.COL_OFF, im[nn], dbg=dbg)
-                                else: self.printe('printIntervals() nn={} NOT IN im={} imap={}'.format(nn, im, imap))
+                    if cc in self.chordInfo: 
+                        self.wrapPrintInterval(r, cc)
     
     def printInterval(self, row, col, ival, dbg=1):
         style = self.styles['NAT_H_NOTE']
@@ -1733,6 +1693,25 @@ class Tabs(object):
             elif ival == 'a5': style = self.styles['SHP_H_NOTE']
             ival = ival[1]
         self.prints(ival, row, col, style)
+    
+    def wrapPrintInterval(self, r, c):
+        imap = self.chordInfo[c][0]
+        imapstr = Tabs.imap2String(imap)
+        print('wrapPrintInterval() c={} imapstr={} imap={} selectImaps={}'.format(c, imapstr, imap, self.selectImaps), file=Tabs.DBG_FILE)
+        if imapstr in self.selectImaps:
+            imap = self.selectImaps[imapstr]
+            print('wrapPrintInterval() FOUND imapstr={} in selectImaps={} swapping imap={}'.format(imapstr, self.selectImaps, imap), file=Tabs.DBG_FILE)
+        im = {imap[k]:k for k in imap}
+        tab = self.tabs[r][c]
+        if Tabs.isFret(chr(tab)):
+            row, col = self.indices2RowCol(r, c)
+            if chr(self.htabs[r][c]) == '1':
+                n = self.getHarmonicNote(r + 1, tab)
+            else:
+                n = self.getNote(r + 1, tab)
+            nn = n.name
+            if nn in im:
+                self.printInterval(row + self.numStrings + self.NOTES_LEN, col, im[nn])
     
     @staticmethod
     def imap2String(imap):
