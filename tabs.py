@@ -144,8 +144,9 @@ class Tabs(object):
             self.inName = self.argMap['f'][0]                       # file to read from
             self.outName = self.argMap['f'][0]                      # file to write to, only written to with the saveTabs command
             backupName = self.outName + '.bak'
-            print('saving backup file: {}'.format(backupName), file=Tabs.DBG_FILE)
-            shutil.copy2(self.outName, backupName)
+            if os.path.isfile(backupName):
+                print('saving backup file: {}'.format(backupName), file=Tabs.DBG_FILE)
+                shutil.copy2(self.outName, backupName)
         if 't' in self.argMap and len(self.argMap['t']) > 0:
             self.initTabLen(self.argMap['t'])                       # set number of tabs/columns per line (and per string)
         if 'S' in self.argMap and len(self.argMap['S']) > 0:
@@ -1538,8 +1539,8 @@ class Tabs(object):
                         else:
                             self.prints(chr(tab), row + self.numStrings, col, self.styles['NAT_NOTE'])
                     if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
-                        row = r + line * self.lineDelta() + self.endRow(0) + self.NOTES_LEN + 1
                         print('pasteSelectTabs(DISPLAY_INTERVALS) row={} col={} r={} c={} cc={} tab={} selectCols={} chordInfo={}'.format(row, col, r, c, cc, chr(tab), self.selectCols, self.chordInfo), file=Tabs.DBG_FILE)
+                        self.printInterval(row + self.numStrings + self.NOTES_LEN, col, '-')
                         if c in self.chordInfo:
                             self.wrapPrintInterval(r, c)
             self.resetPos()
