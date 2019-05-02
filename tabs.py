@@ -112,7 +112,7 @@ class Tabs(object):
         self.NOTES_LEN = 0                                     # number of rows used to display notes  on a given line
         self.INTERVALS_LEN = 0                                 # number of rows used to display intervals on a given line
         self.NUM_FRETS = 24                                    # number of frets (might make this a list for each string)?
-        self.IVAL_LABEL = 'INTRVL'
+        self.IVAL_LABEL = 'INTRVL'                             # label displayed for intervals (first col)
         
         self.hiliteCount = 0                                   # statistic for measuring efficiency
         self.hiliteColNum = 0                                  # used to hilite the current cursor column and unhilite the previous cursor column
@@ -120,7 +120,7 @@ class Tabs(object):
         self.hilitePrevRowPos = 0
         self.row = self.ROW_OFF                                # current cursor row    number
         self.col = self.COL_OFF                                # current cursor column number
-        self.editModeCol = 1                                   # column to display edit mode
+        self.editModeCol = 1                                   # column to display edit  mode
         self.cursorModeCol = 2                                 # column to display cursor mode
         self.lastRow = self.ROW_OFF + self.numLines * self.lineDelta() - 1  # the row used to display status, set here in case initStrings() fails e.g. tab mod info or error info etc...
         
@@ -1157,6 +1157,7 @@ class Tabs(object):
                 else:
                     self.prints(chr(capTab), row + self.numStrings, col, self.styles['NAT_NOTE'])
             if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
+                self.chordsObj.eraseChord(cc)
                 noteCount = 0
                 for r in range(0, self.numStrings):
                     if Tabs.isFret(chr(self.tabs[r][cc])):
