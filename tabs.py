@@ -126,7 +126,7 @@ class Tabs(object):
         
         self.displayLabels = self.DISPLAY_LABELS['DISABLED']   # enable or disable the display of the modes and labels section before each line
         self.displayNotes = self.DISPLAY_NOTES['DISABLED']     # enable or disable the display of the notes section for each line
-        self.displayIntervals = self.DISPLAY_INTERVALS['DISABLED']
+        self.displayIntervals = self.DISPLAY_INTERVALS['DISABLED'] # enable or disable the display of the intervals section for each line
         self.displayChords = self.DISPLAY_CHORDS['DISABLED']   # enable or disable the display of the chords section for each line
         self.cursorDir = self.CURSOR_DIRS['DOWN']              # affects the automatic cursor movement (up/down) when entering a tab in chord or arpeggio mode
         self.enharmonic = self.ENHARMONICS['SHARP']            # toggle between displaying enharmonic notes as flat or sharp
@@ -1305,6 +1305,7 @@ class Tabs(object):
     
     def eraseTabs(self):
         '''Erase all tabs (resets all tabs to '-').'''
+        print('eraseTabs()', file=Tabs.DBG_FILE)
         for r in range(0, len(self.tabs)):
             for c in range(0, len(self.tabs[r])):
                 self.tabs[r][c] = ord('-')
@@ -1971,15 +1972,16 @@ class Tabs(object):
         summary = \
         '''
 Note the console window should be at least as wide as the number of tabs + 2.  Window resizing is not supported.  
-The command line arg -t specifies the number of tabs per string per line.  
-The command line arg -f specifies the file name to read from and write to.  
-The command line arg -s specifies the spelling of the string names e.g. -s 'E2A2D3G3B3E4' is 6 string standard guitar tuning.  
-The command line arg -S specifies the spelling of the string names via an alias e.g. -s 'GUITAR' is 6 string standard guitar tuning.  
-The command line arg -k specifies the fret to place the capo at [0-9], [a-o].  
-The command line arg -i specifies the automatic cursor advance direction is downward rather than upward.  
-The command line arg -F specifies the use of flat enharmonic notes instead of sharp enharmonic notes.  
+The command line arg -t sets the number of tabs per string per line.  
+The command line arg -f sets the file name to read from and write to.  
+The command line arg -s sets the spelling of the string names e.g. -s 'E2A2D3G3B3E4' is 6 string standard guitar tuning.  
+The command line arg -S sets the spelling of the string names via an alias e.g. -s 'GUITAR' is 6 string standard guitar tuning.  
+The command line arg -k sets the fret to place the capo at [0-9], [a-o].  
+The command line arg -i sets the automatic cursor advance direction is downward rather than upward.  
+The command line arg -F sets the use of flat enharmonic notes instead of sharp enharmonic notes.  
 The command line arg -a enables display of the optional label row and the cursor and edit modes.  
 The command line arg -n enables display of the optional notes section.  
+The command line arg -o enables display of the optional intervals section.  
 The command line arg -b enables display of the optional chords section.
 The command line arg -l moves the cursor to the last tab on the current line of the current string  
 The command line arg -L moves the cursor to the last tab on the current line of all strings  
@@ -1989,7 +1991,7 @@ The command line arg -h enables display of this help info.
 
 Tabs are displayed in the tabs section with an optional row to label and highlight the selected tab column.  
 An optional notes section and an optional chords section can also be displayed below the tabs section.  
-A number of lines can be displayed where each line has its own tabs, notes, and chords sections.  
+A number of lines can be displayed where each line has its own tabs, notes, intervals, and chords sections.  
 ''' + self.hilite('Tabs section:') + ''' 
 Tabs are displayed using rows and columns of ASCII characters, essentially one character per tab.  
 Tabs are represented by the single digits [0-9] and the letters [a-o], rather than [10-24].  
@@ -2013,6 +2015,9 @@ Also note the tabs section is the only section that is editable.  The navigation
 The notes section has the same number of rows and columns as the tabs section and displays the note names corresponding to the tabs in the tabs section.  
 The notes section uses the color red to indicate a sharp note and blue to represent a flat note.  
 Note any optional tab modification characters present in the tabs section are also displayed in the notes section.  
+''' + self.hilite('Intervals section:  \'Ctrl B\'') + ''' 
+The intervals section has the same number of rows and columns as the tabs section and displays the note intervals corresponding to the chord in the chords section.  
+The intervals section uses the color red to indicate a sharp interval and blue to represent a flat interval.  
 ''' + self.hilite('Chords section:  \'Ctrl B\'') + ''' 
 Chords are spelled vertically so that they line up with the tabs and notes and potentially every column can display a chord.  
 Chord names are automatically calculated and recalculated whenever the number of tabs in a given column is greater than one.  
