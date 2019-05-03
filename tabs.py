@@ -1158,15 +1158,19 @@ class Tabs(object):
                     self.prints(chr(capTab), row + self.numStrings, col, self.styles['NAT_NOTE'])
             if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
                 self.chordsObj.eraseChord(cc)
+                if cc in self.chordInfo: print('setTab(DISPLAY_CHORDS) chordInfo[{}]={}'.format(cc, self.chordInfo[cc]), file=Tabs.DBG_FILE)
                 noteCount = 0
                 for r in range(0, self.numStrings):
                     if Tabs.isFret(chr(self.tabs[r][cc])):
+                        print('setTab(DISPLAY_CHORDS) r={} cc={} chordInfo={}'.format(r, cc, self.chordInfo), file=Tabs.DBG_FILE)
                         noteCount += 1
                         if noteCount > 1:
                             print('setTab(DISPLAY_CHORDS) r={}, increment noteCount={}'.format(r, noteCount), file=Tabs.DBG_FILE)
                             self.chordsObj.printChord(c=cc)
                             break
-                        else: print('setTab(DISPLAY_CHORDS) r={}, noteCount={}'.format(r, noteCount), file=Tabs.DBG_FILE)
+                        else: 
+                            print('setTab(DISPLAY_CHORDS) r={}, noteCount={}'.format(r, noteCount), file=Tabs.DBG_FILE)
+                            del self.chordInfo[cc]
             if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
                 irow = self.indices2Row(self.lineDelta() * self.colIndex2Line(cc) + self.numStrings + self.NOTES_LEN, col)
                 if dbg: print('setTab(DISPLAY_INTERVALS) irow={} line={} cc={}'.format(irow, self.colIndex2Line(cc), cc), file=Tabs.DBG_FILE)
@@ -1740,7 +1744,7 @@ class Tabs(object):
         if   Tabs.isFret(tab): self.printFretStatus(tab, r, c)
         elif tab in self.mods: self.printModStatus(tab, r, c)
         else:                  self.printDefaultStatus(tab, r, c)
-        Tabs.clearRow(arg=0, file=self.outFile)
+        Tabs.clearRow(arg=0, row=self.lastRow, col=0, file=self.outFile)
         self.printChordStatus(tab, r, c)
         self.resetPos()
     
@@ -1856,7 +1860,7 @@ class Tabs(object):
         if self.chordStatusCol is not None:
             if infoCol < self.chordStatusCol: self.chordStatusCol = infoCol
         else: self.chordStatusCol = infoCol
-        if dbg: print('printChordInfo() info={}, chordName={}, col={}, cols[c]={}'.format(info, chordName, infoCol, self.chordStatusCol), file=Tabs.DBG_FILE)
+        if dbg: print('printChordInfo() info={}, chordName={}, icol={}, chordStatusCol={}'.format(info, chordName, infoCol, self.chordStatusCol), file=Tabs.DBG_FILE)
         Tabs.clearRow(arg=0, row=self.lastRow, col=self.chordStatusCol, file=self.outFile)
         style = self.CSI + self.styles['HLT_STUS']
         if len(chordName) > 0:
@@ -1958,14 +1962,14 @@ class Tabs(object):
     
     @staticmethod
     def clearRow(arg=2, row=None, col=None, file=None): # arg=0: cursor to end of line, arg=1: begin of line to cursor, arg=2: entire line 
-        print('clearRow() row={}, col={}'.format(row, col), file=Tabs.DBG_FILE)
+        print('clearRow() arg={} row={}, col={}'.format(arg, row, col), file=Tabs.DBG_FILE)
         if row is not None and col is not None:
             print(Tabs.CSI + '{};{}H'.format(row, col), end='', file=file)
         print(Tabs.CSI + '{}K'.format(arg), end='', file=file)
     
     @staticmethod
     def clearScreen(arg=2, file=None):
-        print('clearScreen()'.format(), file=Tabs.DBG_FILE)
+        print('clearScreen() arg={}'.format(arg), file=Tabs.DBG_FILE)
         print(Tabs.CSI + '{}J'.format(arg), file=file)
     
     def printHelpSummary(self):
