@@ -12,7 +12,7 @@ class Mods(object):
         self.tabsObj = tabsObj
         self.mods = {}
         self.setMods()
-
+    
     def _setMods(self, pn, nn, ph, nh):
         '''Internal method to update tab modifiers dictionary with contextual data.'''
         self.mods['#']  = self._frmt(' mute ', pn, nn, ph, nh, shrt=1)
@@ -26,7 +26,7 @@ class Mods(object):
         self.mods[']'] = self._frmt(' end_group {} ', pn, nn, ph, nh, shrt=1)
         self.mods['|']  = self._frmt(' bar ', pn, nn, ph, nh, shrt=1)
         self.mods['%']  = self._frmt(' repeat ', pn, nn, ph, nh, shrt=1)
-
+    
     def _frmt(self, modText, pn, nn, ph, nh, shrt=0):
         '''Internal method to format the tab modifiers dictionary string values.'''
         CSI, pnt, nnt = self.tabsObj.CSI, '', ''
@@ -54,7 +54,7 @@ class Mods(object):
             val = fStyle + pfn + stStyle + ' fret' + ntStyle + '{}'.format(pnt) + pnStyle + '{}{}'.format(pnn, pno) + stStyle + modText + \
                   fStyle + nfn + stStyle + ' fret' + ntStyle + '{}'.format(nnt) + nnStyle + '{}{}'.format(nnn, nno)
         return val
-        
+    
     def setMods(self, dir1=None, dir2=None, prevFN=None, prevNote=None, nextNote=None, nextFN=None, ph=0, nh=0):
         '''Specify the contextual data for tab modifiers'''
         if dir1 is not None: self.dir1 = dir1
@@ -69,3 +69,4 @@ class Mods(object):
     
     def getMods(self):
         return self.mods
+    

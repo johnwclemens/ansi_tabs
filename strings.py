@@ -23,7 +23,7 @@ class Strings(object):
         self.ALIASES['CELLO']                     = ['C2G2D3A3']
         self.ALIASES['VIOLA']                     = ['C3G3D4A4']
         self.ALIASES['VIOLIN']                    = ['G3D4A4E5']
-
+    
     def __init__(self, dbgFile, spelling=None, alias=None):
         '''The alias argument overrides the spelling argument.  e.g. alias=['GUITAR'] -> strings=['E2A2D3G3B3E4'] represents a standard 6 string guitar tuning.'''
         self.dbgFile = dbgFile
@@ -47,25 +47,25 @@ class Strings(object):
         if spelling:
             print('Strings() spelling={}'.format(spelling), file=self.dbgFile)
             self._parseSpelling(spelling)
-
+    
     @property
     def map(self):
         return self._map
-
+    
     @property
     def keys(self):
         return self._keys
-
+    
     @map.setter
     def map(self):
         '''Return map of string note name -> note index e.g. a standard 6 string guitar tuning { E2:28 A2:33 D3:38 G3:43 B3:47 E4:52 }.'''
         return self._map
-
+    
     @keys.setter
     def keys(self):
         '''Return the keys sorted in ascending order.'''
         return self._keys
-
+    
     def _parseSpelling(self, spelling):
         '''Parse string spelling into map of note name -> note index.'''
         key = None
@@ -103,7 +103,8 @@ class Strings(object):
         for k in self.keys:
             print(' {}:{}'.format(k, self.map[k]), end='', file=self.dbgFile)
         print(' }', file=self.dbgFile)
-
+    
     def _mapKeyFunc(self, inKey):
         '''Internal method for sorting the map keys in ascending order.'''
         return self.map[inKey]
+    

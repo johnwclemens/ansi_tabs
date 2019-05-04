@@ -19,19 +19,19 @@ class Chords(object):
         self.tabsObj = tabsObj
         self.chords = collections.OrderedDict()                 # dict of chord spelling -> chord name; cache of discovered chords to avoid calculation
         print('Chords() tabsObj={}, chords={}'.format(tabsObj, self.chords), file=tabsObj.DBG_FILE)
-
+    
     def imapKeyFunc(self, inKey):
         return self.INTERVAL_RANK[inKey]
-        
+    
     def getChordKey(self, keys):
         return ' '.join(keys)
-
+    
     def eraseChord(self, cc):
         row, col = self.tabsObj.indices2RowCol(self.tabsObj.numStrings + self.tabsObj.NOTES_LEN + self.tabsObj.INTERVALS_LEN, cc)
 #        print('eraseChord({}) (row,col)=({},{}) bgn: '.format(cc, row, col), file=self.tabsObj.DBG_FILE)
         for r in range(self.tabsObj.CHORDS_LEN):
             self.tabsObj.prints(' ', r + row, col, self.tabsObj.styles['NAT_CHORD'])
-
+    
     def printChords(self):
         print('printChords({} {}) {} =?= {} * {}'.format(self.tabsObj.row, self.tabsObj.col, self.tabsObj.numTabsPerString, self.tabsObj.numLines, self.tabsObj.numTabsPerStringPerLine), file=self.tabsObj.DBG_FILE)
         for line in range(self.tabsObj.numLines):
@@ -47,7 +47,7 @@ class Chords(object):
                     self.printChord(c=c)
                     break
             print(file=self.tabsObj.outFile)
-
+    
     def printChord(self, c=None, dbg=1):
         '''Analyze notes in given column index and if a valid chord is discovered then print it in the appropriate chords section.'''
         self.c = c
@@ -79,14 +79,14 @@ class Chords(object):
             imap = limap[0]
             print('printChord() currentName={} chordName={} imap={}'.format(currentName, chordName, imap), file=self.tabsObj.DBG_FILE)
             self.printChordName(row, col, chordName, imap)
-
+    
     def printStrings(self):
         print('{}Strings     ['.format(self.indent), end='', file=self.tabsObj.DBG_FILE)
         for r in range(self.tabsObj.numStrings - 1, -1, -1):
             if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][self.c])):
                 note = self.tabsObj.getNote(r + 1, 0)
                 print('{:>2}/{:<2}'.format(r + 1, note.name), end=' ', file=self.tabsObj.DBG_FILE)
-
+    
     def printTabs(self, capoed=0):
         tbs = []
         if capoed: label = ']\n{}capoed tabs ['.format(self.indent)
@@ -99,7 +99,7 @@ class Chords(object):
         print('{}'.format(label), end='', file=self.tabsObj.DBG_FILE)
         for t in range(len(tbs)):
             print('{:>5}'.format(tbs[t]), end=' ', file=self.tabsObj.DBG_FILE)
-
+    
     def getNotesAndIndices(self, dbg=0):
         _notes = []
         for r in range(self.tabsObj.numStrings):
@@ -123,7 +123,7 @@ class Chords(object):
                 print('{:>5}'.format(indices[t]), end=' ', file=self.tabsObj.DBG_FILE)
             print(']', file=self.tabsObj.DBG_FILE)
         return (_notes, indices)
-
+    
     def getIntervals(self, j, indices, dbg=0):
         deltas = []
         for i in range(len(indices)):
@@ -144,7 +144,7 @@ class Chords(object):
             for t in range(len(deltas)):
                 print('{:>5}'.format(intervals[t]), end=' ', file=self.tabsObj.DBG_FILE)
         return intervals
-
+    
     def getImapAndKeys(self, intervals, _notes, dbg=0):
         imap = collections.OrderedDict(sorted(dict(zip(intervals, _notes)).items(), key=lambda t: self.INTERVAL_RANK[t[0]]))
         imapKeys = imap.keys()
@@ -180,7 +180,7 @@ class Chords(object):
                 print('({}):{}'.format(k, self.chords[k]), end=', ', file=self.tabsObj.DBG_FILE)
             print(']', file=self.tabsObj.DBG_FILE)
         return (imap, imapKeys, imapNotes, chordKey)
-
+    
     def updateChords(self, j, chordKey, imap, count, dbg=0):
         chordName = ''
         if chordKey in self.chords:
@@ -201,7 +201,7 @@ class Chords(object):
                     print(']', file=self.tabsObj.DBG_FILE)
             elif dbg: print('{}printChord({}) index={}, Key=\'{}\' not a chord'.format(self.indent, self.c, j, chordKey), file=self.tabsObj.DBG_FILE)
         return chordName
-
+    
     def getLimap(self, imap, limap, chordName):
         if imap not in limap:
             if len(chordName) > 0:
@@ -216,21 +216,21 @@ class Chords(object):
             limap.insert(0, imap)
         self.printLimap(limap)
         return limap
-
+    
     def printLimaps(self, imap, limap, chordName, reason):
         if chordName: print('{} chord={} imap=['.format(reason, chordName), end=' ', file=self.tabsObj.DBG_FILE)
         else: print('{} imap=['.format(reason), end=' ', file=self.tabsObj.DBG_FILE)
         for k in imap: print('{}:{}'.format(k, imap[k]), end=' ', file=self.tabsObj.DBG_FILE)
         print('] to', end=' ', file=self.tabsObj.DBG_FILE)
         self.printLimap(limap)
-
+    
     def printLimap(self, limap):
         print('limap=[', end=' ', file=self.tabsObj.DBG_FILE)
         for m in limap:
             for k in m: print('{}:{}'.format(k, m[k]), end=' ', file=self.tabsObj.DBG_FILE)
             print(',', end=' ', file=self.tabsObj.DBG_FILE)
         print(']', file=self.tabsObj.DBG_FILE)
-
+    
     def printChordName(self, row, col, chordName, imap, imapKeys=None, dbg=1):
         if dbg: print('printChordName() name={}, imap={}'.format(chordName, imap), file=self.tabsObj.DBG_FILE)
         if len(chordName) > 1 and ( chordName[1] == '#' or chordName[1] == 'b' ):
@@ -258,7 +258,7 @@ class Chords(object):
         for i in range(i, self.tabsObj.CHORDS_LEN):
             self.tabsObj.prints(' ', i + row, col, self.tabsObj.styles['NAT_CHORD'])
         if dbg: print('printChordName() name={}'.format(chordName), file=self.tabsObj.DBG_FILE)
-
+    
     def getChordName(self, imap):
         '''Calculate chord name.'''
         r = imap['R']
@@ -443,7 +443,7 @@ class Chords(object):
                     if   '2' in imap or '9' in imap:          return '{}M7s2n5'.format(r)  # Maj7sus2(no5)
                     elif '4' in imap or '11' in imap:         return '{}M7s4n5'.format(r)  # Maj7sus4(no5)
         return ''
-
+    
 '''
 Chord Naming Conventions:
 | -----------------------------------------------------------------------------|
