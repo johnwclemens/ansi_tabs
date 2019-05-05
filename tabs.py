@@ -1349,16 +1349,19 @@ class Tabs(object):
             else: break
         shift = int(''.join(tmp))
         shifted = False
-        print('shiftSelectTabs({}, {})'.format(shift, len(self.selectCols)), file=Tabs.DBG_FILE)
+        print('shiftSelectTabs() shift={} selectCols={}'.format(shift, self.selectCols), file=Tabs.DBG_FILE)
         for cc in range(0, len(self.selectCols)):
             for r in range(0, self.numStrings):
                 c = self.selectCols[cc]
-                if Tabs.isFret(chr(self.tabs[r][c])):
-                    if self.tabs[r][c] + shift >= ord('0') - 1:
-                        self.tabs[r][c] = self.tabs[r][c] + shift
+                tab = self.tabs[r][c]
+                if Tabs.isFret(chr(tab)):
+                    tabFN = self.getFretNum(tab)
+                    if 0 <= self.getFretNum(tab) + shift <= self.NUM_FRETS:
+                        self.tabs[r][c] = self.getFretByte(self.getFretNum(tab) + shift)
                         shifted = True
-                        print('shiftSelectTabs() r,c,tab=({},{},{})'.format(r, c, chr(self.tabs[r][c])), file=Tabs.DBG_FILE)
-                    else: self.printe('shiftSelectTabs() Lower than open string! r,c,tab=({},{},{})'.format(self.row, self.col, chr(self.tabs[r][c])))
+                        print('shiftSelectTabs({},{}) tab={} tabFN={} shift={} shiftedFN={} shifted={}'.format(r, c, chr(tab), tabFN, shift, tabFN + shift, chr(self.tabs[r][c])), file=Tabs.DBG_FILE)
+                    else: self.printe('shiftSelectTabs() out of range (0-{})! r={} c={} tab={} tabFN={} shift={}'.format(self.NUM_FRETS, r, c, chr(tab), tabFN, shift))
+        self.selectCols = []
         if shifted:
             self.printTabs()
     
@@ -1946,10 +1949,10 @@ class Tabs(object):
         if fretByte >= ord('a'): fretNum = fretByte - (ord('a') - 10)
         return fretNum
     
-    @staticmethod
-    def getFretByte(fretNum):
+#    @staticmethod
+    def getFretByte(self, fretNum):
         fretByte = fretNum + ord('0')
-        if 10 <= fretNum <= 24: fretByte = fretNum + ord('a') - 10
+        if 10 <= fretNum <= self.NUM_FRETS: fretByte = fretNum + ord('a') - 10
         return fretByte
     
     @staticmethod
