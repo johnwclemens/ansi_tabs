@@ -33,6 +33,7 @@ class Chords(object):
             self.tabsObj.prints(' ', r + row, col, self.tabsObj.styles['NAT_CHORD'])
     
     def printChords(self):
+        self.tabsObj.printFileMark('<BGN_CHORDS_SECTION>')
         print('printChords({} {}) {} =?= {} * {}'.format(self.tabsObj.row, self.tabsObj.col, self.tabsObj.numTabsPerString, self.tabsObj.numLines, self.tabsObj.numTabsPerStringPerLine), file=self.tabsObj.DBG_FILE)
         for line in range(self.tabsObj.numLines):
             row = self.tabsObj.ROW_OFF + line * self.tabsObj.lineDelta() + self.tabsObj.numStrings + self.tabsObj.NOTES_LEN + self.tabsObj.INTERVALS_LEN
@@ -47,6 +48,7 @@ class Chords(object):
                     self.printChord(c=c)
                     break
             print(file=self.tabsObj.outFile)
+        self.tabsObj.printFileMark('<END_CHORDS_SECTION>')
     
     def printChord(self, c=None, dbg=1):
         '''Analyze notes in given column index and if a valid chord is discovered then print it in the appropriate chords section.'''

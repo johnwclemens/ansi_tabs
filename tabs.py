@@ -1610,21 +1610,13 @@ class Tabs(object):
             print()
         self.printFileMark('<END_TABS_SECTION>')
         if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
-            self.printFileMark('<BGN_NOTES_SECTION>')
             self.printNotes()
-            self.printFileMark('<END_NOTES_SECTION>')
         if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
-            self.printFileMark('<BGN_CHORDS_SECTION>')
             self.chordsObj.printChords()
-            self.printFileMark('<END_CHORDS_SECTION>')
         if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
-            self.printFileMark('<BGN_INTERVALS_SECTION>')
             self.printIntervals()
-            self.printFileMark('<END_INTERVALS_SECTION>')
         if self.displayLabels == self.DISPLAY_LABELS['ENABLED']:
-            self.printFileMark('<BGN_LABELS_SECTION>')
             self.printLabels()
-#            self.printFileMark('<END_LABELS_SECTION>')
         if self.row > 0 and self.col > 0:
             print(self.CSI + self.styles['NORMAL'] + self.styles['CONS'] + self.CSI + '{};{}H'.format(self.row, self.col), end='') # restore the console cursor to the given position (row, col) and set the foreground and background color
         self.printLineInfo('printTabs({}, {}) end'.format(self.row, self.col))
@@ -1648,6 +1640,7 @@ class Tabs(object):
         return self.getEnharmonicStyle(n.name, natStyle, fltStyle, shpStyle)
     
     def printNotes(self):
+        self.printFileMark('<BGN_NOTES_SECTION>')
         for line in range(0, self.numLines):
             for r in range(0, self.numStrings):
                 row = r + line * self.lineDelta() + self.endRow(0) + 1
@@ -1673,6 +1666,7 @@ class Tabs(object):
                     else: self.prints(chr(tab), row, c + self.COL_OFF, self.styles['NAT_NOTE'])
                 print(file=self.outFile)
             print()
+        self.printFileMark('<END_NOTES_SECTION>')
     
     def printNote(self, row, col, n, style='', hn=None, dbg=0):
         if dbg: print('printNote() row={},col={}, nn={}'.format(row, col, n.name), file=Tabs.DBG_FILE)
@@ -1680,6 +1674,7 @@ class Tabs(object):
         self.prints(n.name[0], row, col, style)
     
     def printIntervals(self, dbg=0):
+        self.printFileMark('<BGN_INTERVALS_SECTION>')
         if dbg: print('printIntervals() chordInfo={}'.format(self.chordInfo), file=Tabs.DBG_FILE)
         print('printIntervals() selectChords={}'.format(self.selectChords), file=Tabs.DBG_FILE)
         for line in range(0, self.numLines):
@@ -1693,6 +1688,7 @@ class Tabs(object):
                     cc = c + line * self.numTabsPerStringPerLine
                     if cc in self.chordInfo: 
                         self.wrapPrintInterval(r, cc, dbg=dbg)
+        self.printFileMark('<END_INTERVALS_SECTION>')
     
     def printInterval(self, row, col, ival, dbg=1):
         style = self.styles['NAT_H_NOTE']
@@ -1730,6 +1726,7 @@ class Tabs(object):
         return s.strip()
     
     def printLabels(self):
+        self.printFileMark('<BGN_LABELS_SECTION>')
         for line in range(0, self.numLines):
             r = line * self.lineDelta() + 1
             if self.outFile == None:
@@ -1739,6 +1736,7 @@ class Tabs(object):
                 if self.outFile != None: print(file=self.outFile)
             self.printColNums(r)
             if self.outFile != None: print(file=self.outFile)
+#        self.printFileMark('<END_LABELS_SECTION>')
     
     def printStatus(self):
         r, c = self.rowCol2Indices(self.row, self.col)
