@@ -1170,16 +1170,16 @@ class Tabs(object):
                             break
                         else: 
                             print('setTab(DISPLAY_CHORDS) r={}, noteCount={}'.format(r, noteCount), file=Tabs.DBG_FILE)
-                            if cc in self.chordInfo: del self.chordInfo[cc]
             if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
                 irow = self.indices2Row(self.lineDelta() * self.colIndex2Line(cc) + self.numStrings + self.NOTES_LEN, col)
-                if dbg: print('setTab(DISPLAY_INTERVALS) irow={} line={} cc={}'.format(irow, self.colIndex2Line(cc), cc), file=Tabs.DBG_FILE)
                 for r in range(self.numStrings):
                     self.printInterval(irow + r, col, '-', dbg=0)
+                print('setTab(DISPLAY_INTERVALS) irow={} line={} cc={} chordInfo={}'.format(irow, self.colIndex2Line(cc), cc, self.chordInfo), file=Tabs.DBG_FILE)
                 if cc not in self.chordInfo:
                     print('setTab(DISPLAY_INTERVALS) row={} col={} ival={}'.format(row, col, 'R'), file=Tabs.DBG_FILE)
                     if Tabs.isFret(chr(capTab)):
                         self.printInterval(row + self.numStrings + self.numStrings, col, 'R', dbg=0)
+                    else: print('setTab(DISPLAY_INTERVALS) NOT a Fret tab={}'.format(chr(capTab)), file=Tabs.DBG_FILE)
                 else:
                     for r in range(self.numStrings):
                         self.wrapPrintInterval(r, cc, dbg=dbg)
@@ -1291,11 +1291,11 @@ class Tabs(object):
             self.prints(chr(self.tabs[r][c]), row, col, self.styles['TABS'])
             if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
                 self.prints(chr(self.tabs[r][c]), row + self.numStrings, col, self.styles['NAT_NOTE'])
-            if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
-                self.prints(chr(self.tabs[r][c]), row + self.numStrings + self.NOTES_LEN, col, self.styles['NAT_NOTE'])
             if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
                 self.chordsObj.eraseChord(c)
                 self.chordsObj.printChord(c=c)
+            if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
+                self.printColumnIvals(c)
             if back: self.moveLeft()
             else:    self.moveRight()
         if Tabs.isFret(chr(tab)) and tabFN == maxFN:
@@ -1673,9 +1673,21 @@ class Tabs(object):
         style = self.getNoteStyle(n, style, hn)
         self.prints(n.name[0], row, col, style)
     
+    def printColumnIvals(self, c, dbg=0):
+        line = self.colIndex2Line(c)
+        if dbg: print('printColumnIvals() line={} selectChords={}'.format(line, self.selectChords), file=Tabs.DBG_FILE)
+        for r in range(0, self.numStrings):
+            row = r + line * self.lineDelta() + self.endRow(0) + self.NOTES_LEN + 1
+            cc = c % self.numTabsPerStringPerLine
+            self.prints('-', row, cc + self.COL_OFF, self.styles['NAT_H_NOTE'])
+            if r == 0 and (c == 10 or c == 218 or c == 426):
+                print('printColumnIvals() line={} r={} row={} c={} cc={} chordInfo={}'.format(line, r, row, c, cc, self.chordInfo), file=Tabs.DBG_FILE)
+            if c in self.chordInfo: 
+                self.wrapPrintInterval(r, c, dbg=dbg)
+    
     def printIntervals(self, dbg=0):
         self.printFileMark('<BGN_INTERVALS_SECTION>')
-        if dbg: print('printIntervals() chordInfo={}'.format(self.chordInfo), file=Tabs.DBG_FILE)
+        print('printIntervals() chordInfo={}'.format(self.chordInfo), file=Tabs.DBG_FILE)
         print('printIntervals() selectChords={}'.format(self.selectChords), file=Tabs.DBG_FILE)
         for line in range(0, self.numLines):
             for r in range(0, self.numStrings):
@@ -1684,13 +1696,11 @@ class Tabs(object):
                 for c in range(2, self.COL_OFF):
                     self.prints(' ', row, c, self.styles['IVAL_LABEL'])
                 for c in range (0, self.numTabsPerStringPerLine):
-                    self.prints('-', row, c + self.COL_OFF, self.styles['NAT_H_NOTE'])
                     cc = c + line * self.numTabsPerStringPerLine
-                    if cc in self.chordInfo: 
-                        self.wrapPrintInterval(r, cc, dbg=dbg)
+                    self.printColumnIvals(cc)
         self.printFileMark('<END_INTERVALS_SECTION>')
     
-    def printInterval(self, row, col, ival, dbg=1):
+    def printInterval(self, row, col, ival, dbg=0):
         style = self.styles['NAT_H_NOTE']
         if dbg: print('printInterval() row={} col={} ival={}'.format(row, col, ival), file=Tabs.DBG_FILE)
         if len(ival) > 1:
