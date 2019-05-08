@@ -1271,6 +1271,9 @@ class Tabs(object):
         if row is None: row = self.row
         if col is None: col = self.col
         r, c = self.rowCol2Indices(row, col)
+        if c < 0:
+            c = self.endCol() - self.bgnCol()
+            col = self.endCol()
         tab = self.tabs[r][c]
         tabFN = self.getFretNum(tab)
         maxFN = self.getFretNum(self.maxFret)
@@ -1583,11 +1586,11 @@ class Tabs(object):
     
     def printTabs(self, c=None):
         '''Print tabs using ANSI escape sequences to control the cursor position, foreground and background colors, and brightness'''
-        self.printLineInfo('printTabs({}, {}) bgn'.format(self.row, self.col))
+        self.printLineInfo('printTabs({}, {}) c={} bgn'.format(self.row, self.col, c))
         if c: cc, ll = c % self.numTabsPerStringPerLine, self.colIndex2Line(c)
         else: cc, ll = 0, 0
         print('printTabs() ll={} cc={}'.format(ll, cc), file=Tabs.DBG_FILE)
-#        if self.outFile == None: Tabs.clearScreen()
+        Tabs.clearScreen()
         self.printFileMark('<BGN_TABS_SECTION>')
         for line in range(ll, self.numLines):
             if c and line == ll: ccc = cc
