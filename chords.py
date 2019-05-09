@@ -9,6 +9,7 @@ class Chords(object):
     def __init__(self, tabsObj):
         self.CHORD_LABEL = 'CHORD'
         self.c = None
+        self.chordNames = {}
         self.indent = '    '
         self.INTERVALS = { 0:'R',  1:'b2',  2:'2',  3:'m3',  4:'M3',  5:'4',   6:'b5',  7:'5',  8:'a5',  9:'6',  10:'b7', 11:'7', 12:'R'}
         #                  , 13:'b2', 14:'2', 15:'m3', 16:'M3', 17:'4',  18:'b5', 19:'5', 20:'a5', 21:'6',  22:'b7', 23:'7',
@@ -45,10 +46,11 @@ class Chords(object):
             self.eraseChord(c)
             for r in range(self.tabsObj.numStrings):
                 if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][c])):
-                    self.printChord(c=c)
+                    self.chordNames[c] = self.printChord(c=c)
                     break
             print(file=self.tabsObj.outFile)
         self.tabsObj.printFileMark('<END_CHORDS_SECTION>')
+        return self.chordNames
     
     def printChord(self, c=None, dbg=0):
         '''Analyze notes in given column index and if a valid chord is discovered then print it in the appropriate chords section.'''
@@ -81,6 +83,7 @@ class Chords(object):
             imap = limap[0]
             if dbg: print('printChord() currentName={} chordName={} imap={}'.format(currentName, chordName, imap), file=self.tabsObj.DBG_FILE)
             self.printChordName(row, col, chordName, imap)
+        return chordName
     
     def printStrings(self):
         print('{}Strings     ['.format(self.indent), end='', file=self.tabsObj.DBG_FILE)
@@ -259,7 +262,7 @@ class Chords(object):
             i += 1
         for i in range(i, self.tabsObj.CHORDS_LEN):
             self.tabsObj.prints(' ', i + row, col, self.tabsObj.styles['NAT_CHORD'])
-        print('printChordName({}) name={}'.format(self.c, chordName), file=self.tabsObj.DBG_FILE)
+        if dbg: print('printChordName({}) name={}'.format(self.c, chordName), file=self.tabsObj.DBG_FILE)
     
     def getChordName(self, imap):
         '''Calculate chord name.'''

@@ -1679,11 +1679,11 @@ class Tabs(object):
     def printChordInfoMap(self, ci, reason=None):
         print('printChordInfoMap() {} chordInfo={{'.format(reason), file=self.DBG_FILE)
         for cik in ci:
-            print('{} :'.format(cik), end=' ', file=self.DBG_FILE)
+            print('{} : {}'.format(cik, self.chordsObj.chordNames[cik]), end=' ', file=self.DBG_FILE)
             for m in ci[cik]:
                 imap = self.imap2String(m)
                 print('[{}]'.format(imap), end=' ', file=self.DBG_FILE)
-            print(' ', file=self.DBG_FILE)
+            print('', file=self.DBG_FILE)
         print('}', file=self.DBG_FILE)
     
     def printColumnIvals(self, c, dbg=0):
