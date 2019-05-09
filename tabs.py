@@ -1827,9 +1827,8 @@ class Tabs(object):
     
     def printChordStatus(self, tab, r, c):
         if c in self.chordInfo:
-            print('printChordStatus() len(chordInfo[{}])={}, chordInfo[{}]={}'.format(c, len(self.chordInfo[c]), c, self.chordInfo[c]), file=Tabs.DBG_FILE)
-            for m in range(len(self.chordInfo[c])-1, -1, -1):
-                self.printChordInfo(tab, r, c, m)
+#            self.printChordInfoMap(self.chordInfo, reason='printChordStatus() len(chordInfo[{}])={}'.format(c, len(self.chordInfo[c])))
+            self.printChordInfo(tab, r, c, 0)
     
     def analyzeChord(self):
         r, c = self.rowCol2Indices(self.row, self.col)
@@ -1863,7 +1862,7 @@ class Tabs(object):
             self.printTabs(c=c)
         self.resetPos()
     
-    def printChordInfo(self, tab, r, c, m, dbg=1):
+    def printChordInfo(self, tab, r, c, m, dbg=0):
         imap = self.chordInfo[c][m]
         imapKeys = sorted(imap, key=self.chordsObj.imapKeyFunc, reverse=False)
         if dbg: 
@@ -1889,7 +1888,7 @@ class Tabs(object):
         if self.chordStatusCol is not None:
             if infoCol < self.chordStatusCol: self.chordStatusCol = infoCol
         else: self.chordStatusCol = infoCol
-        if dbg: print('printChordInfo() info={}, chordName={}, icol={}, chordStatusCol={}'.format(info, chordName, infoCol, self.chordStatusCol), file=Tabs.DBG_FILE)
+        print('printChordInfo() chordName={}, info={}, icol={}, chordStatusCol={}'.format(chordName, info, infoCol, self.chordStatusCol), file=Tabs.DBG_FILE)
         Tabs.clearRow(arg=0, row=self.lastRow, col=self.chordStatusCol, file=self.outFile)
         style = self.CSI + self.styles['HLT_STUS']
         if len(chordName) > 0:
