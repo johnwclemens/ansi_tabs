@@ -235,7 +235,7 @@ class Tabs(object):
     
     def testAnsi(self):
         file = None #open('testAnsi.tab', 'w')
-        Tabs.clearScreen(file=file)
+        Tabs.clearScreen(file=file, rason='testAnsi()')
         print(self.CSI + self.styles['TABS']       + self.CSI + '{};{}H{}'.format(1, 1, 'TABS'), file=file)
         print(self.CSI + self.styles['H_TABS']     + self.CSI + '{};{}H{}'.format(1, 20, 'H_TABS!'), file=file)
         print(self.CSI + self.styles['NAT_NOTE']   + self.CSI + '{};{}H{}'.format(2, 1, 'NAT_NOTE'), file=file)
@@ -247,7 +247,7 @@ class Tabs(object):
         exit()
     
     def testAnsi2(self):
-        Tabs.clearScreen()
+        Tabs.clearScreen(reason='testAnsi2()')
         print(self.CSI + '22;31;40m' + self.CSI + '{};{}H{}'.format(1, 1, 'Normal Red on Black'))
         print(self.CSI +  '1;31;40m' + self.CSI + '{};{}H{}'.format(2, 1, 'Bright Red on Black'))
         print(self.CSI + '22;32;40m' + self.CSI + '{};{}H{}'.format(3, 1, 'Nornal Green on Black'))
@@ -511,6 +511,7 @@ class Tabs(object):
             count += len(self.tabs[r])
         self.numTabs = count
         print('removeLine(new) numTabsPerString:{} = numLines:{} * numTabsPerStringPerLine:{}, numTabs:{} = numStrings:{} * len(tabs[0]):{}'.format(self.numTabsPerString, self.numLines, self.numTabsPerStringPerLine, self.numTabs, self.numStrings, len(self.tabs[0])), file=Tabs.DBG_FILE)
+        self.clearScreen(reason='removeLine()')
         self.printTabs()
     
     def quit(self, reason, code=0):
@@ -525,7 +526,7 @@ class Tabs(object):
     
     def printHelpInfo(self, ui=1):
         '''Print help info.  If ui: explicitly call printTabs(), else: assume printTabs() will be called by the invoker.  [cmd line opt -h]'''
-        Tabs.clearScreen()
+        Tabs.clearScreen(reason='printHelpInfo()')
         self.printHelpSummary()
         self.printHelpUiCmds()
         print('{}'.format('Press any key to continue... (Note some of the help text may have scrolled off the screen, you should be able to scroll back to view it.)'))
@@ -864,7 +865,7 @@ class Tabs(object):
         elif self.displayLabels == self.DISPLAY_LABELS['DISABLED']:
             self.ROW_OFF = 1
             self.row -= 1
-            Tabs.clearScreen()
+            Tabs.clearScreen(reason='toggleDisplayLabels()')
         self.setLastRow()
         self.printLineInfo('toggleDisplayLabels({}) row,col=({}, {}), line={},'.format(self.displayLabels, self.row, self.col, line))
         if printTabs: self.printTabs()
@@ -879,7 +880,7 @@ class Tabs(object):
         elif self.displayNotes == self.DISPLAY_NOTES['DISABLED']:
             self.row -= line * self.NOTES_LEN
             self.NOTES_LEN = 0
-            Tabs.clearScreen()
+            Tabs.clearScreen(reason='toggleDisplayNotes()')
         self.setLastRow()
         self.printLineInfo('toggleDisplayNotes({}) row,col=({}, {}), line={}'.format(self.displayNotes, self.row, self.col, line))
         if printTabs: self.printTabs()
@@ -895,7 +896,7 @@ class Tabs(object):
         elif self.displayIntervals == self.DISPLAY_INTERVALS['DISABLED']:
             self.row -= line * self.INTERVALS_LEN
             self.INTERVALS_LEN = 0
-            Tabs.clearScreen()
+            Tabs.clearScreen(reason='toggleDisplayIntervals()')
         self.setLastRow()
         self.printLineInfo('toggleDisplayIntervals({} {}) row,col=({}, {}), line={} end'.format(self.displayIntervals, printTabs, self.row, self.col, line))
         if printTabs: self.printTabs()
@@ -913,7 +914,7 @@ class Tabs(object):
         elif self.displayChords == self.DISPLAY_CHORDS['DISABLED']:
             self.row -= line * self.CHORDS_LEN
             self.CHORDS_LEN = 0
-            Tabs.clearScreen()
+            Tabs.clearScreen(reason='toggleDisplayChords()')
         self.setLastRow()
         self.printLineInfo('toggleDisplayChords({}) row,col=({}, {}), line={}'.format(self.displayChords, self.row, self.col, line))
         if printTabs: self.printTabs()
@@ -1330,7 +1331,7 @@ class Tabs(object):
         '''Save all tabs (with ANSI codes) to the configured output file.  Use cat to display the file'''
         with open(self.outName, 'w') as self.outFile:
             self.printLineInfo('saveTabs({}, {}) bgn writing tabs to file'.format(self.row, self.col))
-            Tabs.clearScreen(2, file=self.outFile)
+            Tabs.clearScreen(file=self.outFile, reason='saveTabs()')
             print(self.cmdLine, file=self.outFile)
             print('cmdLineArgs:', file=self.outFile)
             for k in self.argMap:
@@ -1586,11 +1587,10 @@ class Tabs(object):
     
     def printTabs(self, c=None):
         '''Print tabs using ANSI escape sequences to control the cursor position, foreground and background colors, and brightness'''
-        self.printLineInfo('printTabs({}, {}) c={} bgn'.format(self.row, self.col, c))
         if c: cc, ll = c % self.numTabsPerStringPerLine, self.colIndex2Line(c)
         else: cc, ll = 0, 0
-        print('printTabs() ll={} cc={}'.format(ll, cc), file=Tabs.DBG_FILE)
-        Tabs.clearScreen()
+        self.printLineInfo('printTabs(c={}) ll={} cc={} bgn'.format(self.row, self.col, c))
+#        Tabs.clearScreen()
         self.printFileMark('<BGN_TABS_SECTION>')
         for line in range(ll, self.numLines):
             if c and line == ll: ccc = cc
@@ -1676,6 +1676,16 @@ class Tabs(object):
         style = self.getNoteStyle(n, style, hn)
         self.prints(n.name[0], row, col, style)
     
+    def printChordInfoMap(self, ci, reason=None):
+        print('printChordInfoMap() {} chordInfo={{'.format(reason), file=self.DBG_FILE)
+        for cik in ci:
+            print('{} :'.format(cik), end=' ', file=self.DBG_FILE)
+            for m in ci[cik]:
+                imap = self.imap2String(m)
+                print('[{}]'.format(imap), end=' ', file=self.DBG_FILE)
+            print(' ', file=self.DBG_FILE)
+        print('}', file=self.DBG_FILE)
+    
     def printColumnIvals(self, c, dbg=0):
         line = self.colIndex2Line(c)
         if dbg: print('printColumnIvals() line={} selectChords={}'.format(line, self.selectChords), file=Tabs.DBG_FILE)
@@ -1684,23 +1694,24 @@ class Tabs(object):
             cc = c % self.numTabsPerStringPerLine
             self.prints('-', row, cc + self.COL_OFF, self.styles['NAT_H_NOTE'])
             if r == 0 and (c == 10 or c == 218 or c == 426):
-                print('printColumnIvals() line={} r={} row={} c={} cc={} chordInfo={}'.format(line, r, row, c, cc, self.chordInfo), file=Tabs.DBG_FILE)
+                self.printChordInfoMap(self.chordInfo, reason='printColumnIvals() line={} r={} row={} c={} cc={}'.format(line, r, row, c, cc))
             if c in self.chordInfo: 
                 self.wrapPrintInterval(r, c, dbg=dbg)
     
     def printIntervals(self, dbg=0):
         self.printFileMark('<BGN_INTERVALS_SECTION>')
-        print('printIntervals() chordInfo={}'.format(self.chordInfo), file=Tabs.DBG_FILE)
-        print('printIntervals() selectChords={}'.format(self.selectChords), file=Tabs.DBG_FILE)
+        if dbg:
+            print('printIntervals() chordInfo={}'.format(self.chordInfo), file=Tabs.DBG_FILE)
+            print('printIntervals() selectChords={}'.format(self.selectChords), file=Tabs.DBG_FILE)
         for line in range(0, self.numLines):
             for r in range(0, self.numStrings):
                 row = r + line * self.lineDelta() + self.endRow(0) + self.NOTES_LEN + 1
                 self.prints(self.IVAL_LABEL[r], row, 1, self.styles['IVAL_LABEL'])
                 for c in range(2, self.COL_OFF):
                     self.prints(' ', row, c, self.styles['IVAL_LABEL'])
-                for c in range (0, self.numTabsPerStringPerLine):
-                    cc = c + line * self.numTabsPerStringPerLine
-                    self.printColumnIvals(cc)
+        for c in range (0, self.numTabsPerStringPerLine):
+            cc = c + line * self.numTabsPerStringPerLine
+            self.printColumnIvals(cc)
         self.printFileMark('<END_INTERVALS_SECTION>')
     
     def printInterval(self, row, col, ival, dbg=0):
@@ -1735,8 +1746,12 @@ class Tabs(object):
     def imap2String(imap):
         s = ''
         for k in imap:
-            s += '{}:{} '.format(k, imap[k])
+            s += '{} '.format(imap[k])
+        s += '\\ '
+        for k in imap:
+            s += '{} '.format(k)
         return s.strip()
+#            s += '{}:{} '.format(k, imap[k])
     
     def printLabels(self):
         self.printFileMark('<BGN_LABELS_SECTION>')
@@ -1982,8 +1997,8 @@ class Tabs(object):
         print(Tabs.CSI + '{}K'.format(arg), end='', file=file)
     
     @staticmethod
-    def clearScreen(arg=2, file=None):
-        print('clearScreen() arg={}'.format(arg), file=Tabs.DBG_FILE)
+    def clearScreen(arg=2, file=None, reason=None):
+        print('clearScreen() arg={} file={} reason={}'.format(arg, file, reason), file=Tabs.DBG_FILE)
         print(Tabs.CSI + '{}J'.format(arg), file=file)
     
     def printHelpSummary(self):
