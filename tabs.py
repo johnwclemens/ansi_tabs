@@ -1718,7 +1718,10 @@ class Tabs(object):
         imapstr = Tabs.imap2String(imap)
         if imapstr in self.selectImaps:
             imap = self.selectImaps[imapstr]
-            print('wrapPrintInterval() FOUND imapstr={} in selectImaps={} swapping imap={}'.format(imapstr, self.selectImaps, imap), file=Tabs.DBG_FILE)
+            if r == 0:
+                print('wrapPrintInterval() FOUND imapstr={} in'.format(imapstr, self.selectImaps, imap), end=' ', file=Tabs.DBG_FILE)
+                self.printSelectImaps()
+                print('wrapPrintInterval() SWAPPING imap={}'.format(self.imap2String(imap)), file=Tabs.DBG_FILE)
         im = {imap[k]:k for k in imap}
         tab = self.tabs[r][c]
         if dbg: print('wrapPrintInterval() r={} c={} tab={} im={} imapstr={} imap={} selectImaps={}'.format(r, c, chr(tab), im, imapstr, imap, self.selectImaps), file=Tabs.DBG_FILE)
@@ -1758,24 +1761,22 @@ class Tabs(object):
     def printMapLimap(self, m, reason=None):
         print('printMapLimap() {} chordInfo={{'.format(reason), file=self.DBG_FILE)
         for k in m:
-            temp = '{} : {}'.format(k, self.chordsObj.chordNames[k])
+            temp = '{:>3} : {:>6}'.format(k, self.chordsObj.chordNames[k])
             self.printLimap(m[k], reason=temp)
     
     def printLimap(self, limap, reason=None):
         print('{} limap={{'.format(reason), end=' ', file=self.DBG_FILE)
         for m in limap:
             imap = self.imap2String(m)
-            print('[{}]'.format(imap), end=' ', file=self.DBG_FILE)
+            print('[{}]'.format(imap), end=',', file=self.DBG_FILE)
         print('}', file=self.DBG_FILE)
     
     @staticmethod
     def imap2String(imap):
         s = ''
-        for k in imap:
-            s += '{} '.format(imap[k])
+        for k in imap: s += '{} '.format(imap[k])
         s += '\\ '
-        for k in imap:
-            s += '{} '.format(k)
+        for k in imap: s += '{} '.format(k)
         return s.strip()
     
     def printStatus(self):
@@ -1847,10 +1848,9 @@ class Tabs(object):
         tab = chr(self.tabs[r][c])
         print('analyzeChord({}, {}) r={}, c={}, tab={}'.format(self.row, self.col, r, c, tab), file=Tabs.DBG_FILE)
         if c in self.chordInfo:
-            print('analyzeChord() len(chordInfo[{}])={}'.format(c, len(self.chordInfo[c])), file=Tabs.DBG_FILE)
             self.analyzeIndex += 1
             m = self.analyzeIndex % len(self.chordInfo[c])
-            print('analyzeChord() m={} analyzeIndex={}'.format(m, self.analyzeIndex), file=Tabs.DBG_FILE)
+            print('analyzeChord() m={} analyzeIndex={} len(chordInfo[{}])={}'.format(m, self.analyzeIndex, c, len(self.chordInfo[c])), file=Tabs.DBG_FILE)
             self.printChordInfo(tab, r, c, m)
         self.resetPos()
     
@@ -1864,15 +1864,18 @@ class Tabs(object):
             self.selectChords[name] = imap
             print('selectChord() m={} analyzeIndex={} selectChords[{}]={}'.format(m, self.analyzeIndex, name, self.imap2String(self.selectChords[name])), file=Tabs.DBG_FILE)
             im = self.chordInfo[c][0]
-            imk = ''
-            for k in im: 
-                imk += '{}:{} '.format(k, im[k])
-            imk = imk.strip()
-            print('selectChord() adding imap={} : {} to selectImaps={}'.format(self.imap2String(im), self.imap2String(imap), self.selectImaps), file=Tabs.DBG_FILE)
-            self.selectImaps[imk] = imap
-            print('selectChord() selectImaps={}'.format(self.imap2String(self.selectImaps)), file=Tabs.DBG_FILE)
+            print('selectChord() adding imapKey={} : imapVal={} to '.format(self.imap2String(im), self.imap2String(imap), self.selectImaps), file=Tabs.DBG_FILE)
+            self.printSelectImaps()
+            self.selectImaps[self.imap2String(im)] = imap
+            self.printSelectImaps()
             self.printTabs(c=c)
         self.resetPos()
+    
+    def printSelectImaps(self):
+        print('selectImaps={{'.format(), end=' ', file=Tabs.DBG_FILE)
+        for k1 in self.selectImaps:
+            print('{} : {}'.format(k1, self.imap2String(self.selectImaps[k1])), end=', ', file=Tabs.DBG_FILE)
+        print('}', file=Tabs.DBG_FILE)
     
     def printChordInfo(self, tab, r, c, m, dbg=0):
         imap = self.chordInfo[c][m]
