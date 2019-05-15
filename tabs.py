@@ -511,7 +511,6 @@ class Tabs(object):
             count += len(self.tabs[r])
         self.numTabs = count
         print('removeLine(new) numTabsPerString:{} = numLines:{} * numTabsPerStringPerLine:{}, numTabs:{} = numStrings:{} * len(tabs[0]):{}'.format(self.numTabsPerString, self.numLines, self.numTabsPerStringPerLine, self.numTabs, self.numStrings, len(self.tabs[0])), file=Tabs.DBG_FILE)
-        self.clearScreen(reason='removeLine()')
         self.printTabs()
     
     def quit(self, reason, code=0):
@@ -526,7 +525,6 @@ class Tabs(object):
     
     def printHelpInfo(self, ui=1):
         '''Print help info.  If ui: explicitly call printTabs(), else: assume printTabs() will be called by the invoker.  [cmd line opt -h]'''
-        Tabs.clearScreen(reason='printHelpInfo()')
         self.printHelpSummary()
         self.printHelpUiCmds()
         print('{}'.format('Press any key to continue... (Note some of the help text may have scrolled off the screen, you should be able to scroll back to view it.)'))
@@ -865,7 +863,6 @@ class Tabs(object):
         elif self.displayLabels == self.DISPLAY_LABELS['DISABLED']:
             self.ROW_OFF = 1
             self.row -= 1
-            Tabs.clearScreen(reason='toggleDisplayLabels()')
         self.setLastRow()
         self.printLineInfo('toggleDisplayLabels({}) row,col=({}, {}), line={},'.format(self.displayLabels, self.row, self.col, line))
         if printTabs: self.printTabs()
@@ -880,7 +877,6 @@ class Tabs(object):
         elif self.displayNotes == self.DISPLAY_NOTES['DISABLED']:
             self.row -= line * self.NOTES_LEN
             self.NOTES_LEN = 0
-            Tabs.clearScreen(reason='toggleDisplayNotes()')
         self.setLastRow()
         self.printLineInfo('toggleDisplayNotes({}) row,col=({}, {}), line={}'.format(self.displayNotes, self.row, self.col, line))
         if printTabs: self.printTabs()
@@ -896,7 +892,6 @@ class Tabs(object):
         elif self.displayIntervals == self.DISPLAY_INTERVALS['DISABLED']:
             self.row -= line * self.INTERVALS_LEN
             self.INTERVALS_LEN = 0
-            Tabs.clearScreen(reason='toggleDisplayIntervals()')
         self.setLastRow()
         self.printLineInfo('toggleDisplayIntervals({} {}) row,col=({}, {}), line={} end'.format(self.displayIntervals, printTabs, self.row, self.col, line))
         if printTabs: self.printTabs()
@@ -914,7 +909,6 @@ class Tabs(object):
         elif self.displayChords == self.DISPLAY_CHORDS['DISABLED']:
             self.row -= line * self.CHORDS_LEN
             self.CHORDS_LEN = 0
-            Tabs.clearScreen(reason='toggleDisplayChords()')
         self.setLastRow()
         self.printLineInfo('toggleDisplayChords({}) row,col=({}, {}), line={}'.format(self.displayChords, self.row, self.col, line))
         if printTabs: self.printTabs()
@@ -1393,6 +1387,7 @@ class Tabs(object):
             self.dumpTabs('saveTabs(h)', h=1)
             self.printLineInfo('saveTabs({}, {}) end writing tabs to file'.format(self.row, self.col))
         self.outFile = None
+        self.printTabs()
     
     def shiftSelectTabs(self):
         '''Shift selected tabs (left or right) specified by user numeric input of up to 3 characters terminated by space char.'''
@@ -1640,7 +1635,7 @@ class Tabs(object):
         if c: cc, ll = c % self.numTabsPerStringPerLine, self.colIndex2Line(c)
         else: cc, ll = 0, 0
         self.printLineInfo('printTabs(c={}) cc={} ll={} outFile={} bgn'.format(c, cc, ll, self.outFile))
-#        Tabs.clearScreen()
+        Tabs.clearScreen(reason='printTabs()')
         self.printFileMark('<BGN_TABS_SECTION>')
         for line in range(ll, self.numLines):
             if c and line == ll: ccc = cc
