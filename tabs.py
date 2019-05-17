@@ -213,7 +213,6 @@ class Tabs(object):
                 self.printHelpInfo(ui=0)                       # display the help info
             self.printTabs()                                   # display all the tabs in the tabs section, optionally display the notes and chords sections and the modes/labels row
             self.moveTo(hi=1)                                  # display the status and hilite the first tab character
-        self.testRow2Line()
     
     def testDict(self):
         a = {'one': 1, 'two': 2, 'three': 3, 'four': 4}
@@ -762,8 +761,6 @@ class Tabs(object):
         else:                             self.moveTo(row=self.endRow(line), hi=1)
     
     def testRow2Line(self):
-#        for r in range(self.lineDelta() * self.numLines):
-#            row = r + self.ROW_OFF
         for row in range(-2, 76):
             row += self.ROW_OFF
             line = self.row2Line(row)
@@ -1552,7 +1549,7 @@ class Tabs(object):
         if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
             self.chordsObj.printChords()
         if self.editMode == self.EDIT_MODES['INSERT']:
-            self.printTabs(cc)
+            self.printTabs()
         elif self.editMode == self.EDIT_MODES['REPLACE']:
             for c in range(cc, cc + nc):
                 if c >= len(self.tabs[0]):
@@ -1615,19 +1612,15 @@ class Tabs(object):
             print(' bgnRow{}={}, endRow{}={},'.format(line, self.bgnRow(line), line, self.endRow(line)), end='', file=Tabs.DBG_FILE)
         print(' ROW_OFF={} lastRow={}, bgnCol={}, endCol={}, line={}'.format(self.ROW_OFF, self.lastRow, self.bgnCol(), self.endCol(), self.row2Line(self.row)), file=Tabs.DBG_FILE)
     
-    def printTabs(self, c=None):
+    def printTabs(self):
         '''Print tabs using ANSI escape sequences to control the cursor position, foreground and background colors, and brightness'''
-        if c: cc, ll = c % self.numTabsPerStringPerLine, self.colIndex2Line(c)
-        else: cc, ll = 0, 0
-        self.printLineInfo('printTabs(c={}) cc={} ll={} outFile={} bgn'.format(c, cc, ll, self.outFile))
+        self.printLineInfo('printTabs() outFile={} bgn'.format(self.outFile))
         Tabs.clearScreen(reason='printTabs()')
         self.printFileMark('<BGN_TABS_SECTION>')
-        for line in range(ll, self.numLines):
-            if c and line == ll: ccc = cc
-            else: ccc = 0 
+        for line in range(self.numLines):
             for r in range(0, self.numStrings):
                 row = r + line * self.lineDelta() + self.ROW_OFF
-                for c in range(ccc, self.numTabsPerStringPerLine):
+                for c in range(self.numTabsPerStringPerLine):
                     tab = self.tabs[r][c + line * self.numTabsPerStringPerLine]
                     style = self.styles['TABS']
                     if chr(self.htabs[r][c + line * self.numTabsPerStringPerLine]) == '1':
@@ -1898,7 +1891,7 @@ class Tabs(object):
             self.printSelectImaps()
             self.selectImaps[self.imap2String(im)] = imap
             self.printSelectImaps()
-            self.printTabs(c=c)
+            self.printTabs()
         self.resetPos()
     
     def printSelectImaps(self):
