@@ -213,6 +213,7 @@ class Tabs(object):
                 self.printHelpInfo(ui=0)                       # display the help info
             self.printTabs()                                   # display all the tabs in the tabs section, optionally display the notes and chords sections and the modes/labels row
             self.moveTo(hi=1)                                  # display the status and hilite the first tab character
+        self.testRow2Line()
     
     def testDict(self):
         a = {'one': 1, 'two': 2, 'three': 3, 'four': 4}
@@ -267,7 +268,7 @@ class Tabs(object):
         print(self.CSI + '1;31;43m' + 'Up 6 and back 10', end='')
         print(self.CSI +  '1;32;40m' + self.CSI + '{};{}H{}'.format(15, 1, 'Bright Green on Black'))
         exit()
-     
+    
     def initFiles(self, inName, outName):
         self.inName = inName
         self.inFile = None
@@ -760,11 +761,19 @@ class Tabs(object):
             else:                         self.moveTo(row=self.bgnRow(line + 1), hi=1)
         else:                             self.moveTo(row=self.endRow(line), hi=1)
     
+    def testRow2Line(self):
+#        for r in range(self.lineDelta() * self.numLines):
+#            row = r + self.ROW_OFF
+        for row in range(-2, 76):
+            row += self.ROW_OFF
+            line = self.row2Line(row)
+            print('row={} line={}'.format(row, line), file=Tabs.DBG_FILE)
+    
     def row2Line(self, row):
         for line in range(0, self.numLines):
-            if self.bgnRow(line) <= row <= self.endRow(line):
+            if 0 < row < self.bgnRow(line + 1) - 1:
                 return line
-        return -1
+        self.printe('Range Error row={}'.format(row), x=0)
     
     def colIndex2Line(self, c):
         return int(c / self.numTabsPerStringPerLine)
@@ -1283,38 +1292,13 @@ class Tabs(object):
         self.resetPos()
     
     def deleteTab(self, row=None, col=None, back=0):
-        '''Delete current tab.'''
-        if row is None: row = self.row
-        if col is None: col = self.col
-        line = self.row2Line(row)
+        row, col = self.row, self.col
         r, c = self.rowCol2Indices(row, col)
-        print('deleteTab(row={}, col={}, back={}) r={} c={} line={}'.format(row, col, back, r, c, line), file=Tabs.DBG_FILE)
-        if line == -1:
-            if   row < self.bgnRow(1) - 1: line = 0
-            elif row < self.bgnRow(2) - 1: line = 1
-            elif row < self.bgnRow(3) - 1: line = 2
-            if line == 0: row = self.endRow(line)
-            else:         row = self.endRow(self.numLines - 1)
-            r = self.row2Index(row)
-            c -= 1
-            col -= 1
-            if col < self.COL_OFF: col = c + self.COL_OFF + 1
-            print('deleteTab(row={}, col={}, back={}) r={} c={} line={} wrap around row out of range,'.format(row, col, back, r, c, line), file=Tabs.DBG_FILE)
-        print('deleteTab(row={}, col={}, back={}) r={} c={}'.format(row, col, back, r, c), file=Tabs.DBG_FILE)
-        if c < 0:
-            if line == 0: 
-                row += self.lineDelta() * (self.numLines - 1)
-                c = self.numTabsPerStringPerLine * (self.numLines - 1)
-            else: 
-                row -= self.lineDelta()
-                c = self.endCol() - self.bgnCol()
-            col = self.endCol()
-            print('deleteTab(row={}, col={}, back={}) r={} c={} line={} wrap around c < 0,'.format(row, col, back, r, c, line), file=Tabs.DBG_FILE)
         tab = self.tabs[r][c]
         tabFN = self.getFretNum(tab)
         maxFN = self.getFretNum(self.maxFret)
         if self.editMode == self.EDIT_MODES['INSERT']:
-            print('deleteTab(row={}, col={}, back={}) r={} c={} tab={}, tabc={}, tabFN={}, EDIT_MODES[INSERT]'.format(row, col, back, r, c, tab, chr(tab), tabFN, maxFN), file=Tabs.DBG_FILE)
+            print('deleteTab(row={} col={} back={}) r={} c={} EDIT_MODES[INSERT]'.format(row, col, back, r, c), file=Tabs.DBG_FILE)
             for cc in range(c, len(self.tabs[r]) - 1):
                 self.tabs[r][cc]  = self.tabs[r][cc + 1]
                 self.htabs[r][cc] = self.htabs[r][cc + 1]
@@ -1324,7 +1308,8 @@ class Tabs(object):
             if back: self.moveLeft()
             self.printTabs()
         elif self.editMode == self.EDIT_MODES['REPLACE']:
-#            print('deleteTab(row={}, col={}, back={}) r={} c={} tab={}, tabc={}, tabFN={}, EDIT_MODES[REPLACE]'.format(row, col, back, r, c, tab, chr(tab), tabFN, maxFN), file=Tabs.DBG_FILE)
+            print('deleteTab(row={} col={} back={}) r={} c={} EDIT_MODES[REPLACE]'.format(row, col, back, r, c), file=Tabs.DBG_FILE)
+            self.moveCursor(back=back)
             self.tabs[r][c] = ord('-')
             self.htabs[r][c] = ord('0')
             self.prints(chr(self.tabs[r][c]), row, col, self.styles['TABS'])
@@ -1335,7 +1320,7 @@ class Tabs(object):
                 self.chordsObj.printChord(c=c)
             if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
                 self.printColumnIvals(c)
-            self.moveCursor(back=back)
+            self.moveTo()
         if Tabs.isFret(chr(tab)) and tabFN == maxFN:
             self.maxFret = self.findMaxFret()
 #            print('deleteTab() reset maxFret={}, chr(maxFret)={}, maxFN={}, tab={}, tabc={}, tabFN={}'.format(self.maxFret, chr(self.maxFret), self.getFretNum(self.maxFret), tab, chr(tab), tabFN), file=Tabs.DBG_FILE)
@@ -1826,8 +1811,8 @@ class Tabs(object):
     
     def printStatus(self):
         r, c = self.rowCol2Indices(self.row, self.col)
+        print('printStatus({}, {}) r={}, c={}, tab={}'.format(self.row, self.col, r, c, self.tabs[r][c]), file=Tabs.DBG_FILE)
         tab = chr(self.tabs[r][c])
-        print('printStatus({}, {}) r={}, c={}, tab={}'.format(self.row, self.col, r, c, tab), file=Tabs.DBG_FILE)
         if   Tabs.isFret(tab): self.printFretStatus(tab, r, c)
         elif tab in self.mods: self.printModStatus(tab, r, c)
         else:                  self.printDefaultStatus(tab, r, c)
@@ -1976,7 +1961,7 @@ class Tabs(object):
     def prints(self, c, row, col, style):
        print(self.CSI + style + self.CSI + '{};{}H{}'.format(row, col, str(c)), end='', file=self.outFile)
     
-    def printe(self, info, row=None, col=None, style=None):
+    def printe(self, info, row=None, col=None, style=None, x=0):
         if row is None:     row = self.row
         if col is None:     col = self.col
         if style is None: style = self.styles['ERROR']
@@ -1985,6 +1970,7 @@ class Tabs(object):
         print(self.CSI + style + self.CSI + '{};{}H{}'.format(self.lastRow, 1, info), end='')
         Tabs.clearRow(arg=0, file=self.outFile)
         self.resetPos()
+        if x: exit()
     
     def hilite(self, text):
         return self.CSI + self.styles['ERROR'] + text + self.CSI + self.styles['CONS']
