@@ -188,31 +188,31 @@ class Tabs(object):
             for k in self.mods:
                 print('{}:{}, '.format(k, self.mods[k]), file=Tabs.DBG_FILE)
             if 'F' in self.argMap and len(self.argMap['F']) == 0:
-                self.toggleEnharmonic()                        # toggle enharmonic note display from sharp to flat
+                self.toggleEnharmonic()                           # toggle enharmonic note display from sharp to flat
             if 'i' in self.argMap and len(self.argMap['i']) == 0:
-                self.toggleCursorDir(dbg=1)                    # toggle automatic cursor movement direction from down to up
+                self.toggleCursorDir(dbg=1)                       # toggle automatic cursor movement direction from down to up
             if 'k' in self.argMap and len(self.argMap['k']) > 0:
-                self.setCapo(c=self.argMap['k'][0])            # set capo at desired fret
+                self.setCapo(c=self.argMap['k'][0])               # set capo at desired fret
             if 'a' in self.argMap and len(self.argMap['a']) == 0:
-                self.toggleDisplayLabels(printTabs=False)      # toggle the display of the edit mode, cursor mode, and column number labels in first row for each line
+                self.toggleDisplayLabels(pt=0)                    # toggle the display of the edit mode, cursor mode, and column number labels in first row for each line
             if 'b' in self.argMap and len(self.argMap['b']) == 0:
-                self.toggleDisplayChords(printTabs=False)      # enable the chords section display
+                self.toggleDisplayChords(pt=0)                    # enable the chords section display
             if 'o' in self.argMap and len(self.argMap['o']) == 0:
-                self.toggleDisplayIntervals(printTabs=False)   # enable the intervals section display
+                self.toggleDisplayIntervals(pt=0)                 # enable the intervals section display
             if 'n' in self.argMap and len(self.argMap['n']) == 0:
-                self.toggleDisplayNotes(printTabs=False)       # enable the notes section display
+                self.toggleDisplayNotes(pt=0)                     # enable the notes section display
             if 'l' in self.argMap and len(self.argMap['l']) == 0:
-                self.goToLastTab(cs=1)                         # go to last tab on current line of current string
+                self.goToLastTab(cs=1)                            # go to last tab on current line of current string
             if 'L' in self.argMap and len(self.argMap['L']) == 0:
-                self.goToLastTab()                             # go to last tab on current line of all strings
+                self.goToLastTab()                                # go to last tab on current line of all strings
             if 'z' in self.argMap and len(self.argMap['z']) == 0:
-                self.goToLastTab(cs=1, ll=1)                   # go to last tab on last line of current string
+                self.goToLastTab(cs=1, ll=1)                      # go to last tab on last line of current string
             if 'Z' in self.argMap and len(self.argMap['Z']) == 0:
-                self.goToLastTab(ll=1)                         # go to last tab on last line of all strings
+                self.goToLastTab(ll=1)                            # go to last tab on last line of all strings
             if 'h' in self.argMap and len(self.argMap['h']) == 0:
-                self.printHelpInfo(ui=0)                       # display the help info
-            self.printTabs()                                   # display all the tabs in the tabs section, optionally display the notes and chords sections and the modes/labels row
-            self.moveTo(hi=1)                                  # display the status and hilite the first tab character
+                self.printHelpInfo(ui=0)                          # display the help info
+            self.printTabs()                                      # display all the tabs in the tabs section, optionally display the notes and chords sections and the modes/labels row
+            self.moveTo(hi=1)                                     # display the status and hilite the first tab character
     
     def testDict(self):
         a = {'one': 1, 'two': 2, 'three': 3, 'four': 4}
@@ -454,7 +454,7 @@ class Tabs(object):
         print('appendTabs({}) [{}, {}, {}, {}, {}] checking     \'{}\''.format(rowStr, self.numTabsPerStringPerLine, self.numLines, stringStr, self.numTabsPerString, self.tabCount, ''.join([chr(t) for t in tabDataRow])), file=Tabs.DBG_FILE)
         if self.tabCount > self.numStrings * self.numTabsPerStringPerLine:
             if ((self.tabCount - self.numTabsPerStringPerLine) % (self.numStrings * self.numTabsPerStringPerLine)) == 0:
-                self.appendLine(printTabs=False)
+                self.appendLine(pt=0)
             if int(rowStr) - (self.numLines - 1) * self.numStrings - self.ROW_OFF <= self.numStrings:
                 r = (int(rowStr) - self.ROW_OFF - 1) % self.numStrings
                 for c in range(0, len(tabDataRow)):
@@ -468,7 +468,7 @@ class Tabs(object):
         tmp, htmp = [], []
         return [tmp, htmp, rowStr]
     
-    def appendLine(self, printTabs=True):
+    def appendLine(self, pt=1):
         '''Append another line of tabs to the display.'''
         tabs, htabs = [], []
         print('appendLine(old) numTabsPerString:{} = numLines:{} * numTabsPerStringPerLine:{}, numTabs:{} = numStrings:{} * len(tabs[0]):{}'.format(self.numTabsPerString, self.numLines, self.numTabsPerStringPerLine, self.numTabs, self.numStrings, len(self.tabs[0])), file=Tabs.DBG_FILE)
@@ -488,7 +488,7 @@ class Tabs(object):
             count += len(self.tabs[r])
         self.numTabs = count
         print('appendLine(new) numTabsPerString:{} = numLines:{} * numTabsPerStringPerLine:{}, numTabs:{} = numStrings:{} * len(tabs[0]):{}'.format(self.numTabsPerString, self.numLines, self.numTabsPerStringPerLine, self.numTabs, self.numStrings, len(self.tabs[0])), file=Tabs.DBG_FILE)
-        if printTabs:
+        if pt:
             self.printTabs()
     
     def removeLine(self):
@@ -511,7 +511,7 @@ class Tabs(object):
             count += len(self.tabs[r])
         self.numTabs = count
         print('removeLine(new) numTabsPerString:{} = numLines:{} * numTabsPerStringPerLine:{}, numTabs:{} = numStrings:{} * len(tabs[0]):{}'.format(self.numTabsPerString, self.numLines, self.numTabsPerStringPerLine, self.numTabs, self.numStrings, len(self.tabs[0])), file=Tabs.DBG_FILE)
-        self.printTabs()
+        self.printTabs(cs=1)
     
     def quit(self, reason, code=0):
 #        print('lastRow={}'.format(self.lastRow), file=Tabs.DBG_FILE)
@@ -530,7 +530,7 @@ class Tabs(object):
         print('{}'.format('Press any key to continue... (Note some of the help text may have scrolled off the screen, you should be able to scroll back to view it.)'))
         b = ord(getwch())
         if ui:
-            self.printTabs()
+            self.printTabs(cs=1)
     
     def printHelpUiCmds(self):
         print('{:>20} : {}'.format('User Interactive Cmd', 'Description'))
@@ -859,7 +859,7 @@ class Tabs(object):
         self.printTabs()
         self.printStatus()
     
-    def toggleDisplayLabels(self, printTabs=True):
+    def toggleDisplayLabels(self, pt=1):
         '''Toggle (enable or disable) display of modes and labels row.  [cmd line opt -a]'''
         self.displayLabels = (self.displayLabels + 1) % len(self.DISPLAY_LABELS)
         line = self.row2Line(self.row)
@@ -871,9 +871,9 @@ class Tabs(object):
             self.row -= 1
         self.setLastRow()
         self.printLineInfo('toggleDisplayLabels({}) row,col=({}, {}), line={},'.format(self.displayLabels, self.row, self.col, line))
-        if printTabs: self.printTabs()
+        if pt: self.printTabs(cs=1)
     
-    def toggleDisplayNotes(self, printTabs=True):
+    def toggleDisplayNotes(self, pt=1):
         '''Toggle (enable or disable) display of notes section.  [cmd line opt -n]'''
         self.displayNotes = (self.displayNotes + 1) % len(self.DISPLAY_NOTES)
         line = self.row2Line(self.row)
@@ -885,13 +885,13 @@ class Tabs(object):
             self.NOTES_LEN = 0
         self.setLastRow()
         self.printLineInfo('toggleDisplayNotes({}) row,col=({}, {}), line={}'.format(self.displayNotes, self.row, self.col, line))
-        if printTabs: self.printTabs()
+        if pt: self.printTabs(cs=1)
     
-    def toggleDisplayIntervals(self, printTabs=True):
-        '''Toggle (enable or disable) display of intervals section.  [cmd line opt -???????]'''
+    def toggleDisplayIntervals(self, pt=1):
+        '''Toggle (enable or disable) display of intervals section.  [cmd line opt -o]'''
         self.displayIntervals = (self.displayIntervals + 1) % len(self.DISPLAY_INTERVALS)
         line = self.row2Line(self.row)
-        self.printLineInfo('toggleDisplayIntervals({} {}) row,col=({}, {}), line={} bgn'.format(self.displayIntervals, printTabs, self.row, self.col, line))
+        self.printLineInfo('toggleDisplayIntervals({} {}) row,col=({}, {}), line={} bgn'.format(self.displayIntervals, pt, self.row, self.col, line))
         if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
             self.INTERVALS_LEN = self.numStrings
             self.row += line * self.INTERVALS_LEN
@@ -899,10 +899,10 @@ class Tabs(object):
             self.row -= line * self.INTERVALS_LEN
             self.INTERVALS_LEN = 0
         self.setLastRow()
-        self.printLineInfo('toggleDisplayIntervals({} {}) row,col=({}, {}), line={} end'.format(self.displayIntervals, printTabs, self.row, self.col, line))
-        if printTabs: self.printTabs()
+        self.printLineInfo('toggleDisplayIntervals({} {}) row,col=({}, {}), line={} end'.format(self.displayIntervals, pt, self.row, self.col, line))
+        if pt: self.printTabs(cs=1)
     
-    def toggleDisplayChords(self, printTabs=True):
+    def toggleDisplayChords(self, pt=1):
         '''Toggle (enable or disable) display of chords section.  [cmd line opt -b]'''
         self.displayChords = (self.displayChords + 1) % len(self.DISPLAY_CHORDS)
         line = self.row2Line(self.row)
@@ -917,7 +917,7 @@ class Tabs(object):
             self.CHORDS_LEN = 0
         self.setLastRow()
         self.printLineInfo('toggleDisplayChords({}) row,col=({}, {}), line={}'.format(self.displayChords, self.row, self.col, line))
-        if printTabs: self.printTabs()
+        if pt: self.printTabs(cs=1)
     
     def printCursorAndEditModes(self, r):
         print('printCursorAndEditModes()'.format(), file=Tabs.DBG_FILE)
@@ -1612,10 +1612,10 @@ class Tabs(object):
             print(' bgnRow{}={}, endRow{}={},'.format(line, self.bgnRow(line), line, self.endRow(line)), end='', file=Tabs.DBG_FILE)
         print(' ROW_OFF={} lastRow={}, bgnCol={}, endCol={}, line={}'.format(self.ROW_OFF, self.lastRow, self.bgnCol(), self.endCol(), self.row2Line(self.row)), file=Tabs.DBG_FILE)
     
-    def printTabs(self):
+    def printTabs(self, cs=0):
         '''Print tabs using ANSI escape sequences to control the cursor position, foreground and background colors, and brightness'''
-        self.printLineInfo('printTabs() outFile={} bgn'.format(self.outFile))
-        Tabs.clearScreen(reason='printTabs()')
+        self.printLineInfo('printTabs(cs={}) outFile={} bgn'.format(cs, self.outFile))
+        if cs: Tabs.clearScreen(reason='printTabs()')
         self.printFileMark('<BGN_TABS_SECTION>')
         for line in range(self.numLines):
             for r in range(0, self.numStrings):
