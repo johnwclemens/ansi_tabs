@@ -76,6 +76,7 @@ class Tabs(object):
         self.initConsts()
 #        self.testDict()
 #        self.testAnsi2()
+#        self.testAnsi3()
         self.registerUiCmds()                                  # register the dictionary for all the user interactive commands
         self.mods = {}                                         # dict of tab modification characters -> contextual descriptions 
         self.dbgMove = True                                    # used for finding bugs in basic movement functionality
@@ -234,8 +235,6 @@ class Tabs(object):
         exit()
     
     def testAnsi(self):
-        file = None #open('testAnsi.tab', 'w')
-        Tabs.clearScreen(file=file, rason='testAnsi()')
         print(self.CSI + self.styles['TABS']       + self.CSI + '{};{}H{}'.format(1, 1, 'TABS'), file=file)
         print(self.CSI + self.styles['H_TABS']     + self.CSI + '{};{}H{}'.format(1, 20, 'H_TABS!'), file=file)
         print(self.CSI + self.styles['NAT_NOTE']   + self.CSI + '{};{}H{}'.format(2, 1, 'NAT_NOTE'), file=file)
@@ -247,25 +246,35 @@ class Tabs(object):
         exit()
     
     def testAnsi2(self):
-        Tabs.clearScreen(reason='testAnsi2()')
-        print(self.CSI + '22;31;40m' + self.CSI + '{};{}H{}'.format(1, 1, 'Normal Red on Black'))
-        print(self.CSI +  '1;31;40m' + self.CSI + '{};{}H{}'.format(2, 1, 'Bright Red on Black'))
-        print(self.CSI + '22;32;40m' + self.CSI + '{};{}H{}'.format(3, 1, 'Nornal Green on Black'))
-        print(self.CSI +  '1;32;40m' + self.CSI + '{};{}H{}'.format(4, 1, 'Bright Green on Black'))
-        print(self.CSI + '22;33;40m' + self.CSI + '{};{}H{}'.format(5, 1, 'Nornal Yellow on Black'))
-        print(self.CSI +  '1;33;40m' + self.CSI + '{};{}H{}'.format(6, 1, 'Bright Yellow on Black'))
-        print(self.CSI + '22;34;40m' + self.CSI + '{};{}H{}'.format(7, 1, 'Normal Blue on Black'))
-        print(self.CSI +  '1;34;40m' + self.CSI + '{};{}H{}'.format(8, 1, 'Bright Blue on Black'))
-        print(self.CSI + '22;35;40m' + self.CSI + '{};{}H{}'.format(9, 1, 'Normal Magenta on Black'))
-        print(self.CSI +  '1;35;40m' + self.CSI + '{};{}H{}'.format(10, 1, 'Bright Magenta on Black'))
-        print(self.CSI + '22;36;40m' + self.CSI + '{};{}H{}'.format(11, 1, 'Normal Cyan on Black'))
-        print(self.CSI +  '1;36;40m' + self.CSI + '{};{}H{}'.format(12, 1, 'Bright Cyan on Black'))
-        print(self.CSI + '22;37;40m' + self.CSI + '{};{}H{}'.format(13, 1, 'Normal White on Black'), end='')
-        print(self.CSI +  '1;37;40m' + self.CSI + '{};{}H{}'.format(14, 1, 'Bright White on Black'), end='')
-        print(self.CSI + '10D', end='')
-        print(self.CSI + '6A', end='')
-        print(self.CSI + '1;31;43m' + 'Up 6 and back 10', end='')
-        print(self.CSI +  '1;32;40m' + self.CSI + '{};{}H{}'.format(15, 1, 'Bright Green on Black'))
+        print(self.CSI + '22;31;47m' + self.CSI + '{};{}H{}'.format(1, 1, 'Normal Red on White'))
+        print(self.CSI +  '1;31;47m' + self.CSI + '{};{}H{}'.format(2, 1, 'Bright Red on White'))
+        print(self.CSI + '22;32;47m' + self.CSI + '{};{}H{}'.format(3, 1, 'Normal Green on White'))
+        print(self.CSI +  '1;32;47m' + self.CSI + '{};{}H{}'.format(4, 1, 'Bright Green on White'))
+        print(self.CSI + '22;33;47m' + self.CSI + '{};{}H{}'.format(5, 1, 'Normal Yellow on White'))
+        print(self.CSI +  '1;33;47m' + self.CSI + '{};{}H{}'.format(6, 1, 'Bright Yellow on White'))
+        print(self.CSI + '22;34;47m' + self.CSI + '{};{}H{}'.format(7, 1, 'Normal Blue on White'))
+        print(self.CSI +  '1;34;47m' + self.CSI + '{};{}H{}'.format(8, 1, 'Bright Blue on White'))
+        print(self.CSI + '22;35;47m' + self.CSI + '{};{}H{}'.format(9, 1, 'Normal Magenta on White'))
+        print(self.CSI +  '1;35;47m' + self.CSI + '{};{}H{}'.format(10, 1, 'Bright Magenta on White'))
+        print(self.CSI + '22;36;47m' + self.CSI + '{};{}H{}'.format(11, 1, 'Normal Cyan on White'))
+        print(self.CSI +  '1;36;47m' + self.CSI + '{};{}H{}'.format(12, 1, 'Bright Cyan on White'))
+        print(self.CSI + '22;40;47m' + self.CSI + '{};{}H{}'.format(13, 1, 'Normal Black on White'))
+        print(self.CSI +  '1;40;47m' + self.CSI + '{};{}H{}'.format(14, 1, 'Bright Black on White'))
+#        print(self.CSI + '50C', end='')
+#        print(self.CSI + '5A', end='')
+#        print(self.CSI +  '1;32;47m' + 'Up 5 and right 50', end='')
+#        print(self.CSI +  '1;32;47m' + self.CSI + '{};{}H{}'.format(15, 1, 'Bright Green on White'))
+#        print(self.CSI + '25D', end='')
+#        print(self.CSI + '3B', end='')
+#        print(self.CSI +  '1;32;47m' + 'Down 3 and left 5', end='')
+#        print(self.CSI +  '1;31;47m' + self.CSI + '{};{}H{}'.format(2, 1, 'Bright Red on White'))
+#        exit()
+    
+    def testAnsi3(self):
+        print(self.CSI + '22;31;47m' + self.CSI + '1B' + self.CSI + '1C' + 'Normal Red on White', end='')
+        print(self.CSI +  '1;31;47m' + self.CSI + '1B' + self.CSI + '1C' + 'Bright Red on White', end='')
+        print(self.CSI + '22;32;47m' + self.CSI + '1B' + self.CSI + '1C' + 'Normal Green on White', end='')
+        print(self.CSI +  '1;32;47m' + self.CSI + '1B' + self.CSI + '1C' + 'Bright Green on White', end='')
         exit()
     
     def initFiles(self, inName, outName):
@@ -292,7 +301,7 @@ class Tabs(object):
         self.styles = { 'NAT_NOTE':self.GREEN_WHITE, 'NAT_H_NOTE':self.YELLOW_WHITE,  'NAT_CHORD':self.GREEN_WHITE, 'MIN_COL_NUM':self.RED_WHITE,      'TABS':self.BLACK_WHITE,  'NUT_UP':self.BLUE_YELLOW,  'NORMAL':'22;',
                         'FLT_NOTE':self.BLUE_WHITE,  'FLT_H_NOTE':self.CYAN_WHITE,    'FLT_CHORD':self.BLUE_WHITE,  'MAJ_COL_NUM':self.BLACK_WHITE,  'H_TABS':self.BLACK_YELLOW, 'NUT_DN':self.RED_YELLOW,   'BRIGHT':'1;',
                         'SHP_NOTE':self.RED_WHITE,   'SHP_H_NOTE':self.MAGENTA_WHITE, 'SHP_CHORD':self.RED_WHITE,        'STATUS':self.MAGENTA_WHITE, 'MODES':self.BLUE_WHITE,   'ERROR':self.RED_YELLOW,   'CONS':self.BLACK_WHITE,
-                        'HLT_STUS':self.CYAN_WHITE,  'IVAL_LABEL':self.YELLOW_WHITE,  'CHORD_LABEL':self.GREEN_WHITE }
+                        'HLT_STUS':self.CYAN_WHITE,  'IVAL_LABEL':self.YELLOW_WHITE,  'CHORD_LABEL':self.GREEN_WHITE,   'NO_IVAL':self.YELLOW_WHITE }
         self.HARMONIC_FRETS = { 12:12, 7:19, 19:19, 5:24, 24:24, 4:28, 9:28, 16:28, 28:28 }
 #        self.FRET_INDICES = { 0:0, 1:1, 2:2, 3:3, 4:4, 5:5, 6:6, 7:7, 8:8, 9:9, 10:'a' }  # for moving along the fretboard?
 #        self.MAJ_INDICES = [ 0, 2, 4, 5, 7, 9, 11, 12 ]                                   # for key signatures and or scales?

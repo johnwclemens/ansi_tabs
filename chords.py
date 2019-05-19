@@ -236,12 +236,12 @@ class Chords(object):
             print(',', end=' ', file=self.tabsObj.DBG_FILE)
         print(']', file=self.tabsObj.DBG_FILE)
     
-    def printChordName(self, row, col, chordName, imap, imapKeys=None, dbg=0):
+    def printChordName(self, row, col, chordName, imap, imapKeys=None, dbg=1):
         if dbg: print('printChordName() name={}, imap={}'.format(chordName, imap), file=self.tabsObj.DBG_FILE)
         if len(chordName) > 1 and ( chordName[1] == '#' or chordName[1] == 'b' ):
             chordName = chordName[0] + chordName[2:]
             if dbg: print('printChordName() strip # or b, name={}'.format(chordName), file=self.tabsObj.DBG_FILE)
-        i = 0
+        i, ddf, dds = 0, 0, 0
         while i < len(chordName):
             style = self.tabsObj.styles['NAT_CHORD']
             if i == 0:
@@ -251,13 +251,17 @@ class Chords(object):
                 style = self.tabsObj.styles['FLT_CHORD']
             elif chordName[i] == 'n':
                 chordName = chordName[:i] + chordName[i+1:]
-                style = self.tabsObj.YELLOW_WHITE#styles['TABS']
+                style = self.tabsObj.styles['NO_IVAL']
             elif chordName[i] == 'b':
                 chordName = chordName[:i] + chordName[i+1:]
                 style = self.tabsObj.styles['FLT_CHORD']
+                if chordName[i] == '1': ddf = 1
             elif chordName[i] == 'a' or chordName[i] == '#':
                 chordName = chordName[:i] + chordName[i+1:]
                 style = self.tabsObj.styles['SHP_CHORD']
+                if chordName[i] == '1': dds = 1
+            elif ddf: style = self.tabsObj.styles['FLT_CHORD']
+            elif dds: style = self.tabsObj.styles['SHP_CHORD']
             self.tabsObj.prints(chordName[i], i + row, col, style)
             i += 1
         for i in range(i, self.tabsObj.CHORDS_LEN):
@@ -367,7 +371,8 @@ class Chords(object):
             if 'M3' in imap:
                 if len(imap) == 3:                            return '{}+'.format(r)       # Aug
                 elif len(imap) == 4:
-                    if   'b7' in imap:                        return '{}+7'.format(r)      # Aug7
+                    if   'b7' in imap:                        return '{}7b13n5'.format(r)  # 7b13(no5)
+#                    if   'b7' in imap:                        return '{}+7'.format(r)      # Aug7
                     elif  '7' in imap:                        return '{}+M7'.format(r)     # AugMaj7
                     elif  '2' or  '9' in imap:                return '{}+2'.format(r)      # AugAdd2
                     elif  '4' or '11' in imap:                return '{}+4'.format(r)      # AugAdd4
