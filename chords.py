@@ -377,7 +377,8 @@ class Chords(object):
                     elif  '6' or '13' in imap:                return '{}+6'.format(r)      # AugAdd6
                 elif len(imap) == 5:
                     if    'b7' in imap:
-                        if   '2' in imap or  '9' in imap:     return '{}7b13n5'.format(r)   # 7b13(no5)
+                        if   '2' in imap or  '9' in imap:     return '{}7b13n5'.format(r)  # 7b13(no5)
+                        elif 'm3' in imap:                    return '{}7#9b13'.format(r)  # 7#9b13(no5)
 #                        if   '2' in imap or  '9' in imap:     return '{}+9'.format(r)      # Aug9
                         elif '4' in imap or '11' in imap:     return '{}+11n9'.format(r)   # Aug11(no9)
                         elif '9' in imap or '13' in imap:     return '{}+13n9'.format(r)   # Aug13(no9)

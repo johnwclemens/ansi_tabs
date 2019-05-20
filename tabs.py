@@ -663,7 +663,7 @@ class Tabs(object):
         if row is not None: self.row = row
         if col is not None: self.col = col
         print('moveTo({}, {}, {}) row={}, col={}, line={}'.format(row, col, hi, self.row, self.col, self.row2Line(self.row)), file=Tabs.DBG_FILE)
-        print(self.CSI + '{};{}H'.format(self.row, self.col), end='')
+        self.resetPos()
         self.printStatus()
         if self.displayLabels == self.DISPLAY_LABELS['ENABLED'] and hi == 1:
             self.hiliteRowColNum()
@@ -1268,9 +1268,12 @@ class Tabs(object):
         self.prints(self.hiliteRowNum, self.row, self.editModeCol, self.styles['BRIGHT'] + self.styles['TABS'])
         self.resetPos()
     
-    def deleteTab(self, row=None, col=None, back=0):
-        row, col = self.row, self.col
+    def deleteTab(self, row=None, col=None, back=0, dbg=1):
+        if dbg: print('deleteTab(row={} col={} back={}) bgn'.format(row, col, back), file=Tabs.DBG_FILE)
+        if row == None: row = self.row
+        if col == None: col = self.col
         r, c = self.rowCol2Indices(row, col)
+        if dbg: print('deleteTab(row={} col={} back={}) r={} c={}'.format(row, col, back, r, c), file=Tabs.DBG_FILE)
         tab = self.tabs[r][c]
         tabFN = self.getFretNum(tab)
         maxFN = self.getFretNum(self.maxFret)
@@ -1287,6 +1290,9 @@ class Tabs(object):
         elif self.editMode == self.EDIT_MODES['REPLACE']:
             print('deleteTab(row={} col={} back={}) r={} c={} EDIT_MODES[REPLACE]'.format(row, col, back, r, c), file=Tabs.DBG_FILE)
             self.moveCursor(back=back)
+            if back:
+                r, c = self.rowCol2Indices(self.row, self.col)
+                if dbg: print('deleteTab(row={} col={} back={}) r={} c={}'.format(row, col, back, r, c), file=Tabs.DBG_FILE)
             self.tabs[r][c] = ord('-')
             self.htabs[r][c] = ord('0')
             self.prints(chr(self.tabs[r][c]), row, col, self.styles['TABS'])
@@ -1297,7 +1303,7 @@ class Tabs(object):
                 self.chordsObj.printChord(c=c)
             if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
                 self.printColumnIvals(c)
-            self.moveTo()
+            self.resetPos()
         if Tabs.isFret(chr(tab)) and tabFN == maxFN:
             self.maxFret = self.findMaxFret()
 #            print('deleteTab() reset maxFret={}, chr(maxFret)={}, maxFN={}, tab={}, tabc={}, tabFN={}'.format(self.maxFret, chr(self.maxFret), self.getFretNum(self.maxFret), tab, chr(tab), tabFN), file=Tabs.DBG_FILE)
