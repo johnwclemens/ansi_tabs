@@ -5,7 +5,7 @@ import collections
 
 class Chords(object):
     '''Model chords for stringed instruments.  Discover and name chords.'''
-    #Consider chords without a root note (C# E G B -> A9)?
+    # Consider chords without a root note (E G Bb D -> C9)?  Consider multiple chord names for same imap (C+7 = C7b13)?
     def __init__(self, tabsObj):
         self.CHORD_LABEL = 'CHORD'
         self.c = None
