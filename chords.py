@@ -11,12 +11,8 @@ class Chords(object):
         self.c = None
         self.chordNames = {}
         self.indent = '    '
-        self.INTERVALS = { 0:'R',  1:'b2',  2:'2',  3:'m3',  4:'M3',  5:'4',   6:'b5',  7:'5',  8:'a5',  9:'6',  10:'b7', 11:'7', 12:'R'}
-        #                  , 13:'b2', 14:'2', 15:'m3', 16:'M3', 17:'4',  18:'b5', 19:'5', 20:'a5', 21:'6',  22:'b7', 23:'7',
-        #                  24:'R', 25:'b2', 26:'2', 27:'m3', 28:'M3', 29:'4',  30:'b5', 31:'5', 32:'a5', 33:'6',  34:'b7', 35:'7', 
-        #                  36:'R', 37:'b2', 38:'2', 39:'m3', 40:'M3', 41:'4',  42:'b5', 43:'5', 44:'a5', 45:'6',  46:'b7', 47:'7', 48:'R' }
-        self.INTERVAL_RANK = { 'R':0, 'b2':1, '2':2, 'm3':3, 'M3':4, '4':5, 'b5':6, '5':7, 'a5':8, '6':9, 'b7':10, '7':11} 
-        #                     , 'b9':12, '9':13, '11':14, '13':15 }
+        self.INTERVALS =     { 0:'R', 1:'b2', 2:'2', 3:'m3', 4:'M3', 5:'4', 6:'b5', 7:'5', 8:'a5', 9:'6', 10:'b7', 11:'7' }
+        self.INTERVAL_RANK = { 'R':0, 'b2':1, '2':2, 'm3':3, 'M3':4, '4':5, 'b5':6, '5':7, 'a5':8, '6':9, 'b7':10, '7':11, }
         self.tabsObj = tabsObj
         self.chords = collections.OrderedDict()                 # dict of chord spelling -> chord name; cache of discovered chords to avoid calculation
         print('Chords() tabsObj={}, chords={}'.format(tabsObj, self.chords), file=tabsObj.DBG_FILE)
@@ -52,7 +48,7 @@ class Chords(object):
         self.tabsObj.printFileMark('<END_CHORDS_SECTION>')
         return self.chordNames
     
-    def printChord(self, c=None, dbg=0):
+    def printChord(self, c=None, dbg=1):
         '''Analyze notes in given column index and if a valid chord is discovered then print it in the appropriate chords section.'''
         self.c = c
         if self.c is None:
@@ -136,7 +132,9 @@ class Chords(object):
                 deltas.append((indices[i] - indices[j]) % notes.Note.NUM_SEMI_TONES)
             else:
                 d = (indices[j] - indices[i]) % notes.Note.NUM_SEMI_TONES
-                deltas.append(notes.Note.NUM_SEMI_TONES - d)
+                delta = notes.Note.NUM_SEMI_TONES - d
+                if delta == notes.Note.NUM_SEMI_TONES: delta = 0
+                deltas.append(delta)
         if dbg:
             print('{}deltas      ['.format(self.indent), end='', file=self.tabsObj.DBG_FILE)
             for t in range(len(deltas)):
@@ -379,7 +377,8 @@ class Chords(object):
                     elif  '6' or '13' in imap:                return '{}+6'.format(r)      # AugAdd6
                 elif len(imap) == 5:
                     if    'b7' in imap:
-                        if   '2' in imap or  '9' in imap:     return '{}+9'.format(r)      # Aug9
+                        if   '2' in imap or  '9' in imap:     return '{}7b13n5'.format(r)   # 7b13(no5)
+#                        if   '2' in imap or  '9' in imap:     return '{}+9'.format(r)      # Aug9
                         elif '4' in imap or '11' in imap:     return '{}+11n9'.format(r)   # Aug11(no9)
                         elif '9' in imap or '13' in imap:     return '{}+13n9'.format(r)   # Aug13(no9)
                     elif  '7' in imap:

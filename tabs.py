@@ -303,9 +303,6 @@ class Tabs(object):
                         'SHP_NOTE':self.RED_WHITE,   'SHP_H_NOTE':self.MAGENTA_WHITE, 'SHP_CHORD':self.RED_WHITE,        'STATUS':self.MAGENTA_WHITE, 'MODES':self.BLUE_WHITE,   'ERROR':self.RED_YELLOW,   'CONS':self.BLACK_WHITE,
                         'HLT_STUS':self.CYAN_WHITE,  'IVAL_LABEL':self.YELLOW_WHITE,  'CHORD_LABEL':self.GREEN_WHITE,   'NO_IVAL':self.YELLOW_WHITE }
         self.HARMONIC_FRETS = { 12:12, 7:19, 19:19, 5:24, 24:24, 4:28, 9:28, 16:28, 28:28 }
-#        self.FRET_INDICES = { 0:0, 1:1, 2:2, 3:3, 4:4, 5:5, 6:6, 7:7, 8:8, 9:9, 10:'a' }  # for moving along the fretboard?
-#        self.MAJ_INDICES = [ 0, 2, 4, 5, 7, 9, 11, 12 ]                                   # for key signatures and or scales?
-#        self.MIN_INDICES = [ 0, 2, 3, 5, 7, 8, 10, 12 ]                                   # for key signatures and or scales?
         self.CURSOR_DIRS = { 'DOWN':0, 'UP':1 }
         self.CURSOR_MODES = { 'MELODY':0, 'CHORD':1, 'ARPEGGIO':2 }
         self.EDIT_MODES = { 'REPLACE':0, 'INSERT':1 }
