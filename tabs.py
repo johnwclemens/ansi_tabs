@@ -1778,7 +1778,7 @@ class Tabs(object):
         for k in m:
             temp = '{:>3} : {:<7}'.format(k, self.chordsObj.chordNames[k])
             self.printLimap(m[k], reason=temp)
-        print('}')
+        print('}', file=self.DBG_FILE)
     
     def printLimap(self, limap, reason=None):
         print('{} limap={{'.format(reason), end=' ', file=self.DBG_FILE)
