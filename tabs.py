@@ -837,7 +837,6 @@ class Tabs(object):
         '''Toggle display of enharmonic (sharp or flat) notes.  [cmd line opt -F]'''
         self.enharmonic = (self.enharmonic + 1) % len(self.ENHARMONICS)
         self.printTabs()
-#        self.printStatus()
     
     def toggleDisplayLabels(self, pt=1):
         '''Toggle (enable or disable) display of modes and labels row.  [cmd line opt -a]'''
@@ -1452,7 +1451,6 @@ class Tabs(object):
             print('deleteTabsCol() deleting chordInfo[{}]={}'.format(cc, self.chordInfo[cc]), file=Tabs.DBG_FILE)
             del self.chordInfo[cc]
             self.printMapLimap(self.chordInfo, reason='deleteTabsCol()')
-#            print('deleteTabsCol() chordInfo={}'.format(self.chordInfo), file=Tabs.DBG_FILE)
 #        self.dumpTabs('deleteTabsCol({}, {}) (row,col)=({},{}), cc={} bgn: '.format(self.row, self.col, row, col, cc))
         if self.editMode == self.EDIT_MODES['INSERT']:
             for r in range(0, self.numStrings):
@@ -1477,6 +1475,7 @@ class Tabs(object):
                     rr = r + row + self.numStrings + self.NOTES_LEN
                     print('deleteTabsCol(DISPLAY_INTERVALS) prints({}, {}, {})'.format(tab, rr, col), file=Tabs.DBG_FILE)
                     self.prints(tab, rr, col, self.styles['NAT_NOTE'])
+            self.printStatus()
 #        self.dumpTabs('deleteTabsCol({}, {}) col={} end: '.format(self.row, self.col, col))
     
     def _initPasteInfo(self):
@@ -1575,6 +1574,7 @@ class Tabs(object):
                         if c in self.chordInfo:
                             self.wrapPrintInterval(r, c, dbg=dbg)
             self.resetPos()
+            self.printStatus()
         if not rangeError:
             self.selectTabs, self.selectHTabs, self.selectCols, self.selectRows = [], [], [], []
         self.resetPos()
