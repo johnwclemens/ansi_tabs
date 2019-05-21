@@ -42,7 +42,7 @@ class Chords(object):
             self.eraseChord(c)
             for r in range(self.tabsObj.numStrings):
                 if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][c])):
-                    self.chordNames[c] = self.printChord(c=c)
+                    self.printChord(c=c)
                     break
             print(file=self.tabsObj.outFile)
         self.tabsObj.printFileMark('<END_CHORDS_SECTION>')
@@ -79,6 +79,8 @@ class Chords(object):
             imap = limap[0]
             if dbg: print('printChord() currentName={} chordName={} imap={}'.format(currentName, chordName, imap), file=self.tabsObj.DBG_FILE)
             self.printChordName(row, col, chordName, imap)
+        self.chordNames[c] = chordName
+        print('adding chordName[{}]={} to chordNames={}'.format(c, self.chordNames[c], self.chordNames), file=self.tabsObj.DBG_FILE)
         return chordName
     
     def printStrings(self):

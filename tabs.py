@@ -1097,7 +1097,7 @@ class Tabs(object):
         print('findMaxFret() maxFN={}'.format(maxFN), file=Tabs.DBG_FILE)
         return self.getFretByte(maxFN)
     
-    def setTab(self, tab, dbg=0):
+    def setTab(self, tab, dbg=1):
         '''Set given tab byte at the current row and col, print the corresponding tab character and then move cursor according to the cursor mode.'''
         row, col = self.row, self.col
         rr, cc = self.rowCol2Indices(row, col)
@@ -1109,33 +1109,18 @@ class Tabs(object):
             for c in range(len(self.tabs[rr]) - 1, cc, - 1):
                 self.tabs[rr][c] = self.tabs[rr][c - 1]
                 self.htabs[rr][c] = self.htabs[rr][c - 1]
-        prevTab = self.tabs[rr][cc]
-        capTab = self.tabs[rr][cc] = tab
-        if dbg: print('setTab({}({})) tabs={}({}) htabs={}({}) check isFret()'.format(tab, chr(tab), self.tabs[rr][cc], chr(self.tabs[rr][cc]), self.htabs[rr][cc], chr(self.htabs[rr][cc])), file=Tabs.DBG_FILE)
-        if Tabs.isFret(chr(tab)):
-            tabFN = self.getFretNum(tab)
-            maxFN = self.getFretNum(self.maxFret)
-            capFN = self.getFretNum(self.capo)
-            if dbg: print('setTab() maxFN={}({}) check tabFN:{}({}) + capFN:{}({}) > {}?'.format(self.maxFret, maxFN, tab, tabFN, self.capo, capFN, self.NUM_FRETS), file=Tabs.DBG_FILE)
-            if tabFN + capFN > self.NUM_FRETS:
-                return self.printe('setTab() capFN:{} + tabFN:{} > {}! tabc={}, tab={}, chr(capo)={}, capo={}'.format(capFN, tabFN, self.NUM_FRETS, chr(tab), tab, chr(self.capo), self.capo))
-            if dbg: print('setTab() check tabFn:{} > maxFn:{}?'.format(tabFN, maxFN), file=Tabs.DBG_FILE)
-            if tabFN > maxFN: 
-                self.maxFret = tab
-                if dbg: print('setTab() updating maxFret: chr(mf)={}, maxFret={}, maxFN={}'.format(chr(self.maxFret), self.maxFret, self.getFretNum(self.maxFret)), file=Tabs.DBG_FILE)
-            capTab = self.getFretByte(tabFN + capFN)
-            if dbg: print('setTab() setting capTab:{}({}) = self.getFretByte(tabFN:{}({}) + capFN:{}({}))'.format(capTab, chr(capTab), tab, tabFN, self.capo, capFN), file=Tabs.DBG_FILE)
+        self.tabs[rr][cc] = tab
         if self.editMode == self.EDIT_MODES['INSERT']:
             self.printTabs()
         elif self.editMode == self.EDIT_MODES['REPLACE']:
-            self.prints(chr(capTab), row, col, self.styles['TABS'])
+            self.prints(chr(tab), row, col, self.styles['TABS'])
             if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
-                if Tabs.isFret(chr(capTab)):
-                    n = self.getNote(s, capTab)
-                    print('setTab(DISPLAY_NOTES) capTab={}({}) nn={}'.format(capTab, chr(capTab), n.name), file=Tabs.DBG_FILE)
+                if Tabs.isFret(chr(tab)):
+                    n = self.getNote(s, tab)
+                    print('setTab(DISPLAY_NOTES) tab={}({}) nn={}'.format(tab, chr(tab), n.name), file=Tabs.DBG_FILE)
                     self.printNote(row + self.numStrings, col, n)
                 else:
-                    self.prints(chr(capTab), row + self.numStrings, col, self.styles['NAT_NOTE'])
+                    self.prints(chr(tab), row + self.numStrings, col, self.styles['NAT_NOTE'])
             if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
                 self.chordsObj.eraseChord(cc)
                 if cc in self.chordInfo: 
@@ -1158,9 +1143,9 @@ class Tabs(object):
                 if dbg: self.printMapLimap(self.chordInfo, reason='setTab(DISPLAY_INTERVALS) irow={} line={} cc={}'.format(irow, self.colIndex2Line(cc), cc))
                 if cc not in self.chordInfo:
                     print('setTab(DISPLAY_INTERVALS) row={} col={} ival={}'.format(row, col, 'R'), file=Tabs.DBG_FILE)
-                    if Tabs.isFret(chr(capTab)):
+                    if Tabs.isFret(chr(tab)):
                         self.printInterval(row + self.numStrings + self.numStrings, col, 'R', dbg=0)
-                    else: print('setTab(DISPLAY_INTERVALS) NOT a Fret tab={}'.format(chr(capTab)), file=Tabs.DBG_FILE)
+                    else: print('setTab(DISPLAY_INTERVALS) NOT a Fret tab={}'.format(chr(tab)), file=Tabs.DBG_FILE)
                 else:
                     for r in range(self.numStrings):
                         self.wrapPrintInterval(r, cc, dbg=dbg)
@@ -1764,21 +1749,12 @@ class Tabs(object):
             if self.outFile != None: print(file=self.outFile)
 #        self.printFileMark('<END_LABELS_SECTION>')
     
-    def printChordInfoMap(self, ci, reason=None):
-        print('printChordInfoMap() {} chordInfo={{'.format(reason), file=self.DBG_FILE)
-        for cik in ci:
-            print('{} : {}'.format(cik, self.chordsObj.chordNames[cik]), end=' ', file=self.DBG_FILE)
-            for m in ci[cik]:
-                imap = self.imap2String(m)
-                print('[{}]'.format(imap), end=' ', file=self.DBG_FILE)
-            print('', file=self.DBG_FILE)
-        print('}', file=self.DBG_FILE)
-    
     def printMapLimap(self, m, reason=None):
         print('printMapLimap() {} chordInfo(len={})={{'.format(reason, len(m)), file=self.DBG_FILE)
         for k in m:
-            temp = '{:>3} : {:<7}'.format(k, self.chordsObj.chordNames[k])
-            self.printLimap(m[k], reason=temp)
+            if k in self.chordsObj.chordNames:
+                self.printLimap(m[k], reason='{:>3} : {:<7}'.format(k, self.chordsObj.chordNames[k]))
+            else: self.printLimap(m[k], reason='{:>3} : {:<7}'.format(k, 'N/A'))
         print('}', file=self.DBG_FILE)
     
     def printLimap(self, limap, reason=None):
