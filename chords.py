@@ -221,7 +221,7 @@ class Chords(object):
         return limap
     
     def printLimaps(self, imap, limap, chordName, reason):
-        if chordName: print('{} chord={} imap=['.format(reason, chordName), end=' ', file=self.tabsObj.DBG_FILE)
+        if chordName: print('{} chordName={} imap=['.format(reason, chordName), end=' ', file=self.tabsObj.DBG_FILE)
         else: print('{} imap=['.format(reason), end=' ', file=self.tabsObj.DBG_FILE)
         for k in imap: print('{}:{}'.format(k, imap[k]), end=' ', file=self.tabsObj.DBG_FILE)
         print('] to', end=' ', file=self.tabsObj.DBG_FILE)

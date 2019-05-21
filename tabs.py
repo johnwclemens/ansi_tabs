@@ -665,7 +665,7 @@ class Tabs(object):
         print('moveTo({}, {}, {}) row={}, col={}, line={}'.format(row, col, hi, self.row, self.col, self.row2Line(self.row)), file=Tabs.DBG_FILE)
         self.resetPos()
         self.printStatus()
-        if self.displayLabels == self.DISPLAY_LABELS['ENABLED'] and hi == 1:
+        if hi == 1 and self.displayLabels == self.DISPLAY_LABELS['ENABLED']:
             self.hiliteRowColNum()
    
     def moveLeft(self, dbg=None):
@@ -750,7 +750,7 @@ class Tabs(object):
         for line in range(0, self.numLines):
             if 0 < row < self.bgnRow(line + 1) - 1:
                 return line
-        self.printe('Range Error row={}'.format(row), x=0)
+        self.printe('Range Error row={}'.format(row))
     
     def colIndex2Line(self, c):
         return int(c / self.numTabsPerStringPerLine)
@@ -1295,6 +1295,10 @@ class Tabs(object):
                 if dbg: print('deleteTab(row={} col={} back={}) r={} c={}'.format(row, col, back, r, c), file=Tabs.DBG_FILE)
             self.tabs[r][c] = ord('-')
             self.htabs[r][c] = ord('0')
+            if c in self.chordInfo:
+                print('deleteTab() deleting chordInfo[{}]={}'.format(c, self.chordInfo[c]), file=Tabs.DBG_FILE)
+                del self.chordInfo[c]
+                self.printMapLimap(self.chordInfo, reason='deleteTab()' )
             self.prints(chr(self.tabs[r][c]), row, col, self.styles['TABS'])
             if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
                 self.prints(chr(self.tabs[r][c]), row + self.numStrings, col, self.styles['NAT_NOTE'])
@@ -1304,6 +1308,7 @@ class Tabs(object):
             if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
                 self.printColumnIvals(c)
             self.resetPos()
+        self.printStatus()
         if Tabs.isFret(chr(tab)) and tabFN == maxFN:
             self.maxFret = self.findMaxFret()
 #            print('deleteTab() reset maxFret={}, chr(maxFret)={}, maxFN={}, tab={}, tabc={}, tabFN={}'.format(self.maxFret, chr(self.maxFret), self.getFretNum(self.maxFret), tab, chr(tab), tabFN), file=Tabs.DBG_FILE)
@@ -1419,7 +1424,7 @@ class Tabs(object):
         self.printLineInfo('deleteSelectTabs({}, {}) delSel={} selectCols={}'.format(self.row, self.col, delSel, self.selectCols))
         self.selectCols.sort(key = int, reverse = True)
         for c in range(0, len(self.selectCols)):
-            self.deleteTabs(self.selectCols[c])
+            self.deleteTabsCol(self.selectCols[c])
         if delSel:
             self.selectCols = []
         if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
@@ -1440,14 +1445,15 @@ class Tabs(object):
         for c in range(0, len(self.selectTabs)):
             print('    selectTabs[{}]={}'.format(c, self.selectTabs[c]), file=Tabs.DBG_FILE)
     
-    def deleteTabs(self, cc):
+    def deleteTabsCol(self, cc):
         row, col = self.indices2RowCol(0, cc)
-        print('deleteTabs({})'.format(cc), file=Tabs.DBG_FILE)
+        print('deleteTabsCol({})'.format(cc), file=Tabs.DBG_FILE)
         if cc in self.chordInfo:
-            print('deleteTabs() deleting chordInfo[{}]={}'.format(cc, self.chordInfo[cc]), file=Tabs.DBG_FILE)
+            print('deleteTabsCol() deleting chordInfo[{}]={}'.format(cc, self.chordInfo[cc]), file=Tabs.DBG_FILE)
             del self.chordInfo[cc]
-            print('deleteTabs() chordInfo={}'.format(self.chordInfo), file=Tabs.DBG_FILE)
-#        self.dumpTabs('deleteTabs({}, {}) (row,col)=({},{}), cc={} bgn: '.format(self.row, self.col, row, col, cc))
+            self.printMapLimap(self.chordInfo, reason='deleteTabsCol()')
+#            print('deleteTabsCol() chordInfo={}'.format(self.chordInfo), file=Tabs.DBG_FILE)
+#        self.dumpTabs('deleteTabsCol({}, {}) (row,col)=({},{}), cc={} bgn: '.format(self.row, self.col, row, col, cc))
         if self.editMode == self.EDIT_MODES['INSERT']:
             for r in range(0, self.numStrings):
                 for c in range(cc, len(self.tabs[r]) - 1):
@@ -1465,13 +1471,13 @@ class Tabs(object):
                 self.prints(tab, r + row, col, self.styles['TABS'])
                 if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
                     rr = r + row + self.numStrings
-                    print('deleteTabs(DISPLAY_NOTES) prints({}, {}, {})'.format(tab, rr, col), file=Tabs.DBG_FILE)
+                    print('deleteTabsCol(DISPLAY_NOTES) prints({}, {}, {})'.format(tab, rr, col), file=Tabs.DBG_FILE)
                     self.prints(tab, rr, col, self.styles['NAT_NOTE'])
                 if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
                     rr = r + row + self.numStrings + self.NOTES_LEN
-                    print('deleteTabs(DISPLAY_INTERVALS) prints({}, {}, {})'.format(tab, rr, col), file=Tabs.DBG_FILE)
+                    print('deleteTabsCol(DISPLAY_INTERVALS) prints({}, {}, {})'.format(tab, rr, col), file=Tabs.DBG_FILE)
                     self.prints(tab, rr, col, self.styles['NAT_NOTE'])
-#        self.dumpTabs('deleteTabs({}, {}) col={} end: '.format(self.row, self.col, col))
+#        self.dumpTabs('deleteTabsCol({}, {}) col={} end: '.format(self.row, self.col, col))
     
     def _initPasteInfo(self):
         nc, rangeError, row, col, rr, cc = 0, 0, self.row, self.col, 0, 0
@@ -1772,6 +1778,7 @@ class Tabs(object):
         for k in m:
             temp = '{:>3} : {:<7}'.format(k, self.chordsObj.chordNames[k])
             self.printLimap(m[k], reason=temp)
+        print('}')
     
     def printLimap(self, limap, reason=None):
         print('{} limap={{'.format(reason), end=' ', file=self.DBG_FILE)
@@ -1790,8 +1797,8 @@ class Tabs(object):
     
     def printStatus(self):
         r, c = self.rowCol2Indices(self.row, self.col)
-        print('printStatus({}, {}) r={}, c={}, tab={}'.format(self.row, self.col, r, c, self.tabs[r][c]), file=Tabs.DBG_FILE)
         tab = chr(self.tabs[r][c])
+        print('printStatus({}, {}) r={}, c={}, tab={}({})'.format(self.row, self.col, r, c, self.tabs[r][c], tab), file=Tabs.DBG_FILE)
         if   Tabs.isFret(tab): self.printFretStatus(tab, r, c)
         elif tab in self.mods: self.printModStatus(tab, r, c)
         else:                  self.printDefaultStatus(tab, r, c)
