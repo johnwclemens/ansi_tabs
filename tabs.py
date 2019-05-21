@@ -837,7 +837,7 @@ class Tabs(object):
         '''Toggle display of enharmonic (sharp or flat) notes.  [cmd line opt -F]'''
         self.enharmonic = (self.enharmonic + 1) % len(self.ENHARMONICS)
         self.printTabs()
-        self.printStatus()
+#        self.printStatus()
     
     def toggleDisplayLabels(self, pt=1):
         '''Toggle (enable or disable) display of modes and labels row.  [cmd line opt -a]'''
@@ -1637,6 +1637,7 @@ class Tabs(object):
             self.printLabels()
         if self.row > 0 and self.col > 0:
             print(self.CSI + self.styles['NORMAL'] + self.styles['CONS'] + self.CSI + '{};{}H'.format(self.row, self.col), end='') # restore the console cursor to the given position (row, col) and set the foreground and background color
+        self.printStatus()
         self.printLineInfo('printTabs({}, {}) end'.format(self.row, self.col))
     
     def printFileMark(self, mark):
