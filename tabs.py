@@ -73,62 +73,62 @@ class Tabs(object):
         Tabs.clearScreen()
         self.initFiles(inName, outName)
         self.initConsts()
-        self.registerUiCmds()                                  # register the dictionary for all the user interactive commands
-        self.mods = {}                                         # dict of tab modification characters -> contextual descriptions 
-        self.dbgMove = True                                    # used for finding bugs in basic movement functionality
-        self.capo = ord('0')                                   # essentially added to every tab that is a fret, written to the outFile and read from the inFile
-        self.maxFret = ord('0')                                # update in setTab() and readTabs()
-        self.chordsObj = None                                  # the chords.Chords instance
+        self.registerUiCmds()                                      # register the dictionary for all the user interactive commands
+        self.mods = {}                                             # dict of tab modification characters -> contextual descriptions
+        self.dbgMove = True                                        # used for finding bugs in basic movement functionality
+        self.capo = ord('0')                                       # essentially added to every tab that is a fret, written to the outFile and read from the inFile
+        self.maxFret = ord('0')                                    # update in setTab() and readTabs()
+        self.chordsObj = None                                      # the chords.Chords instance
         
-        self.htabs = []                                        # list of bytearrays, one for each string; for harmonic tabs
-        self.tabCount = 0                                      # used by appendTabs() 
-        self.tabs = []                                         # list of bytearrays, one for each string; for all the tabs
-        self.chordInfo = {}                                    # dict column -> (list of dict intervals -> note names) i.e. dict col -> list of imaps for status chord info
-        self.selectChords = {}                                 # dict chord name -> imap, for displaying the selected chord name and imap
-        self.selectImaps = {}                                  # dict imap string -> imap, for displaying intervals corresponding to selected chord name & imap
-        self.analyzeIndex = -1                                 # index being analyzed for chord info
-        self.chordStatusCol = None                             # tab column index used to display chord info on status row
+        self.htabs = []                                            # list of bytearrays, one for each string; for harmonic tabs
+        self.tabCount = 0                                          # used by appendTabs()
+        self.tabs = []                                             # list of bytearrays, one for each string; for all the tabs
+        self.chordInfo = {}                                        # dict column -> (list of dict intervals -> note names) i.e. dict col -> list of imaps for status chord info
+        self.selectChords = {}                                     # dict chord name -> imap, for displaying the selected chord name and imap
+        self.selectImaps = {}                                      # dict imap string -> imap, for displaying intervals corresponding to selected chord name & imap
+        self.analyzeIndex = -1                                     # index being analyzed for chord info
+        self.chordStatusCol = None                                 # tab column index used to display chord info on status row
         
-        self.arpeggiate = 0                                    # used to transform chords to arpeggios
-        self.selectFlag = 0                                    # used to un-hilite selected rows
-        self.selectTabs = []                                   # list of bytearrays, one for each string; for selected tabs
-        self.selectHTabs = []                                  # list of bytearrays, one for each string; for selected tabs
-        self.selectRows = []                                   # list of row    indices, one for each selected row;    for selected rows
-        self.selectCols = []                                   # list of column indices, one for each selected column; for selected columns
-        self.stringMap = {}                                    # dict of string note name -> note index
-        self.stringKeys = []                                   # list of keys; stringMap keys sorted by note index
-        self.numStrings = 1                                    # number of strings on the musical instrument, set here in case initStrings() fails
+        self.arpeggiate = 0                                        # used to transform chords to arpeggios
+        self.selectFlag = 0                                        # used to un-hilite selected rows
+        self.selectTabs = []                                       # list of bytearrays, one for each string; for selected tabs
+        self.selectHTabs = []                                      # list of bytearrays, one for each string; for selected tabs
+        self.selectRows = []                                       # list of row    indices, one for each selected row;    for selected rows
+        self.selectCols = []                                       # list of column indices, one for each selected column; for selected columns
+        self.stringMap = {}                                        # dict of string note name -> note index
+        self.stringKeys = []                                       # list of keys; stringMap keys sorted by note index
+        self.numStrings = 1                                        # number of strings on the musical instrument, set here in case initStrings() fails
         
-        self.numLines = 1                                      # number of music lines to display
-        self.numTabsPerStringPerLine = 10                      # number of tabs to display on each line (for each string)
+        self.numLines = 1                                          # number of music lines to display
+        self.numTabsPerStringPerLine = 10                          # number of tabs to display on each line (for each string)
         self.numTabsPerString = self.numLines * self.numTabsPerStringPerLine  # total number of tabs per string
         
-        self.ROW_OFF = 1                                       # offset between cursor row    number and tabs row    index
-        self.COL_OFF = 3                                       # offset between cursor column number and tabs column index
-        self.CHORDS_LEN = 0                                    # number of rows used to display chords on a given line
-        self.NOTES_LEN = 0                                     # number of rows used to display notes  on a given line
-        self.INTERVALS_LEN = 0                                 # number of rows used to display intervals on a given line
-        self.NUM_FRETS = 24                                    # number of frets (might make this a list for each string)?
-        self.IVAL_LABEL = 'INTRVL'                             # label displayed for intervals (first col)
+        self.ROW_OFF = 1                                           # offset between cursor row    number and tabs row    index
+        self.COL_OFF = 3                                           # offset between cursor column number and tabs column index
+        self.CHORDS_LEN = 0                                        # number of rows used to display chords on a given line
+        self.NOTES_LEN = 0                                         # number of rows used to display notes  on a given line
+        self.INTERVALS_LEN = 0                                     # number of rows used to display intervals on a given line
+        self.NUM_FRETS = 24                                        # number of frets (might make this a list for each string)?
+        self.IVAL_LABEL = 'INTRVL'                                 # label displayed for intervals (first col)
         
-        self.hiliteCount = 0                                   # statistic for measuring efficiency
-        self.hiliteColNum = 0                                  # used to hilite the current cursor column and unhilite the previous cursor column
-        self.hiliteRowNum = 0                                  # used to hilite the current cursor row    and unhilite the previous cursor row
+        self.hiliteCount = 0                                       # statistic for measuring efficiency
+        self.hiliteColNum = 0                                      # used to hilite the current cursor column and unhilite the previous cursor column
+        self.hiliteRowNum = 0                                      # used to hilite the current cursor row    and unhilite the previous cursor row
         self.hilitePrevRowPos = 0
-        self.row = self.ROW_OFF                                # current cursor row    number
-        self.col = self.COL_OFF                                # current cursor column number
-        self.editModeCol = 1                                   # column to display edit  mode
-        self.cursorModeCol = 2                                 # column to display cursor mode
+        self.row = self.ROW_OFF                                    # current cursor row    number
+        self.col = self.COL_OFF                                    # current cursor column number
+        self.editModeCol = 1                                       # column to display edit  mode
+        self.cursorModeCol = 2                                     # column to display cursor mode
         self.lastRow = self.ROW_OFF + self.numLines * self.lineDelta() - 1  # the row used to display status, set here in case initStrings() fails e.g. tab mod info or error info etc...
         
-        self.displayLabels = self.DISPLAY_LABELS['DISABLED']   # enable or disable the display of the modes and labels section before each line
-        self.displayNotes = self.DISPLAY_NOTES['DISABLED']     # enable or disable the display of the notes section for each line
+        self.displayLabels = self.DISPLAY_LABELS['DISABLED']       # enable or disable the display of the modes and labels section before each line
+        self.displayNotes = self.DISPLAY_NOTES['DISABLED']         # enable or disable the display of the notes section for each line
         self.displayIntervals = self.DISPLAY_INTERVALS['DISABLED'] # enable or disable the display of the intervals section for each line
-        self.displayChords = self.DISPLAY_CHORDS['DISABLED']   # enable or disable the display of the chords section for each line
-        self.cursorDir = self.CURSOR_DIRS['DOWN']              # affects the automatic cursor movement (up/down) when entering a tab in chord or arpeggio mode
-        self.enharmonic = self.ENHARMONICS['SHARP']            # toggle between displaying enharmonic notes as flat or sharp
-        self.editMode = self.EDIT_MODES['REPLACE']             # toggle between modifying the current character or inserting a new character
-        self.cursorMode = self.CURSOR_MODES['MELODY']          # toggle between different cursor modes; melody, chord, and arpeggio
+        self.displayChords = self.DISPLAY_CHORDS['DISABLED']       # enable or disable the display of the chords section for each line
+        self.cursorDir = self.CURSOR_DIRS['DOWN']                  # affects the automatic cursor movement (up/down) when entering a tab in chord or arpeggio mode
+        self.enharmonic = self.ENHARMONICS['SHARP']                # toggle between displaying enharmonic notes as flat or sharp
+        self.editMode = self.EDIT_MODES['REPLACE']                 # toggle between modifying the current character or inserting a new character
+        self.cursorMode = self.CURSOR_MODES['MELODY']              # toggle between different cursor modes; melody, chord, and arpeggio
         
         self.cmdLine = ''
         for arg in sys.argv:
@@ -138,22 +138,22 @@ class Tabs(object):
         cmdArgs.parseCmdLine(self.argMap)
         print('tabs.py args={}'.format(self.argMap), file=Tabs.DBG_FILE)
         if 'f' in self.argMap and len(self.argMap['f']) > 0:
-            self.inName = self.argMap['f'][0]                       # file to read from
-            self.outName = self.argMap['f'][0]                      # file to write to, only written to with the saveTabs command
+            self.inName = self.argMap['f'][0]                      # file to read from
+            self.outName = self.argMap['f'][0]                     # file to write to, only written to with the saveTabs command
             backupName = self.outName + '.bak'
             if os.path.isfile(backupName):
                 print('saving backup file: {}'.format(backupName), file=Tabs.DBG_FILE)
                 shutil.copy2(self.outName, backupName)
         if 't' in self.argMap and len(self.argMap['t']) > 0:
-            self.initTabLen(self.argMap['t'])                       # set number of tabs/columns per line (and per string)
+            self.initTabLen(self.argMap['t'])                      # set number of tabs/columns per line (and per string)
         if 'S' in self.argMap and len(self.argMap['S']) > 0:
-            self.initStrings(alias=self.argMap['S'])                # set string tuning with alias
+            self.initStrings(alias=self.argMap['S'])               # set string tuning with alias
         elif 's' in self.argMap and len(self.argMap['s']) > 0:
-            self.initStrings(spelling=self.argMap['s'])             # set string tuning with string spelling
+            self.initStrings(spelling=self.argMap['s'])            # set string tuning with string spelling
         else:
-            self.initStrings()                                 # set default string tuning
-        self.setLastRow()                                      # calculate last row, depends on numStrings which is supposed to be set in initStrings()
-        self.numTabs = self.numStrings * self.numTabsPerString # total number of tab characters
+            self.initStrings()                                     # set default string tuning
+        self.setLastRow()                                          # calculate last row, depends on numStrings which is supposed to be set in initStrings()
+        self.numTabs = self.numStrings * self.numTabsPerString     # total number of tab characters
         
         try:
             with open(self.inName, 'rb') as self.inFile:
@@ -1187,7 +1187,7 @@ class Tabs(object):
     
     def moveCursor(self, row=None, col=None, back=0):
         '''Move cursor to the next row and or col using cursor mode (optionally hilite new row and col nums).'''
-        print('moveCursor(row={}, col={}, back={}) old: row={}, col={}'.format(row, col, back, self.row, self.col), file=Tabs.DBG_FILE)
+        print('moveCursor(row={}, col={}, back={}) old: row={}, col={} bgn'.format(row, col, back, self.row, self.col), file=Tabs.DBG_FILE)
         if row != None: self.row = row
         if col != None: self.col = col
         if self.cursorMode == self.CURSOR_MODES['MELODY']:
@@ -1229,7 +1229,7 @@ class Tabs(object):
                         print('moveCursor(line={} UP !>) row={} ? bgnRow(line)={} endRow(line)={}'.format(line, self.row, self.bgnRow(line), self.endRow(line)), file=Tabs.DBG_FILE)
                         self.row = self.endRow(line)
                         self.moveRight()
-        print('moveCursor(row={}, col={}, back={}) new: row={}, col={}'.format(row, col, back, self.row, self.col), file=Tabs.DBG_FILE)
+        print('moveCursor(row={}, col={}, back={}) new: row={}, col={} end'.format(row, col, back, self.row, self.col), file=Tabs.DBG_FILE)
     
     def hiliteRowColNum(self, dbg=0):
         self.hiliteCount += 1
@@ -1257,10 +1257,6 @@ class Tabs(object):
         if row == None: row = self.row
         if col == None: col = self.col
         r, c = self.rowCol2Indices(row, col)
-        if dbg: print('deleteTab(row={} col={} back={}) r={} c={}'.format(row, col, back, r, c), file=Tabs.DBG_FILE)
-        tab = self.tabs[r][c]
-        tabFN = self.getFretNum(tab)
-        maxFN = self.getFretNum(self.maxFret)
         if self.editMode == self.EDIT_MODES['INSERT']:
             print('deleteTab(row={} col={} back={}) r={} c={} EDIT_MODES[INSERT]'.format(row, col, back, r, c), file=Tabs.DBG_FILE)
             for cc in range(c, len(self.tabs[r]) - 1):
@@ -1273,11 +1269,11 @@ class Tabs(object):
             self.printTabs()
         elif self.editMode == self.EDIT_MODES['REPLACE']:
             print('deleteTab(row={} col={} back={}) r={} c={} EDIT_MODES[REPLACE]'.format(row, col, back, r, c), file=Tabs.DBG_FILE)
-            self.moveCursor(back=back)
             if back:
                 r, c = self.rowCol2Indices(self.row, self.col)
                 if dbg: print('deleteTab(row={} col={} back={}) r={} c={}'.format(row, col, back, r, c), file=Tabs.DBG_FILE)
-            self.tabs[r][c] = ord('-')
+            self.moveCursor(row=row, col=col, back=back)
+            self.tabs[r][c] = ord('X')
             self.htabs[r][c] = ord('0')
             if c in self.chordInfo:
                 print('deleteTab() deleting chordInfo[{}]={}'.format(c, self.chordInfo[c]), file=Tabs.DBG_FILE)
@@ -1293,9 +1289,6 @@ class Tabs(object):
                 self.printColumnIvals(c)
             self.resetPos()
         self.printStatus()
-        if Tabs.isFret(chr(tab)) and tabFN == maxFN:
-            self.maxFret = self.findMaxFret()
-#            print('deleteTab() reset maxFret={}, chr(maxFret)={}, maxFN={}, tab={}, tabc={}, tabFN={}'.format(self.maxFret, chr(self.maxFret), self.getFretNum(self.maxFret), tab, chr(tab), tabFN), file=Tabs.DBG_FILE)
     
     def deletePrevTab(self):
         '''Delete previous tab (backspace).'''
