@@ -247,10 +247,13 @@ class Tabs(object):
         exit()
     
     def testAnsi3(self):
-        print(self.CSI + '22;31;47m' + self.CSI + '1B' + self.CSI + '1C' + 'Normal Red on White', end='')
-        print(self.CSI +  '1;31;47m' + self.CSI + '1B' + self.CSI + '1C' + 'Bright Red on White', end='')
-        print(self.CSI + '22;32;47m' + self.CSI + '1B' + self.CSI + '1C' + 'Normal Green on White', end='')
-        print(self.CSI +  '1;32;47m' + self.CSI + '1B' + self.CSI + '1C' + 'Bright Green on White', end='')
+        print(self.CSI + '22;37;40m' + self.CSI + '1B' + self.CSI + '1C' + 'Normal White on Black', end='')
+        print(self.CSI + '22;37;41m' + self.CSI + '1B' + self.CSI + '1C' + 'Normal White on Red', end='')
+        print(self.CSI + '22;37;42m' + self.CSI + '1B' + self.CSI + '1C' + 'Normal White on Green', end='')
+        print(self.CSI + '22;37;43m' + self.CSI + '1B' + self.CSI + '1C' + 'Normal White on Yellow', end='')
+        print(self.CSI + '22;37;44m' + self.CSI + '1B' + self.CSI + '1C' + 'Normal White on Blue', end='')
+        print(self.CSI + '22;37;45m' + self.CSI + '1B' + self.CSI + '1C' + 'Bright White on Magenta', end='')
+        print(self.CSI + '22;37;46m' + self.CSI + '1B' + self.CSI + '1C' + 'Bright White on Cyan', end='')
         exit()
     
     def initFiles(self, inName, outName):
@@ -272,9 +275,11 @@ class Tabs(object):
         self.GREEN_YELLOW = self.initText('GREEN', 'YELLOW')
         self.BLUE_YELLOW = self.initText('BLUE', 'YELLOW')
         self.RED_YELLOW = self.initText('RED', 'YELLOW')
-        self.styles = { 'NAT_NOTE':self.GREEN_WHITE, 'NAT_H_NOTE':self.YELLOW_WHITE,  'NAT_CHORD':self.GREEN_WHITE, 'MIN_COL_NUM':self.RED_WHITE,      'TABS':self.BLACK_WHITE,  'NUT_UP':self.BLUE_YELLOW,  'NORMAL':'22;',
-                        'FLT_NOTE':self.BLUE_WHITE,  'FLT_H_NOTE':self.CYAN_WHITE,    'FLT_CHORD':self.BLUE_WHITE,  'MAJ_COL_NUM':self.BLACK_WHITE,  'H_TABS':self.BLACK_YELLOW, 'NUT_DN':self.RED_YELLOW,   'BRIGHT':'1;',
-                        'SHP_NOTE':self.RED_WHITE,   'SHP_H_NOTE':self.MAGENTA_WHITE, 'SHP_CHORD':self.RED_WHITE,        'STATUS':self.MAGENTA_WHITE, 'MODES':self.BLUE_WHITE,   'ERROR':self.RED_YELLOW,   'CONS':self.BLACK_WHITE,
+        self.WHITE_MAGENTA = self.initText('WHITE', 'MAGENTA')
+        self.WHITE_CYAN = self.initText('WHITE', 'CYAN')
+        self.styles = { 'NAT_NOTE':self.GREEN_WHITE, 'NAT_H_NOTE':self.YELLOW_WHITE,  'NAT_CHORD':self.GREEN_WHITE, 'MIN_COL_NUM':self.RED_WHITE,      'TABS':self.BLACK_WHITE,  'NUT_UP':self.WHITE_MAGENTA, 'NORMAL':'22;',
+                        'FLT_NOTE':self.BLUE_WHITE,  'FLT_H_NOTE':self.CYAN_WHITE,    'FLT_CHORD':self.BLUE_WHITE,  'MAJ_COL_NUM':self.BLACK_WHITE,  'H_TABS':self.BLACK_YELLOW, 'NUT_DN':self.WHITE_CYAN,    'BRIGHT':'1;',
+                        'SHP_NOTE':self.RED_WHITE,   'SHP_H_NOTE':self.MAGENTA_WHITE, 'SHP_CHORD':self.RED_WHITE,        'STATUS':self.MAGENTA_WHITE, 'MODES':self.BLUE_WHITE,    'ERROR':self.RED_YELLOW, 'CONS':self.BLACK_WHITE,
                         'HLT_STUS':self.CYAN_WHITE,  'IVAL_LABEL':self.YELLOW_WHITE,  'CHORD_LABEL':self.GREEN_WHITE,   'NO_IVAL':self.YELLOW_WHITE }
         self.HARMONIC_FRETS = { 12:12, 7:19, 19:19, 5:24, 24:24, 4:28, 9:28, 16:28, 28:28 }
         self.CURSOR_DIRS = { 'DOWN':0, 'UP':1 }
@@ -791,7 +796,7 @@ class Tabs(object):
     def setLastRow(self):
         self.lastRow = self.ROW_OFF + self.numLines * self.lineDelta() - 1
     
-    def toggleEditMode(self, dbg=None):
+    def toggleEditMode(self, dbg=0):
         '''Toggle cursor movement modes (insert or replace).'''
         self.editMode = (self.editMode + 1) % len(self.EDIT_MODES)
         if self.displayLabels == self.DISPLAY_LABELS['ENABLED']:
@@ -804,7 +809,7 @@ class Tabs(object):
             if dbg: self.printLineInfo('toggleEditMode({}, {})'.format(self.row, self.col))
             self.resetPos()
     
-    def toggleCursorMode(self, dbg=None):
+    def toggleCursorMode(self, dbg=0):
         '''Toggle cursor movement modes (melody, chord, or arpeggio).'''
         self.cursorMode = (self.cursorMode + 1) % len(self.CURSOR_MODES)
         if self.displayLabels == self.DISPLAY_LABELS['ENABLED']:
@@ -819,18 +824,24 @@ class Tabs(object):
             if dbg: self.printLineInfo('toggleCursorMode({}, {})'.format(self.row, self.col))
             self.resetPos()
     
-    def toggleCursorDir(self, dbg=None):
+    def toggleCursorDir(self, dbg=1):
         '''Toggle direction (up or down) of cursor vertical movement.  [cmd line opt -i]'''
         self.cursorDir = (self.cursorDir + 1) % len(self.CURSOR_DIRS)
         for line in range(0, self.numLines):
             for r in range(0, self.numStrings):
                 if self.cursorDir == self.CURSOR_DIRS['DOWN']:
-                    self.prints(chr(self.capo), r + self.bgnRow(line), self.cursorModeCol, self.styles['NUT_DN'])
-                    self.prints(chr(self.capo), r + self.endRow(line) + 1, self.cursorModeCol, self.styles['NUT_DN'])
+                    self.prints(chr(self.capo), r + self.bgnRow(line)                                                        , self.cursorModeCol, self.styles['NUT_DN'])
+                    self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings                                      , self.cursorModeCol, self.styles['NUT_DN'])
+                    self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings + self.NOTES_LEN                     , self.cursorModeCol, self.styles['NUT_DN'])
+                    if r < self.CHORDS_LEN:
+                        self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings + self.NOTES_LEN + self.INTERVALS_LEN, self.cursorModeCol, self.styles['NUT_DN'])
                 elif self.cursorDir == self.CURSOR_DIRS['UP']:
-                    self.prints(chr(self.capo), r + self.bgnRow(line), self.cursorModeCol, self.styles['NUT_UP'])
-                    self.prints(chr(self.capo), r + self.endRow(line) + 1, self.cursorModeCol, self.styles['NUT_UP'])
-        if dbg: self.printLineInfo('toggleCursorDir({}, {}, {}, {})'.format(self.row, self.col, self.cursorDir, self.CURSOR_DIRS[self.cursorDir]))
+                    self.prints(chr(self.capo), r + self.bgnRow(line)                                                        , self.cursorModeCol, self.styles['NUT_UP'])
+                    self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings                                      , self.cursorModeCol, self.styles['NUT_UP'])
+                    self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings + self.NOTES_LEN                     , self.cursorModeCol, self.styles['NUT_UP'])
+                    if r < self.CHORDS_LEN:
+                        self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings + self.NOTES_LEN + self.INTERVALS_LEN, self.cursorModeCol, self.styles['NUT_UP'])
+        if dbg: self.printLineInfo('toggleCursorDir({}) line={} row={} col={}'.format(self.cursorDir, line, self.row, self.col))
         self.resetPos()
     
     def toggleEnharmonic(self):
@@ -849,7 +860,7 @@ class Tabs(object):
             self.ROW_OFF = 1
             self.row -= 1
         self.setLastRow()
-        self.printLineInfo('toggleDisplayLabels({}) row,col=({}, {}), line={},'.format(self.displayLabels, self.row, self.col, line))
+        self.printLineInfo('toggleDisplayLabels({}) line={} row={} col={}'.format(self.displayLabels, line, self.row, self.col))
         if pt: self.printTabs(cs=1)
     
     def toggleDisplayNotes(self, pt=1):
@@ -863,7 +874,7 @@ class Tabs(object):
             self.row -= line * self.NOTES_LEN
             self.NOTES_LEN = 0
         self.setLastRow()
-        self.printLineInfo('toggleDisplayNotes({}) row,col=({}, {}), line={}'.format(self.displayNotes, self.row, self.col, line))
+        self.printLineInfo('toggleDisplayNotes({}) line={} row={} col={}'.format(self.displayNotes, line, self.row, self.col))
         if pt: self.printTabs(cs=1)
     
     def toggleDisplayIntervals(self, pt=1):
@@ -1104,13 +1115,12 @@ class Tabs(object):
         s, ss = rr + 1, self.getOrdSfx(rr + 1)
         print('setTab({}, {}, {}, {}) tab={}({}), {}({}{}) string, bgn'.format(rr, cc, self.row, self.col, tab, chr(tab), self.getNote(s, 0).name, s, ss), file=Tabs.DBG_FILE)
         if self.bgnCol() > self.col > self.endCol() or self.ROW_OFF > self.row > self.ROW_OFF + self.numLines * self.lineDelta():
-            return self.printe('row/col out of range setTab({},{},{}, {}) tab={}({})'.format(rr, cc, self.row, self.col, tab, chr(tab)))
+            return self.printe('row/col out of range setTab({},{},{}, {}) tab={}({})'.format(rr, cc, self.row, self.col, tab, chr(tab)), x=1)
+        self.tabs[rr][cc] = tab
         if self.editMode == self.EDIT_MODES['INSERT']:
             for c in range(len(self.tabs[rr]) - 1, cc, - 1):
                 self.tabs[rr][c] = self.tabs[rr][c - 1]
                 self.htabs[rr][c] = self.htabs[rr][c - 1]
-        self.tabs[rr][cc] = tab
-        if self.editMode == self.EDIT_MODES['INSERT']:
             self.printTabs()
         elif self.editMode == self.EDIT_MODES['REPLACE']:
             self.prints(chr(tab), row, col, self.styles['TABS'])
@@ -1695,7 +1705,11 @@ class Tabs(object):
             for r in range(0, self.numStrings):
                 row = r + line * self.lineDelta() + self.endRow(0) + self.NOTES_LEN + 1
                 self.prints(self.IVAL_LABEL[r], row, 1, self.styles['IVAL_LABEL'])
-                for c in range(2, self.COL_OFF):
+                if self.cursorDir == self.CURSOR_DIRS['DOWN']:
+                    self.prints(chr(self.capo), row, self.cursorModeCol, self.styles['NUT_DN'])
+                elif self.cursorDir == self.CURSOR_DIRS['UP']:
+                    self.prints(chr(self.capo), row, self.cursorModeCol, self.styles['NUT_UP'])
+                for c in range(self.COL_OFF, self.COL_OFF):
                     self.prints(' ', row, c, self.styles['IVAL_LABEL'])
             for c in range (0, self.numTabsPerStringPerLine):
                 cc = c + line * self.numTabsPerStringPerLine

@@ -36,8 +36,10 @@ class Chords(object):
             row = self.tabsObj.ROW_OFF + line * self.tabsObj.lineDelta() + self.tabsObj.numStrings + self.tabsObj.NOTES_LEN + self.tabsObj.INTERVALS_LEN
             for r in range(self.tabsObj.CHORDS_LEN):
                 self.tabsObj.prints(self.CHORD_LABEL[r], r + row, 1, self.tabsObj.styles['NAT_CHORD'])
-                for c in range(2, self.tabsObj.COL_OFF):
-                    self.tabsObj.prints(' ', r + row, c, self.tabsObj.styles['NAT_CHORD'])
+                if self.tabsObj.cursorDir == self.tabsObj.CURSOR_DIRS['DOWN']:
+                    self.tabsObj.prints(chr(self.tabsObj.capo), r + row, self.tabsObj.cursorModeCol, self.tabsObj.styles['NUT_DN'])
+                elif self.tabsObj.cursorDir == self.tabsObj.CURSOR_DIRS['UP']:
+                    self.tabsObj.prints(chr(self.tabsObj.capo), r + row, self.tabsObj.cursorModeCol, self.tabsObj.styles['NUT_UP'])
         for c in range(self.tabsObj.numTabsPerString):
             self.eraseChord(c)
             for r in range(self.tabsObj.numStrings):
