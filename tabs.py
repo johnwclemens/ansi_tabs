@@ -1252,10 +1252,9 @@ class Tabs(object):
         self.prints(self.hiliteRowNum, self.row, self.editModeCol, self.styles['BRIGHT'] + self.styles['TABS'])
         self.resetPos()
     
-    def deleteTab(self, row=None, col=None, back=0, dbg=1):
-        if dbg: print('deleteTab(row={} col={} back={}) bgn'.format(row, col, back), file=Tabs.DBG_FILE)
-        if row == None: row = self.row
-        if col == None: col = self.col
+    def deleteTab(self, back=0, dbg=0):
+        row, col = self.row, self.col
+        print('deleteTab(row={} col={} back={}) bgn'.format(row, col, back), file=Tabs.DBG_FILE)
         r, c = self.rowCol2Indices(row, col)
         if self.editMode == self.EDIT_MODES['INSERT']:
             print('deleteTab(row={} col={} back={}) r={} c={} EDIT_MODES[INSERT]'.format(row, col, back, r, c), file=Tabs.DBG_FILE)
@@ -1269,16 +1268,14 @@ class Tabs(object):
             self.printTabs()
         elif self.editMode == self.EDIT_MODES['REPLACE']:
             print('deleteTab(row={} col={} back={}) r={} c={} EDIT_MODES[REPLACE]'.format(row, col, back, r, c), file=Tabs.DBG_FILE)
-            if back:
-                r, c = self.rowCol2Indices(self.row, self.col)
-                if dbg: print('deleteTab(row={} col={} back={}) r={} c={}'.format(row, col, back, r, c), file=Tabs.DBG_FILE)
             self.moveCursor(row=row, col=col, back=back)
-            self.tabs[r][c] = ord('X')
+            if back: return
+            self.tabs[r][c] = ord('-')
             self.htabs[r][c] = ord('0')
             if c in self.chordInfo:
-                print('deleteTab() deleting chordInfo[{}]={}'.format(c, self.chordInfo[c]), file=Tabs.DBG_FILE)
+                if dbg: print('deleteTab() deleting chordInfo[{}]={}'.format(c, self.chordInfo[c]), file=Tabs.DBG_FILE)
                 del self.chordInfo[c]
-                self.printMapLimap(self.chordInfo, reason='deleteTab()' )
+                if dbg: self.printMapLimap(self.chordInfo, reason='deleteTab()' )
             self.prints(chr(self.tabs[r][c]), row, col, self.styles['TABS'])
             if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
                 self.prints(chr(self.tabs[r][c]), row + self.numStrings, col, self.styles['NAT_NOTE'])
@@ -1290,20 +1287,27 @@ class Tabs(object):
             self.resetPos()
         self.printStatus()
     
-    def deletePrevTab(self):
+    def deletePrevTab(self, dbg=0):
         '''Delete previous tab (backspace).'''
-        if self.cursorMode == self.CURSOR_MODES['MELODY']:
-            self.deleteTab(col=self.col-1, back=1)
-        elif self.cursorMode == self.CURSOR_MODES['CHORD']:
-            if self.cursorDir == self.CURSOR_DIRS['UP']:
-                self.deleteTab(row=self.row+1, back=1)
-            elif self.cursorDir == self.CURSOR_DIRS['DOWN']:
-                self.deleteTab(row=self.row-1, back=1)
-        elif self.cursorMode == self.CURSOR_MODES['ARPEGGIO']:
-            if self.cursorDir == self.CURSOR_DIRS['UP']:
-                self.deleteTab(row=self.row+1, col=self.col-1, back=1)
-            elif self.cursorDir == self.CURSOR_DIRS['DOWN']:
-                self.deleteTab(row=self.row-1, col=self.col-1, back=1)
+        self.deleteTab(back=1)
+        self.resetPos()
+        row, col = self.row, self.col
+        r, c = self.rowCol2Indices(row, col)
+        self.tabs[r][c] = ord('-')
+        self.htabs[r][c] = ord('0')
+        if c in self.chordInfo:
+            if dbg: print('deletePrevTab() deleting chordInfo[{}]={}'.format(c, self.chordInfo[c]), file=Tabs.DBG_FILE)
+            del self.chordInfo[c]
+            if dbg: self.printMapLimap(self.chordInfo, reason='deleteTab()' )
+        self.prints(chr(self.tabs[r][c]), row, col, self.styles['TABS'])
+        if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
+            self.prints(chr(self.tabs[r][c]), row + self.numStrings, col, self.styles['NAT_NOTE'])
+        if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
+            self.chordsObj.eraseChord(c)
+            self.chordsObj.printChord(c=c)
+        if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
+            self.printColumnIvals(c)
+        self.printStatus()
     
     def eraseTabs(self):
         '''Erase all tabs (resets all tabs to '-').'''
