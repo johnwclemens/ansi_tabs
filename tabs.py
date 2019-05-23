@@ -126,10 +126,10 @@ class Tabs(object):
         self.displayIntervals = self.DISPLAY_INTERVALS['DISABLED'] # enable or disable the display of the intervals section for each line
         self.displayChords = self.DISPLAY_CHORDS['DISABLED']       # enable or disable the display of the chords section for each line
         self.cursorDir = self.CURSOR_DIRS['DOWN']                  # affects the automatic cursor movement (up/down) when entering a tab in chord or arpeggio mode
-        self.enharmonic = self.ENHARMONICS['SHARP']                # toggle between displaying enharmonic notes as flat or sharp
-        self.editMode = self.EDIT_MODES['REPLACE']                 # toggle between modifying the current character or inserting a new character
-        self.cursorMode = self.CURSOR_MODES['MELODY']              # toggle between different cursor modes; melody, chord, and arpeggio
-        self.cursorDirStyle = self.styles['NUT_DN']
+        self.enharmonic = self.ENHARMONICS['SHARP']                # select enharmonic notes as flat or sharp
+        self.editMode = self.EDIT_MODES['REPLACE']                 # select insert mode as insert or replace
+        self.cursorMode = self.CURSOR_MODES['MELODY']              # select cursor mode as melody, arpeggio or chord
+        self.cursorDirStyle = self.styles['NUT_DN']                # select cursor direction as up or down (displayed on capo/nut)
         
         self.cmdLine = ''
         for arg in sys.argv:
@@ -1276,20 +1276,7 @@ class Tabs(object):
             print('deleteTab(row={} col={} back={}) r={} c={} EDIT_MODES[REPLACE]'.format(row, col, back, r, c), file=Tabs.DBG_FILE)
             self.moveCursor(row=row, col=col, back=back)
             if back: return
-            self.tabs[r][c] = ord('-')
-            self.htabs[r][c] = ord('0')
-            if c in self.chordInfo:
-                if dbg: print('deleteTab() deleting chordInfo[{}]={}'.format(c, self.chordInfo[c]), file=Tabs.DBG_FILE)
-                del self.chordInfo[c]
-                if dbg: self.printMapLimap(self.chordInfo, reason='deleteTab()' )
-            self.prints(chr(self.tabs[r][c]), row, col, self.styles['TABS'])
-            if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
-                self.prints(chr(self.tabs[r][c]), row + self.numStrings, col, self.styles['NAT_NOTE'])
-            if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
-                self.chordsObj.eraseChord(c)
-                self.chordsObj.printChord(c=c)
-            if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
-                self.printColumnIvals(c)
+            self._deleteTab(row, col, r, c)
             self.resetPos()
         self.printStatus()
     
@@ -1299,10 +1286,14 @@ class Tabs(object):
         self.resetPos()
         row, col = self.row, self.col
         r, c = self.rowCol2Indices(row, col)
+        self._deleteTab(row, col, r, c)
+        self.printStatus()
+    
+    def _deleteTab(self, row, col, r, c, dbg=0):
         self.tabs[r][c] = ord('-')
         self.htabs[r][c] = ord('0')
         if c in self.chordInfo:
-            if dbg: print('deletePrevTab() deleting chordInfo[{}]={}'.format(c, self.chordInfo[c]), file=Tabs.DBG_FILE)
+            if dbg: print('deleteTab() deleting chordInfo[{}]={}'.format(c, self.chordInfo[c]), file=Tabs.DBG_FILE)
             del self.chordInfo[c]
             if dbg: self.printMapLimap(self.chordInfo, reason='deleteTab()' )
         self.prints(chr(self.tabs[r][c]), row, col, self.styles['TABS'])
@@ -1313,7 +1304,6 @@ class Tabs(object):
             self.chordsObj.printChord(c=c)
         if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
             self.printColumnIvals(c)
-        self.printStatus()
     
     def eraseTabs(self):
         '''Erase all tabs (resets all tabs to '-').'''
