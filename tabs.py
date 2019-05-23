@@ -129,6 +129,7 @@ class Tabs(object):
         self.enharmonic = self.ENHARMONICS['SHARP']                # toggle between displaying enharmonic notes as flat or sharp
         self.editMode = self.EDIT_MODES['REPLACE']                 # toggle between modifying the current character or inserting a new character
         self.cursorMode = self.CURSOR_MODES['MELODY']              # toggle between different cursor modes; melody, chord, and arpeggio
+        self.cursorDirStyle = self.styles['NUT_DN']
         
         self.cmdLine = ''
         for arg in sys.argv:
@@ -829,18 +830,13 @@ class Tabs(object):
         self.cursorDir = (self.cursorDir + 1) % len(self.CURSOR_DIRS)
         for line in range(0, self.numLines):
             for r in range(0, self.numStrings):
-                if self.cursorDir == self.CURSOR_DIRS['DOWN']:
-                    self.prints(chr(self.capo), r + self.bgnRow(line)                                                        , self.cursorModeCol, self.styles['NUT_DN'])
-                    self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings                                      , self.cursorModeCol, self.styles['NUT_DN'])
-                    self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings + self.NOTES_LEN                     , self.cursorModeCol, self.styles['NUT_DN'])
-                    if r < self.CHORDS_LEN:
-                        self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings + self.NOTES_LEN + self.INTERVALS_LEN, self.cursorModeCol, self.styles['NUT_DN'])
-                elif self.cursorDir == self.CURSOR_DIRS['UP']:
-                    self.prints(chr(self.capo), r + self.bgnRow(line)                                                        , self.cursorModeCol, self.styles['NUT_UP'])
-                    self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings                                      , self.cursorModeCol, self.styles['NUT_UP'])
-                    self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings + self.NOTES_LEN                     , self.cursorModeCol, self.styles['NUT_UP'])
-                    if r < self.CHORDS_LEN:
-                        self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings + self.NOTES_LEN + self.INTERVALS_LEN, self.cursorModeCol, self.styles['NUT_UP'])
+                if self.cursorDir == self.CURSOR_DIRS['DOWN']: self.cursorDirStyle = self.styles['NUT_DN']
+                elif self.cursorDir == self.CURSOR_DIRS['UP']: self.cursorDirStyle = self.styles['NUT_UP']
+                self.prints(chr(self.capo), r + self.bgnRow(line)                                   , self.cursorModeCol, self.cursorDirStyle)
+                self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings                 , self.cursorModeCol, self.cursorDirStyle)
+                self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings + self.NOTES_LEN, self.cursorModeCol, self.cursorDirStyle)
+                if r < self.CHORDS_LEN:
+                    self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings + self.NOTES_LEN + self.INTERVALS_LEN, self.cursorModeCol, self.styles['NUT_UP'])
         if dbg: self.printLineInfo('toggleCursorDir({}) line={} row={} col={}'.format(self.cursorDir, line, self.row, self.col))
         self.resetPos()
     
@@ -1611,10 +1607,7 @@ class Tabs(object):
                         style = self.styles['H_TABS']
                     if c == 0:
                         self.prints('{}'.format(r + 1), row, self.editModeCol, style)
-                        if self.cursorDir == self.CURSOR_DIRS['DOWN']:
-                            self.prints(chr(self.capo), row, self.cursorModeCol, self.styles['NUT_DN'])
-                        elif self.cursorDir == self.CURSOR_DIRS['UP']:
-                            self.prints(chr(self.capo), row, self.cursorModeCol, self.styles['NUT_UP'])
+                        self.prints(chr(self.capo), row, self.cursorModeCol, self.cursorDirStyle)
                     self.prints(chr(tab), row, c + self.COL_OFF, style)
                 print(file=self.outFile)
             print()
@@ -1662,10 +1655,7 @@ class Tabs(object):
                     if c == 0:
                         n = self.getNote(r + 1, ord('0'))
                         self.printNote(row, self.editModeCol, n)
-                        if self.cursorDir == self.CURSOR_DIRS['DOWN']:
-                            self.prints(chr(self.capo), row, self.cursorModeCol, self.styles['NUT_DN'])
-                        elif self.cursorDir == self.CURSOR_DIRS['UP']:
-                            self.prints(chr(self.capo), row, self.cursorModeCol, self.styles['NUT_UP'])
+                        self.prints(chr(self.capo), row, self.cursorModeCol, self.cursorDirStyle)
                     if Tabs.isFret(chr(capTab)):
                         if chr(self.htabs[r][c + line * self.numTabsPerStringPerLine]) == '1':
                             print('printNotes() tab={}, capTab={}, tabc={}, chr(capTab)={}, tabFN={}, capoFN={}'.format(tab, capTab, chr(tab), chr(capTab), self.getFretNum(tab), self.getFretNum(capTab)), file=Tabs.DBG_FILE)
@@ -1705,10 +1695,7 @@ class Tabs(object):
             for r in range(0, self.numStrings):
                 row = r + line * self.lineDelta() + self.endRow(0) + self.NOTES_LEN + 1
                 self.prints(self.IVAL_LABEL[r], row, 1, self.styles['IVAL_LABEL'])
-                if self.cursorDir == self.CURSOR_DIRS['DOWN']:
-                    self.prints(chr(self.capo), row, self.cursorModeCol, self.styles['NUT_DN'])
-                elif self.cursorDir == self.CURSOR_DIRS['UP']:
-                    self.prints(chr(self.capo), row, self.cursorModeCol, self.styles['NUT_UP'])
+                self.prints(chr(self.capo), row, self.cursorModeCol, self.cursorDirStyle)
                 for c in range(self.COL_OFF, self.COL_OFF):
                     self.prints(' ', row, c, self.styles['IVAL_LABEL'])
             for c in range (0, self.numTabsPerStringPerLine):
