@@ -86,7 +86,7 @@ class Tabs(object):
         self.chordInfo = {}                                        # dict column -> (list of dict intervals -> note names) i.e. dict col -> list of imaps for status chord info
         self.selectChords = {}                                     # dict chord name -> imap, for displaying the selected chord name and imap
         self.selectImaps = {}                                      # dict imap string -> imap, for displaying intervals corresponding to selected chord name & imap
-        self.analyzeIndex = -1                                     # index being analyzed for chord info
+        self.analyzeIndices = {}                                   # dict column -> index being analyzed for chord info
         self.chordStatusCol = None                                 # tab column index used to display chord info on status row
         
         self.arpeggiate = 0                                        # used to transform chords to arpeggios
@@ -1143,14 +1143,14 @@ class Tabs(object):
                         else: 
                             print('setTab(DISPLAY_CHORDS) r={}, noteCount={}'.format(r, noteCount), file=Tabs.DBG_FILE)
             if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
-                irow = self.indices2Row(self.lineDelta() * self.colIndex2Line(cc) + self.numStrings + self.NOTES_LEN, col)
+                irow = self.bgnRow(self.row2Line(row)) + self.numStrings + self.NOTES_LEN
                 for r in range(self.numStrings):
-                    self.printInterval(irow + r, col, '-', dbg=0)
+                    self.printInterval(irow + r, col, '-', dbg=dbg)
                 if dbg: self.printMapLimap(self.chordInfo, reason='setTab(DISPLAY_INTERVALS) irow={} line={} cc={}'.format(irow, self.colIndex2Line(cc), cc))
                 if cc not in self.chordInfo:
                     print('setTab(DISPLAY_INTERVALS) row={} col={} ival={}'.format(row, col, 'R'), file=Tabs.DBG_FILE)
                     if Tabs.isFret(chr(tab)):
-                        self.printInterval(row + self.numStrings + self.numStrings, col, 'R', dbg=0)
+                        self.printInterval(row + self.numStrings + self.NOTES_LEN, col, 'R', dbg=dbg)
                     else: print('setTab(DISPLAY_INTERVALS) NOT a Fret tab={}'.format(chr(tab)), file=Tabs.DBG_FILE)
                 else:
                     for r in range(self.numStrings):
@@ -1690,7 +1690,7 @@ class Tabs(object):
                     self.prints(' ', row, c, self.styles['IVAL_LABEL'])
             for c in range (0, self.numTabsPerStringPerLine):
                 cc = c + line * self.numTabsPerStringPerLine
-                self.printColumnIvals(cc)
+                self.printColumnIvals(cc, dbg)
         self.printFileMark('<END_INTERVALS_SECTION>')
     
     def printInterval(self, row, col, ival, dbg=0):
@@ -1702,7 +1702,7 @@ class Tabs(object):
             ival = ival[1]
         self.prints(ival, row, col, style)
     
-    def wrapPrintInterval(self, r, c, dbg=0):
+    def wrapPrintInterval(self, r, c, dbg=1):
         imap = self.chordInfo[c][0]
         imapstr = Tabs.imap2String(imap)
         if imapstr in self.selectImaps:
@@ -1722,7 +1722,7 @@ class Tabs(object):
                 n = self.getNote(r + 1, tab)
             nn = n.name
             if nn in im:
-                self.printInterval(row + self.numStrings + self.NOTES_LEN, col, im[nn])
+                self.printInterval(row + self.numStrings + self.NOTES_LEN, col, im[nn], dbg=dbg)
     
     def printLabels(self):
         self.printFileMark('<BGN_LABELS_SECTION>')
@@ -1746,7 +1746,7 @@ class Tabs(object):
         print('}', file=self.DBG_FILE)
     
     def printLimap(self, limap, reason=None):
-        print('{} limap={{'.format(reason), end=' ', file=self.DBG_FILE)
+        print('{} limap[{}]={{'.format(reason, len(limap)), end=' ', file=self.DBG_FILE)
         for m in limap:
             imap = self.imap2String(m)
             print('[{}]'.format(imap), end=',', file=self.DBG_FILE)
@@ -1822,28 +1822,30 @@ class Tabs(object):
     def printChordStatus(self, tab, r, c, dbg=0):
         if c in self.chordInfo:
             if dbg: self.printMapLimap(self.chordInfo, reason='printChordStatus() len(chordInfo[{}])={}'.format(c, len(self.chordInfo[c])))
-            self.printChordInfo(tab, r, c, 0)
+            if c not in self.analyzeIndices: self.analyzeIndices[c] = 0
+            self.printChordInfo(tab, r, c, self.analyzeIndices[c] % len(self.chordInfo[c]), reason='printChordStatus')
     
     def analyzeChord(self):
         r, c = self.rowCol2Indices(self.row, self.col)
         tab = chr(self.tabs[r][c])
         print('analyzeChord({}, {}) r={}, c={}, tab={}'.format(self.row, self.col, r, c, tab), file=Tabs.DBG_FILE)
         if c in self.chordInfo:
-            self.analyzeIndex += 1
-            m = self.analyzeIndex % len(self.chordInfo[c])
-            print('analyzeChord() m={} analyzeIndex={} len(chordInfo[{}])={}'.format(m, self.analyzeIndex, c, len(self.chordInfo[c])), file=Tabs.DBG_FILE)
-            self.printChordInfo(tab, r, c, m)
+            if c not in self.analyzeIndices: self.analyzeIndices[c] = 0
+            self.analyzeIndices[c] += 1
+            m = self.analyzeIndices[c] % len(self.chordInfo[c])
+            print('analyzeChord() m={} analyzeIndex={} len(chordInfo[{}])={}'.format(m, self.analyzeIndices[c], c, len(self.chordInfo[c])), file=Tabs.DBG_FILE)
+            self.printChordInfo(tab, r, c, m, reason='analyzeChord()')
         self.resetPos()
     
-    def selectChord(self, dbg=0):
+    def selectChord(self, dbg=1):
         r, c = self.rowCol2Indices(self.row, self.col)
         if dbg: print('selectChord() row={} col={} r={} c={}'.format(self.row, self.col, r, c), file=Tabs.DBG_FILE)
         if c in self.chordInfo:
             self.printLimap(self.chordInfo[c], reason='selectChord()')
-            m = self.analyzeIndex % len(self.chordInfo[c])
-            name, imap = self.printChordInfo(chr(self.tabs[r][c]), r, c, m)
+            m = self.analyzeIndices[c] % len(self.chordInfo[c])
+            name, imap = self.printChordInfo(chr(self.tabs[r][c]), r, c, m, reason='selectChord{}')
             self.selectChords[name] = imap
-            print('selectChord() m={} analyzeIndex={} selectChords[{}]={}'.format(m, self.analyzeIndex, name, self.imap2String(self.selectChords[name])), file=Tabs.DBG_FILE)
+            print('selectChord() m={} analyzeIndex={} selectChords[{}]={}'.format(m, self.analyzeIndices[c], name, self.imap2String(self.selectChords[name])), file=Tabs.DBG_FILE)
             im = self.chordInfo[c][0]
             print('selectChord() adding imapKey={} : imapVal={} to '.format(self.imap2String(im), self.imap2String(imap), self.selectImaps), file=Tabs.DBG_FILE)
             self.printSelectImaps()
@@ -1858,7 +1860,8 @@ class Tabs(object):
             print('{} : {}'.format(k1, self.imap2String(self.selectImaps[k1])), end=', ', file=Tabs.DBG_FILE)
         print('}', file=Tabs.DBG_FILE)
     
-    def printChordInfo(self, tab, r, c, m, dbg=0):
+    def printChordInfo(self, tab, r, c, m, reason=None, dbg=1):
+        if dbg: self.printMapLimap(self.chordInfo, reason='printChordInfo() c={} m={} reason={}'.format(c, m, reason))
         imap = self.chordInfo[c][m]
         imapKeys = sorted(imap, key=self.chordsObj.imapKeyFunc, reverse=False)
         if dbg: 
