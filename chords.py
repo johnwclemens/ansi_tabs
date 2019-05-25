@@ -47,7 +47,7 @@ class Chords(object):
         self.tabsObj.printFileMark('<END_CHORDS_SECTION>')
         return self.chordNames
     
-    def printChord(self, c=None, dbg=0):
+    def printChord(self, c=None, dbg=1):
         '''Analyze notes in given column index and if a valid chord is discovered then print it in the appropriate chords section.'''
         self.c = c
         if self.c is None:
@@ -71,16 +71,16 @@ class Chords(object):
             if len(currentName) > 0:
                 chordName = currentName
                 if chordName in self.tabsObj.selectChords:
-                    if dbg: print('printChord() found selected chordName={} in selectChords[{}]={} imapKeys={} '.format(chordName, chordName, self.tabsObj.selectChords[chordName], imapKeys), file=self.tabsObj.DBG_FILE)
+                    if dbg: print('printChord() found selected chordName={} in selectChords[{}]={} imapKeys={} '.format(chordName, chordName, self.tabsObj.imap2String(self.tabsObj.selectChords[chordName]), imapKeys), file=self.tabsObj.DBG_FILE)
                     selected = 1
                     self.printChordName(row, col, chordName, imap)
         if selected == 0 and len(limap):
             imap = limap[0]
             if dbg: print('printChord() currentName={} chordName={} imap={}'.format(currentName, chordName, imap), file=self.tabsObj.DBG_FILE)
             self.printChordName(row, col, chordName, imap)
-        if len(self.chordNames) > 0:
+        if len(chordName) > 0:
             self.chordNames[c] = chordName
-            print('adding chordName[{}]={} to chordNames={}'.format(c, self.chordNames[c], self.chordNames), file=self.tabsObj.DBG_FILE)
+            if dbg: print('printChord() adding chordName[{}]={} to chordNames={}'.format(c, self.chordNames[c], self.chordNames), file=self.tabsObj.DBG_FILE)
         return chordName
     
     def printStrings(self):
@@ -207,7 +207,7 @@ class Chords(object):
             elif dbg: print('{}printChord({}) index={}, Key=\'{}\' not a chord'.format(self.indent, self.c, j, chordKey), file=self.tabsObj.DBG_FILE)
         return chordName
     
-    def getLimap(self, imap, limap, chordName, dbg=0):
+    def getLimap(self, imap, limap, chordName, dbg=1):
         if imap not in limap:
             if len(chordName) > 0:
                 if dbg: self.printLimaps(imap, limap, chordName, 'printChord(getLimap()) prepend ')
@@ -219,7 +219,7 @@ class Chords(object):
             if dbg: self.printLimaps(imap, limap, chordName, 'printChord(getLimap()) remove and prepend ')
             limap.remove(imap)
             limap.insert(0, imap)
-        if dbg: self.printLimap(limap)
+        if dbg: self.tabsObj.printLimap(limap, reason='getLimap()')
         return limap
     
     def printLimaps(self, imap, limap, chordName, reason):
@@ -227,17 +227,10 @@ class Chords(object):
         else: print('{} imap=['.format(reason), end=' ', file=self.tabsObj.DBG_FILE)
         for k in imap: print('{}:{}'.format(k, imap[k]), end=' ', file=self.tabsObj.DBG_FILE)
         print('] to', end=' ', file=self.tabsObj.DBG_FILE)
-        self.printLimap(limap)
+        self.tabsObj.printLimap(limap, reason='printLimaps()')
     
-    def printLimap(self, limap):
-        print('limap=[', end=' ', file=self.tabsObj.DBG_FILE)
-        for m in limap:
-            for k in m: print('{}:{}'.format(k, m[k]), end=' ', file=self.tabsObj.DBG_FILE)
-            print(',', end=' ', file=self.tabsObj.DBG_FILE)
-        print(']', file=self.tabsObj.DBG_FILE)
-    
-    def printChordName(self, row, col, chordName, imap, imapKeys=None, dbg=1):
-        if dbg: print('printChordName() name={}, imap={}'.format(chordName, imap), file=self.tabsObj.DBG_FILE)
+    def printChordName(self, row, col, chordName, imap, imapKeys=None, dbg=0):
+        print('printChordName() {:<7}, imap={}'.format(chordName, self.tabsObj.imap2String(imap)), file=self.tabsObj.DBG_FILE)
         if len(chordName) > 1 and ( chordName[1] == '#' or chordName[1] == 'b' ):
             chordName = chordName[0] + chordName[2:]
             if dbg: print('printChordName() strip # or b, name={}'.format(chordName), file=self.tabsObj.DBG_FILE)
