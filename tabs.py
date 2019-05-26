@@ -83,12 +83,12 @@ class Tabs(object):
         self.htabs = []                                            # list of bytearrays, one for each string; for harmonic tabs
         self.tabCount = 0                                          # used by appendTabs()
         self.tabs = []                                             # list of bytearrays, one for each string; for all the tabs
-        self.chordInfo = {}                                        # dict column -> (list of dict intervals -> note names) i.e. dict col -> list of imaps for status chord info
+        self.chordInfo = {}                                        # dict column index -> (list of dict intervals -> note names) i.e. dict col -> list of imaps for status chord info
         self.selectChords = {}                                     # dict chord name -> imap, for displaying the selected chord name and imap
         self.selectImaps = {}                                      # dict imap string -> imap, for displaying intervals corresponding to selected chord name & imap
-        self.analyzeIndices = {}                                   # dict column -> index being analyzed for chord info
-        self.chordStatusCol = None                                 # tab column index used to display chord info on status row
+        self.analyzeIndices = {}                                   # dict column index -> imap index being analyzed for chord info
         self.chordAliases = {}                                     # dict column index -> chord names
+        self.chordStatusCol = None                                 # tab column index used to display chord info on status row
         
         self.arpeggiate = 0                                        # used to transform chords to arpeggios
         self.selectFlag = 0                                        # used to un-hilite selected rows
@@ -143,7 +143,7 @@ class Tabs(object):
             self.inName = self.argMap['f'][0]                      # file to read from
             self.outName = self.argMap['f'][0]                     # file to write to, only written to with the saveTabs command
             backupName = self.outName + '.bak'
-            if os.path.isfile(backupName):
+            if os.path.isfile(self.outName):
                 print('saving backup file: {}'.format(backupName), file=Tabs.DBG_FILE)
                 shutil.copy2(self.outName, backupName)
         if 't' in self.argMap and len(self.argMap['t']) > 0:
@@ -200,6 +200,42 @@ class Tabs(object):
             if 'h' in self.argMap and len(self.argMap['h']) == 0: self.printHelpInfo(ui=0)            # display the help info
             self.printTabs()                                      # display all the tabs in the tabs section, optionally display the notes and chords sections and the modes/labels row
             self.moveTo(hi=1)                                     # display the status and hilite the first tab character
+            
+            self.chordAliases = self.parseStateData('StartChordAliases')
+            print('init() chordAliases = {}'.format(self.chordAliases), file=Tabs.DBG_FILE)
+            self.analyzeIndices = self.parseStateData('StartAnalyzeIndices')
+            print('init() analyzeIndices = {}'.format(self.analyzeIndices), file=Tabs.DBG_FILE)
+            if isinstance(self.chordAliases, dict) and isinstance(self.analyzeIndices) and len(self.chordAliases) and len(self.analyzeIndices):
+                print('init() len(chordAliases)={} len(analyzeIndices)={}'.format(self.chordAliases, self.analyzeIndices), file=Tabs.DBG_FILE)
+                for k in self.chordAliases:
+                    print('calling selectChords on col={}'.format(k), file=Tabs.DBG_FILE)
+                    self.moveTo(col=self.COL_OFF+k)
+                    self.selectChord(pt=0)
+                self.printTabs()
+            
+    def parseStateData(self, dataType):
+        data = None
+        try:
+            parsed = 0
+            with open(self.inName, 'r') as self.inFile:
+                print(file=Tabs.DBG_FILE)
+                for line in self.inFile:
+                    if line.strip() == dataType:
+                        print('parseStateData() bgn parsing {}'.format(dataType), file=Tabs.DBG_FILE)
+                        parsed = 1
+                        break
+                    if line.strip() == '<BGN_TABS_SECTION>':
+                        self.printe('parseStateData() Error parsing dataType={} inFile={}'.format(dataType, self.inFile))
+                        break
+                print('parseStateData() break out of dataType={} for loop parsed={}'.format(dataType, parsed), file=Tabs.DBG_FILE)
+                if parsed == 1:
+                    line = self.inFile.readline().strip()
+                    print('parseStateData() parsed dataType={} = {}'.format(dataType, line), file=Tabs.DBG_FILE)
+                    data = eval(line)
+                    print('parseStateData() type(data) = {}'.format(type(data)), file=Tabs.DBG_FILE)
+                print(file=Tabs.DBG_FILE)
+        except Exception as e: self.printe('parseStateData({}) Exception: Error parsing inFile={}'.format(e, self.inFile))
+        return data
     
     def testDict(self):
         a = {'one': 1, 'two': 2, 'three': 3, 'four': 4}
@@ -279,9 +315,10 @@ class Tabs(object):
         self.RED_YELLOW = self.initText('RED', 'YELLOW')
         self.WHITE_MAGENTA = self.initText('WHITE', 'MAGENTA')
         self.WHITE_CYAN = self.initText('WHITE', 'CYAN')
+        self.WHITE_RED = self.initText('WHITE', 'RED')
         self.styles = { 'NAT_NOTE':self.GREEN_WHITE, 'NAT_H_NOTE':self.YELLOW_WHITE,  'NAT_CHORD':self.GREEN_WHITE, 'MIN_COL_NUM':self.RED_WHITE,      'TABS':self.BLACK_WHITE,  'NUT_UP':self.WHITE_MAGENTA, 'NORMAL':'22;',
                         'FLT_NOTE':self.BLUE_WHITE,  'FLT_H_NOTE':self.CYAN_WHITE,    'FLT_CHORD':self.BLUE_WHITE,  'MAJ_COL_NUM':self.BLACK_WHITE,  'H_TABS':self.BLACK_YELLOW, 'NUT_DN':self.WHITE_CYAN,    'BRIGHT':'1;',
-                        'SHP_NOTE':self.RED_WHITE,   'SHP_H_NOTE':self.MAGENTA_WHITE, 'SHP_CHORD':self.RED_WHITE,        'STATUS':self.MAGENTA_WHITE, 'MODES':self.BLUE_WHITE,    'ERROR':self.RED_YELLOW, 'CONS':self.BLACK_WHITE,
+                        'SHP_NOTE':self.RED_WHITE,   'SHP_H_NOTE':self.MAGENTA_WHITE, 'SHP_CHORD':self.RED_WHITE,        'STATUS':self.MAGENTA_WHITE, 'MODES':self.BLUE_WHITE,    'ERROR':self.WHITE_RED, 'CONS':self.BLACK_WHITE,
                         'HLT_STUS':self.CYAN_WHITE,  'IVAL_LABEL':self.YELLOW_WHITE,  'CHORD_LABEL':self.GREEN_WHITE,   'NO_IVAL':self.YELLOW_WHITE }
         self.HARMONIC_FRETS = { 12:12, 7:19, 19:19, 5:24, 24:24, 4:28, 9:28, 16:28, 28:28 }
         self.CURSOR_DIRS = { 'DOWN':0, 'UP':1 }
@@ -1332,6 +1369,10 @@ class Tabs(object):
             for k in self.argMap:
                 print('    {}={}'.format(k, self.argMap[k]), file=self.outFile)
             self.printStringMap(file=self.outFile)
+            print('StartChordAliases', file=self.outFile)
+            print('{}'.format(self.chordAliases), file=self.outFile)
+            print('StartAnalyzeIndices', file=self.outFile)
+            print('{}'.format(self.analyzeIndices), file=self.outFile)
             self.printTabs()
             self.moveTo(hi=1)
             print(self.CSI + self.styles['NORMAL'] + self.styles['CONS'] + self.CSI + '{};{}H'.format(self.lastRow, 1), end='', file=self.outFile) # set the file cursor to the front of the next row (NUM_STR+r+1, 0) and set the foreground and background color
@@ -1764,6 +1805,7 @@ class Tabs(object):
     
     def printStatus(self):
         r, c = self.rowCol2Indices(self.row, self.col)
+        print('printStatus() r={} c={}'.format(r, c), file=Tabs.DBG_FILE)
         tab = chr(self.tabs[r][c])
         print('printStatus() row={} col={} r={} c={} tab={}({}) bgn'.format(self.row, self.col, r, c, self.tabs[r][c], tab), file=Tabs.DBG_FILE)
         if   Tabs.isFret(tab): self.printFretStatus(tab, r, c)
@@ -1840,12 +1882,12 @@ class Tabs(object):
             self.printChordInfo(tab, r, c, m, reason='analyzeChord()')
         self.resetPos()
     
-    def selectChord(self, dbg=1):
+    def selectChord(self, pt=1, dbg=1):
         r, c = self.rowCol2Indices(self.row, self.col)
-        if dbg: print('selectChord(c={}) row={} col={} r={}'.format(c, self.row, self.col, r), file=Tabs.DBG_FILE)
+        if dbg: print('selectChord(pt={} c={}) row={} col={} r={}'.format(pt, c, self.row, self.col, r), file=Tabs.DBG_FILE)
         if c in self.chordInfo:
             self.printLimap(self.chordInfo[c], reason='selectChord(c={})'.format(c))
-            m, n = self.analyzeIndices[c] % len(self.chordInfo[c]), ''
+            m = self.analyzeIndices[c] % len(self.chordInfo[c])
             name, imap = self.printChordInfo(chr(self.tabs[r][c]), r, c, m, reason='selectChord{}')
             print('selectChord(c={}) chordAliases={}'.format(c, self.chordAliases), file=Tabs.DBG_FILE)
             if c in self.chordAliases:
@@ -1866,13 +1908,13 @@ class Tabs(object):
             self.printSelectImaps()
             self.selectImaps[self.imap2String(im)] = imap
             self.printSelectImaps()
-            self.printTabs()
+            if pt: self.printTabs()
         self.resetPos()
     
     def printSelectImaps(self):
         print('selectImaps={{'.format(), end=' ', file=Tabs.DBG_FILE)
-        for k1 in self.selectImaps:
-            print('{} : {}'.format(k1, self.imap2String(self.selectImaps[k1])), end=', ', file=Tabs.DBG_FILE)
+        for k in self.selectImaps:
+            print('{} : {}'.format(k, self.imap2String(self.selectImaps[k])), end=', ', file=Tabs.DBG_FILE)
         print('}', file=Tabs.DBG_FILE)
     
     def printChordInfo(self, tab, r, c, m, reason=None, dbg=1):
