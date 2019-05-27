@@ -156,6 +156,7 @@ class Tabs(object):
             self.initStrings()                                     # set default string tuning
         self.setLastRow()                                          # calculate last row, depends on numStrings which is supposed to be set in initStrings()
         self.numTabs = self.numStrings * self.numTabsPerString     # total number of tab characters
+        self.tests()
         
         try:
             with open(self.inName, 'rb') as self.inFile:
@@ -189,7 +190,7 @@ class Tabs(object):
             if 'F' in self.argMap and len(self.argMap['F']) == 0: self.toggleEnharmonic()             # enharmonic notes displayed as sharp or flat
             if 'i' in self.argMap and len(self.argMap['i']) == 0: self.toggleCursorDir(dbg=1)         # automatic cursor movement direction as down or up
             if 'k' in self.argMap and len(self.argMap['k']) > 0:  self.setCapo(c=self.argMap['k'][0]) # set capo at desired fret
-            if 'a' in self.argMap and len(self.argMap['a']) == 0: self.toggleDisplayLabels(pt=0)      # display of edit mode, cursor mode, and column number labels in first row for each line
+            if 'a' in self.argMap and len(self.argMap['a']) == 0: self.toggleDisplayLabels(pt=0)      # display edit mode, cursor mode, and column number labels in first row for each line
             if 'b' in self.argMap and len(self.argMap['b']) == 0: self.toggleDisplayChords(pt=0)      # chords display section
             if 'o' in self.argMap and len(self.argMap['o']) == 0: self.toggleDisplayIntervals(pt=0)   # intervals display section
             if 'n' in self.argMap and len(self.argMap['n']) == 0: self.toggleDisplayNotes(pt=0)       # notes display section
@@ -198,27 +199,25 @@ class Tabs(object):
             if 'z' in self.argMap and len(self.argMap['z']) == 0: self.goToLastTab(cs=1, ll=1)        # go to last tab on last line of current string
             if 'Z' in self.argMap and len(self.argMap['Z']) == 0: self.goToLastTab(ll=1)              # go to last tab on last line of all strings
             if 'h' in self.argMap and len(self.argMap['h']) == 0: self.printHelpInfo(ui=0)            # display the help info
-            self.printTabs()                                      # display all the tabs in the tabs section, optionally display the notes and chords sections and the modes/labels row
-            self.moveTo(hi=1)                                     # display the status and hilite the first tab character
-            
-            self.chordAliases = self.parseStateData('StartChordAliases')
-            print('init() chordAliases = {}'.format(self.chordAliases), file=Tabs.DBG_FILE)
-            self.analyzeIndices = self.parseStateData('StartAnalyzeIndices')
-            print('init() analyzeIndices = {}'.format(self.analyzeIndices), file=Tabs.DBG_FILE)
-            if isinstance(self.chordAliases, dict) and isinstance(self.analyzeIndices) and len(self.chordAliases) and len(self.analyzeIndices):
-                print('init() len(chordAliases)={} len(analyzeIndices)={}'.format(self.chordAliases, self.analyzeIndices), file=Tabs.DBG_FILE)
+            parse1, data1 = self.parseStateData(self.chordAliases, 'StartChordAliases')
+            parse2, data2 = self.parseStateData(self.analyzeIndices, 'StartAnalyzeIndices')
+            if parse1 and parse2:
+                self.chordAliases = data1
+                self.analyzeIndices = data2
+                print('init() chordAliases({})={}'.format(len(self.chordAliases), self.chordAliases), file=Tabs.DBG_FILE)
+                print('init() analyzeIndices({})={}'.format(len(self.analyzeIndices), self.analyzeIndices), file=Tabs.DBG_FILE)
                 for k in self.chordAliases:
-                    print('calling selectChords on col={}'.format(k), file=Tabs.DBG_FILE)
-                    self.moveTo(col=self.COL_OFF+k)
+                    print('init() calling moveToCol({}) & selectChord()'.format(k), file=Tabs.DBG_FILE)
+                    self.moveToCol(k)
+                    self.chordsObj.printChord(c=k)               # need to populate chordInfo before calling selectChord
                     self.selectChord(pt=0)
-                self.printTabs()
-            
-    def parseStateData(self, dataType):
-        data = None
+            self.printTabs()                                     # display all the tabs in the tabs section, optionally display the notes and chords sections and the modes/labels row
+            self.moveTo(self.ROW_OFF, self.COL_OFF, hi=1)        # display the status and hilite the first tab character
+    
+    def parseStateData(self, data, dataType):
         try:
             parsed = 0
             with open(self.inName, 'r') as self.inFile:
-                print(file=Tabs.DBG_FILE)
                 for line in self.inFile:
                     if line.strip() == dataType:
                         print('parseStateData() bgn parsing {}'.format(dataType), file=Tabs.DBG_FILE)
@@ -233,9 +232,8 @@ class Tabs(object):
                     print('parseStateData() parsed dataType={} = {}'.format(dataType, line), file=Tabs.DBG_FILE)
                     data = eval(line)
                     print('parseStateData() type(data) = {}'.format(type(data)), file=Tabs.DBG_FILE)
-                print(file=Tabs.DBG_FILE)
         except Exception as e: self.printe('parseStateData({}) Exception: Error parsing inFile={}'.format(e, self.inFile))
-        return data
+        return isinstance(data, dict), data
     
     def testDict(self):
         a = {'one': 1, 'two': 2, 'three': 3, 'four': 4}
@@ -702,6 +700,11 @@ class Tabs(object):
     def resetPos(self):
         print(self.CSI + '{};{}H'.format(self.row, self.col), end='')
     
+    def moveToCol(self, c):
+        row, col = self.indices2RowCol(0, c)
+        print('moveToCol(c={}) row={} col={}'.format(c, row, col), file=Tabs.DBG_FILE)
+        self.moveTo(row, col)
+    
     def moveTo(self, row=None, col=None, hi=0):
         '''Move to given row and col (optionally hilite row and col num).'''
         if row is not None: self.row = row
@@ -795,6 +798,9 @@ class Tabs(object):
             if 0 < row < self.bgnRow(line + 1) - 1:
                 return line
         self.printe('Range Error row={}'.format(row))
+    
+    def tests(self):
+        for c in (0, 207, 208, 415, 416, 623, 624, 831): print('tests() line=colIndex2Line({})={}'.format(c, self.colIndex2Line(c)), file=Tabs.DBG_FILE)
     
     def colIndex2Line(self, c):
         return int(c / self.numTabsPerStringPerLine)
@@ -1805,18 +1811,18 @@ class Tabs(object):
     
     def printStatus(self):
         r, c = self.rowCol2Indices(self.row, self.col)
-        print('printStatus() r={} c={}'.format(r, c), file=Tabs.DBG_FILE)
+        print('printStatus() row={} col={} r={} c={} bgn'.format(self.row, self.col, r, c), file=Tabs.DBG_FILE)
         tab = chr(self.tabs[r][c])
-        print('printStatus() row={} col={} r={} c={} tab={}({}) bgn'.format(self.row, self.col, r, c, self.tabs[r][c], tab), file=Tabs.DBG_FILE)
+        print('printStatus() row={} col={} r={} c={} tab={}({})'.format(self.row, self.col, r, c, self.tabs[r][c], tab), file=Tabs.DBG_FILE)
         if   Tabs.isFret(tab): self.printFretStatus(tab, r, c)
         elif tab in self.mods: self.printModStatus(tab, r, c)
         else:                  self.printDefaultStatus(tab, r, c)
         Tabs.clearRow(arg=0, row=self.lastRow, col=0, file=self.outFile)
         self.printChordStatus(tab, r, c)
         self.resetPos()
-        print('printStatus() row={} col={} r={} c={} tab={}({}) end'.format(self.row, self.col, r, c, self.tabs[r][c], tab), file=Tabs.DBG_FILE)
+        print('printStatus() row={} col={} r={} c={} end'.format(self.row, self.col, r, c), file=Tabs.DBG_FILE)
     
-    def printFretStatus(self, tab, r, c):
+    def printFretStatus(self, tab, r, c, dbg=0):
         s, ss = r + 1, self.getOrdSfx(r + 1)
         f, fs = self.getFretNum(ord(tab)), self.getOrdSfx(self.getFretNum(ord(tab)))
         statStyle, fretStyle, typeStyle, noteStyle = self.CSI + self.styles['STATUS'], self.CSI + self.styles['TABS'], self.CSI + self.styles['TABS'], self.CSI + self.styles['TABS']
@@ -1825,7 +1831,7 @@ class Tabs(object):
         if len(n.name) > 1:
             if n.name[1] == '#': noteStyle = self.CSI + self.styles['SHP_NOTE']
             else:                noteStyle = self.CSI + self.styles['FLT_NOTE']
-        print('printFretStatus({}) r={}, c={}, tab={}, n.n={}, n.o={}, n.i={}, {}'.format(noteType, r, c, tab, n.name, n.getOctaveNum(), n.index, n.getPhysProps()), file=Tabs.DBG_FILE)
+        if dbg: print('printFretStatus({}) r={}, c={}, tab={}, n.n={}, n.o={}, n.i={}, {}'.format(noteType, r, c, tab, n.name, n.getOctaveNum(), n.index, n.getPhysProps()), file=Tabs.DBG_FILE)
         print(tabStyle + self.CSI + '{};{}H{}'.format(self.lastRow, 1, tab), end='', file=self.outFile)
         if f != 0: print(fretStyle + ' {}{}'.format(s, ss) + statStyle + ' string ' + fretStyle + '{}{}'.format(f, fs) + statStyle + ' fret ', end='', file=self.outFile)
         else:      print(fretStyle + ' {}{}'.format(s, ss) + statStyle + ' string ' + fretStyle + 'open' + statStyle + ' fret ', end='', file=self.outFile)
@@ -2046,8 +2052,8 @@ class Tabs(object):
         else:                    return 'th'
     
     @staticmethod
-    def clearRow(arg=2, row=None, col=None, file=None): # arg=0: cursor to end of line, arg=1: begin of line to cursor, arg=2: entire line 
-        print('clearRow() arg={} row={}, col={}'.format(arg, row, col), file=Tabs.DBG_FILE)
+    def clearRow(arg=2, row=None, col=None, file=None, dbg=0): # arg=0: cursor to end of line, arg=1: begin of line to cursor, arg=2: entire line
+        if dbg: print('clearRow() arg={} row={}, col={}'.format(arg, row, col), file=Tabs.DBG_FILE)
         if row is not None and col is not None:
             print(Tabs.CSI + '{};{}H'.format(row, col), end='', file=file)
         print(Tabs.CSI + '{}K'.format(arg), end='', file=file)
