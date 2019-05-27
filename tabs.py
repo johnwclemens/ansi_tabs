@@ -1148,7 +1148,7 @@ class Tabs(object):
         print('findMaxFret() maxFN={}'.format(maxFN), file=Tabs.DBG_FILE)
         return self.getFretByte(maxFN)
     
-    def setTab(self, tab, dbg=1):
+    def setTab(self, tab, dbg=0):
         '''Set given tab byte at the current row and col, print the corresponding tab character and then move cursor according to the cursor mode.'''
         row, col = self.row, self.col
         rr, cc = self.rowCol2Indices(row, col)
@@ -1712,7 +1712,7 @@ class Tabs(object):
         style = self.getNoteStyle(n, style, hn)
         self.prints(n.name[0], row, col, style)
     
-    def printColumnIvals(self, c, dbg=1):
+    def printColumnIvals(self, c, dbg=0):
         line = self.colIndex2Line(c)
         if dbg and c==0: print('printColumnIvals() line={} c={} selectChords={}'.format(line, c, self.selectChords), file=Tabs.DBG_FILE)
         for r in range(0, self.numStrings):
@@ -1751,7 +1751,7 @@ class Tabs(object):
             ival = ival[1]
         self.prints(ival, row, col, style)
     
-    def wrapPrintInterval(self, r, c, dbg=1):
+    def wrapPrintInterval(self, r, c, dbg=0):
         imap = self.chordInfo[c][0]
         imapstr = Tabs.imap2String(imap)
         if imapstr in self.selectImaps:
@@ -1795,7 +1795,7 @@ class Tabs(object):
         print('}', file=self.DBG_FILE)
     
     def printLimap(self, limap, reason=None):
-        print('{} limap[{}]={{'.format(reason, len(limap)), end=' ', file=self.DBG_FILE)
+        print('{} limap(len={})={{'.format(reason, len(limap)), end=' ', file=self.DBG_FILE)
         for m in limap:
             imap = self.imap2String(m)
             print('[{}]'.format(imap), end=',', file=self.DBG_FILE)
@@ -1923,7 +1923,7 @@ class Tabs(object):
             print('{} : {}'.format(k, self.imap2String(self.selectImaps[k])), end=', ', file=Tabs.DBG_FILE)
         print('}', file=Tabs.DBG_FILE)
     
-    def printChordInfo(self, tab, r, c, m, reason=None, dbg=1):
+    def printChordInfo(self, tab, r, c, m, reason=None, dbg=0):
         print('printChordInfo)() tab={} r={} c={} m={} chordInfo[{}][{}]={}'.format(tab, r, c, m, c, m, self.imap2String(self.chordInfo[c][m])), file=Tabs.DBG_FILE)
         imap = self.chordInfo[c][m]
         imapKeys = sorted(imap, key=self.chordsObj.imapKeyFunc, reverse=False)
