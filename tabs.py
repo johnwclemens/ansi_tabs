@@ -206,10 +206,11 @@ class Tabs(object):
                 self.analyzeIndices = data2
                 print('init() chordAliases({})={}'.format(len(self.chordAliases), self.chordAliases), file=Tabs.DBG_FILE)
                 print('init() analyzeIndices({})={}'.format(len(self.analyzeIndices), self.analyzeIndices), file=Tabs.DBG_FILE)
+#                self.printTabs()
                 for k in self.chordAliases:
-                    print('init() calling moveToCol({}) & selectChord()'.format(k), file=Tabs.DBG_FILE)
+                    print('init() calling moveToCol({}) & printChord()'.format(k), file=Tabs.DBG_FILE)
                     self.moveToCol(k)
-                    self.chordsObj.printChord(c=k)               # need to populate chordInfo before calling selectChord
+                    self.chordsObj.printChord(k)                 # need to populate chordInfo before calling selectChord
                     self.selectChord(pt=0)
             self.printTabs()                                     # display all the tabs in the tabs section, optionally display the notes and chords sections and the modes/labels row
             self.moveTo(self.ROW_OFF, self.COL_OFF, hi=1)        # display the status and hilite the first tab character
@@ -1872,7 +1873,7 @@ class Tabs(object):
     
     def printChordStatus(self, tab, r, c, dbg=1):
         if c in self.chordInfo:
-            if dbg: self.printMapLimap(self.chordInfo, reason='printChordStatus() len(chordInfo[{}])={}'.format(c, len(self.chordInfo[c])))
+            if dbg: self.printMapLimap(self.chordInfo, reason='printChordStatus()'.format(c))
             if c in self.analyzeIndices: analyzeIndex = self.analyzeIndices[c]
             else:                        analyzeIndex = 0
             self.printChordInfo(tab, r, c, analyzeIndex % len(self.chordInfo[c]), reason='printChordStatus')
@@ -1880,7 +1881,7 @@ class Tabs(object):
     def analyzeChord(self, dbg=0):
         r, c = self.rowCol2Indices(self.row, self.col)
         tab = chr(self.tabs[r][c])
-        print('analyzeChord({}, {}) r={}, c={}, tab={}'.format(self.row, self.col, r, c, tab), file=Tabs.DBG_FILE)
+        print('analyzeChord() row={} col={} r={} c={} tab={} len(self.chordInfo[c]={}'.format(self.row, self.col, r, c, tab, len(self.chordInfo[c])), file=Tabs.DBG_FILE)
         if c in self.chordInfo:
             if c in self.analyzeIndices:
                 self.analyzeIndices[c] += 1
