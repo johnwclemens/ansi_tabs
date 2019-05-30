@@ -5,7 +5,7 @@ import collections
 
 class Chords(object):
     '''Model chords for stringed instruments.  Discover and name chords.'''
-    # Consider chords without a root note (E G Bb D -> C9)?  Consider multiple chord names for same imap (C+7 = C7b13)?
+    # Consider: Chords without a root note (E G Bb D -> C9)?  Multiple chord names for same imap (C+7 = C7b13)?  Use red m for mM chords?
     def __init__(self, tabsObj):
         self.CHORD_LABEL = 'CHORD'
         self.c = None
@@ -242,7 +242,10 @@ class Chords(object):
                 style = self.tabsObj.getEnharmonicStyle(imap['R'], style, self.tabsObj.styles['FLT_CHORD'], self.tabsObj.styles['SHP_CHORD'])
                 if dbg: print('printChordName() style={}'.format(style), file=self.tabsObj.DBG_FILE)
             elif chordName[i] == 'm':
-                style = self.tabsObj.styles['FLT_CHORD']
+                if i + 1 < len(chordName) and chordName[i+1] == 'M':
+                    chordName = chordName[:i+1] + chordName[i+2:]
+                    style = self.tabsObj.styles['SHP_CHORD']
+                else: style = self.tabsObj.styles['FLT_CHORD']
             elif chordName[i] == 'n':
                 chordName = chordName[:i] + chordName[i+1:]
                 style = self.tabsObj.styles['NO_IVAL']
@@ -260,6 +263,7 @@ class Chords(object):
             elif dds: style = self.tabsObj.styles['SHP_CHORD']
             self.tabsObj.prints(chordName[i], i + row, col, style)
             i += 1
+            if i == self.tabsObj.CHORDS_LEN: break
         for i in range(i, self.tabsObj.CHORDS_LEN):
             self.tabsObj.prints(' ', i + row, col, self.tabsObj.styles['NAT_CHORD'])
         if dbg: print('printChordName({}) name={}'.format(self.c, chordName), file=self.tabsObj.DBG_FILE)
