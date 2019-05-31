@@ -74,7 +74,6 @@ class Chords(object):
                     print('printChord() found selected chordName={} in selectChords[{}]={} imapKeys={} '.format(chordName, chordName, self.tabsObj.imap2String(self.tabsObj.selectChords[chordName]), imapKeys), file=self.tabsObj.DBG_FILE)
                     selected = 1
                     self.printChordName(row, col, chordName, imap)
-#                    break
         if selected == 0 and len(limap):
             imap = limap[0]
             print('printChord() currentName={} chordName={} imap={}'.format(currentName, chordName, imap), file=self.tabsObj.DBG_FILE)
