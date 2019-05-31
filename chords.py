@@ -338,6 +338,9 @@ class Chords(object):
                     if    '2' in imap:                         return '{}M7s2'.format(r)    # Maj7sus2
                     elif  '4' in imap:                         return '{}M7s4'.format(r)    # Maj7sus4
                 elif '2' in imap and '6' in imap:              return '{}6/9n3'.format(r)   # 6add9no3
+            elif len(imap) == 5:
+                if   'b7' in imap:
+                    if 'b2' in imap and 'b5' in imap:          return '{}7b9#11n3'.format(r) # 7b9#11(no3)
         elif 'b5' in imap:
             if 'm3' in imap:
                 if len(imap) == 3:                             return '{}o'.format(r)       # dim

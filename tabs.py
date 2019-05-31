@@ -86,8 +86,9 @@ class Tabs(object):
         self.chordInfo = {}                                        # dict column index -> (list of dict intervals -> note names) i.e. dict col -> list of imaps for status chord info
         self.selectChords = {}                                     # dict chord name -> imap, for displaying the selected chord name and imap
         self.selectImaps = {}                                      # dict imap string -> imap, for displaying intervals corresponding to selected chord name & imap
-        self.analyzeIndices = {}                                   # dict column index -> imap index being analyzed for chord info
         self.chordAliases = {}                                     # dict column index -> chord names
+        self.analyzeIndices = {}                                   # dict column index -> imap index being analyzed for chord info
+        self.analyzeIndex = None                                   # current index for chord name analysis
         self.chordStatusCol = None                                 # tab column index used to display chord info on status row
         
         self.arpeggiate = 0                                        # used to transform chords to arpeggios
@@ -204,8 +205,8 @@ class Tabs(object):
             if parse1 and parse2:
                 self.chordAliases = data1
                 self.analyzeIndices = data2
-                print('init() chordAliases({})={}'.format(len(self.chordAliases), self.chordAliases), file=Tabs.DBG_FILE)
-                print('init() analyzeIndices({})={}'.format(len(self.analyzeIndices), self.analyzeIndices), file=Tabs.DBG_FILE)
+                print('init() chordAliases(len={})={}'.format(len(self.chordAliases), self.chordAliases), file=Tabs.DBG_FILE)
+                print('init() analyzeIndices(len={})={}'.format(len(self.analyzeIndices), self.analyzeIndices), file=Tabs.DBG_FILE)
                 for k in self.chordAliases:
                     print('init() calling moveToCol({}) & printChord()'.format(k), file=Tabs.DBG_FILE)
                     self.moveToCol(k)
@@ -1873,22 +1874,22 @@ class Tabs(object):
     def printChordStatus(self, tab, r, c, dbg=1):
         if c in self.chordInfo:
             if dbg: self.printMapLimap(self.chordInfo, reason='printChordStatus()'.format(c))
-            if c in self.analyzeIndices: analyzeIndex = self.analyzeIndices[c]
-            else:                        analyzeIndex = 0
-            self.printChordInfo(tab, r, c, analyzeIndex, reason='printChordStatus')
+            print('printChordStatus() analyzeIndices={}'.format(self.analyzeIndices), file=Tabs.DBG_FILE)
+            if c in self.analyzeIndices: index = self.analyzeIndices[c]
+            else:                        index = 0
+            self.printChordInfo(tab, r, c, index, reason='printChordStatus')
     
     def analyzeChord(self, dbg=0):
         r, c = self.rowCol2Indices(self.row, self.col)
         tab = chr(self.tabs[r][c])
-        print('analyzeChord() row={} col={} r={} c={} tab={} len(self.chordInfo[c]={}'.format(self.row, self.col, r, c, tab, len(self.chordInfo[c])), file=Tabs.DBG_FILE)
+        print('analyzeChord() row={} col={} r={} c={} tab={}'.format(self.row, self.col, r, c, tab), file=Tabs.DBG_FILE)
         if c in self.chordInfo:
-            if c in self.analyzeIndices:
-                analyzeIndex = self.analyzeIndices[c] + 1
-            else:
-                analyzeIndex = 1
-            self.analyzeIndices[c] = analyzeIndex % len(self.chordInfo[c])
-            print('analyzeChord() analyzeIndex={} len(chordInfo[{}])={} analyzeIndices[c]={}'.format(analyzeIndex, c, len(self.chordInfo[c]), self.analyzeIndices[c]), file=Tabs.DBG_FILE)
-            self.printChordInfo(tab, r, c, self.analyzeIndices[c], reason='analyzeChord()')
+            if self.analyzeIndex == None:
+                self.analyzeIndex = 0
+            index = self.analyzeIndex + 1
+            self.analyzeIndex = index % len(self.chordInfo[c])
+            print('analyzeChord() index={} len(chordInfo[{}])={} analyzeIndex={}'.format(index, c, len(self.chordInfo[c]), self.analyzeIndex), file=Tabs.DBG_FILE)
+            self.printChordInfo(tab, r, c, self.analyzeIndex, reason='analyzeChord()')
         self.resetPos()
     
     def selectChord(self, pt=1, dbg=1):
@@ -1896,9 +1897,11 @@ class Tabs(object):
         if dbg: print('selectChord(pt={} c={}) row={} col={} r={}'.format(pt, c, self.row, self.col, r), file=Tabs.DBG_FILE)
         if c in self.chordInfo:
             self.printLimap(self.chordInfo[c], reason='selectChord(c={})'.format(c))
-            analyzeIndex = self.analyzeIndices[c]
-            name, imap = self.printChordInfo(chr(self.tabs[r][c]), r, c, analyzeIndex, reason='selectChord{}')
-            print('selectChord(c={}) chordAliases={}'.format(c, self.chordAliases), file=Tabs.DBG_FILE)
+            if self.analyzeIndex != None:
+                self.analyzeIndices[c] = self.analyzeIndex
+            index = self.analyzeIndices[c]
+            name, imap = self.printChordInfo(chr(self.tabs[r][c]), r, c, index, reason='selectChord{}')
+            print('selectChord(c={}) index={}, analyzeIndex={} analyzeIndices[c]={} chordAliases={}'.format(c, index, self.analyzeIndex, self.analyzeIndices[c], self.chordAliases), file=Tabs.DBG_FILE)
             if c in self.chordAliases:
                 print('selectChord(c={}) found c in chordAliases={}'.format(c, self.chordAliases), file=Tabs.DBG_FILE)
                 n = self.chordAliases[c]
@@ -1911,8 +1914,8 @@ class Tabs(object):
             print('selectChord(c={}) adding alias={} to chordAliases={}'.format(c, name, self.chordAliases), file=Tabs.DBG_FILE)
             self.chordAliases[c] = name
             print('selectChord(c={}) chordAliases={}'.format(c, self.chordAliases), file=Tabs.DBG_FILE)
-            print('selectChord(c={}) analyzeIndex={} selectChords[{}]={}'.format(c, analyzeIndex, name, self.imap2String(self.selectChords[name])), file=Tabs.DBG_FILE)
-            im = self.chordInfo[c][analyzeIndex]
+            print('selectChord(c={}) index={} selectChords[{}]={}'.format(c, index, name, self.imap2String(self.selectChords[name])), file=Tabs.DBG_FILE)
+            im = self.chordInfo[c][index]
             print('selectChord(c={}) adding key={} : val={} to '.format(c, self.imap2String(im), self.imap2String(imap)), end='', file=Tabs.DBG_FILE)
             self.printSelectImaps()
             self.selectImaps[self.imap2String(im)] = imap
