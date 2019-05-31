@@ -1819,7 +1819,7 @@ class Tabs(object):
         elif tab in self.mods: self.printModStatus(tab, r, c)
         else:                  self.printDefaultStatus(tab, r, c)
         Tabs.clearRow(arg=0, row=self.lastRow, col=0, file=self.outFile)
-        self.printChordStatus(tab, r, c)
+        self.printChordStatus(r, c)
         self.resetPos()
         print('printStatus() row={} col={} r={} c={} end'.format(self.row, self.col, r, c), file=Tabs.DBG_FILE)
     
@@ -1871,26 +1871,25 @@ class Tabs(object):
         print(tabStyle + self.CSI + '{};{}H{} '.format(self.lastRow, 1, tab), end='', file=self.outFile)
         print(tabStyle + '{}{}'.format(s, ss) + statStyle + ' string ' + tabStyle + 'muted' + statStyle + ' not played', end='', file=self.outFile)
     
-    def printChordStatus(self, tab, r, c, dbg=1):
+    def printChordStatus(self, r, c, dbg=1):
         if c in self.chordInfo:
             if dbg: self.printMapLimap(self.chordInfo, reason='printChordStatus()'.format(c))
             print('printChordStatus() analyzeIndices={}'.format(self.analyzeIndices), file=Tabs.DBG_FILE)
             if c in self.analyzeIndices: index = self.analyzeIndices[c]
             else:                        index = 0
-            self.printChordInfo(tab, r, c, index, reason='printChordStatus')
+            self.printChordInfo(r, c, index, reason='printChordStatus')
     
     def analyzeChord(self, dbg=0):
         r, c = self.rowCol2Indices(self.row, self.col)
-        tab = chr(self.tabs[r][c])
-        print('analyzeChord() row={} col={} r={} c={} tab={}'.format(self.row, self.col, r, c, tab), file=Tabs.DBG_FILE)
+        print('analyzeChord() row={} col={} r={} c={}'.format(self.row, self.col, r, c), file=Tabs.DBG_FILE)
         if c in self.chordInfo:
             if self.analyzeIndex == None:
                 self.analyzeIndex = 0
             index = self.analyzeIndex + 1
             self.analyzeIndex = index % len(self.chordInfo[c])
             print('analyzeChord() index={} len(chordInfo[{}])={} analyzeIndex={}'.format(index, c, len(self.chordInfo[c]), self.analyzeIndex), file=Tabs.DBG_FILE)
-            self.printChordInfo(tab, r, c, self.analyzeIndex, reason='analyzeChord()')
-        self.resetPos()
+            self.printChordInfo(r, c, self.analyzeIndex, reason='analyzeChord()')
+            self.resetPos()
     
     def selectChord(self, pt=1, dbg=1):
         r, c = self.rowCol2Indices(self.row, self.col)
@@ -1900,7 +1899,7 @@ class Tabs(object):
             if self.analyzeIndex != None:
                 self.analyzeIndices[c] = self.analyzeIndex
             index = self.analyzeIndices[c]
-            name, imap = self.printChordInfo(chr(self.tabs[r][c]), r, c, index, reason='selectChord{}')
+            name, imap = self.printChordInfo(r, c, index, reason='selectChord{}')
             print('selectChord(c={}) index={}, analyzeIndex={} analyzeIndices[c]={} chordAliases={}'.format(c, index, self.analyzeIndex, self.analyzeIndices[c], self.chordAliases), file=Tabs.DBG_FILE)
             if c in self.chordAliases:
                 print('selectChord(c={}) found c in chordAliases={}'.format(c, self.chordAliases), file=Tabs.DBG_FILE)
@@ -1921,7 +1920,6 @@ class Tabs(object):
             self.selectImaps[self.imap2String(im)] = imap
             self.printSelectImaps()
             if pt: self.printTabs()
-        self.resetPos()
     
     def printSelectImaps(self):
         print('selectImaps={{'.format(), end=' ', file=Tabs.DBG_FILE)
@@ -1929,7 +1927,8 @@ class Tabs(object):
             print('{} : {}'.format(k, self.imap2String(self.selectImaps[k])), end=', ', file=Tabs.DBG_FILE)
         print('}', file=Tabs.DBG_FILE)
     
-    def printChordInfo(self, tab, r, c, m, reason=None, dbg=0):
+    def printChordInfo(self, r, c, m, reason=None, dbg=0):
+        tab = chr(self.tabs[r][c])
         print('printChordInfo)() tab={} r={} c={} m={}'.format(tab, r, c, m, c, m), file=Tabs.DBG_FILE)
         if m in self.chordInfo[c]: print('printChordInfo)() chordInfo[{}][{}]={}={}'.format(self.imap2String(self.chordInfo[c][m])), file=Tabs.DBG_FILE)
         imap = self.chordInfo[c][m]
