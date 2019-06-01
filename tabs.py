@@ -1376,10 +1376,8 @@ class Tabs(object):
             for k in self.argMap:
                 print('    {}={}'.format(k, self.argMap[k]), file=self.outFile)
             self.printStringMap(file=self.outFile)
-            print('StartChordAliases', file=self.outFile)
-            print('{}'.format(self.chordAliases), file=self.outFile)
-            print('StartAnalyzeIndices', file=self.outFile)
-            print('{}'.format(self.analyzeIndices), file=self.outFile)
+            self.saveOrdDict(self.chordAliases, 'StartChordAliases', q='\'')
+            self.saveOrdDict(self.analyzeIndices, 'StartAnalyzeIndices')
             self.printTabs()
             self.moveTo(hi=1)
             print(self.CSI + self.styles['NORMAL'] + self.styles['CONS'] + self.CSI + '{};{}H'.format(self.lastRow, 1), end='', file=self.outFile) # set the file cursor to the front of the next row (NUM_STR+r+1, 0) and set the foreground and background color
@@ -1387,6 +1385,13 @@ class Tabs(object):
             self.printLineInfo('saveTabs({}, {}) end writing tabs to file'.format(self.row, self.col))
         self.outFile = None
         self.printTabs()
+    
+    def saveOrdDict(self, d, reason, q=''):
+        print('{}'.format(reason), file=self.outFile)
+        print('{', end='', file=self.outFile)
+        for k in sorted(d):
+            print('{}: {}{}{}'.format(k, q, d[k], q), end=', ', file=self.outFile)
+        print('}', file=self.outFile)
     
     def shiftSelectTabs(self):
         '''Shift selected tabs (left or right) specified by user numeric input of up to 3 characters terminated by space char.'''
