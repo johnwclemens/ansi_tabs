@@ -72,17 +72,19 @@ class Chords(object):
                 chordName = currentName
                 if chordName in self.tabsObj.selectChords:
                     selectedChord = self.tabsObj.imap2String(self.tabsObj.selectChords[chordName])
-                    print('printChord() FOUND SELECTED chordName={} in selectChords[{}]={} imapKeys={} '.format(chordName, chordName, selectedChord, imapKeys), file=self.tabsObj.DBG_FILE)
+                    print('printChord({}) FOUND SELECTED chordName={} in selectChords[{}]={}'.format(self.c, chordName, chordName, selectedChord), file=self.tabsObj.DBG_FILE)
                     selected = 1
                     self.printChordName(row, col, chordName, imap)
+                    self.chordNames[self.c] = chordName
+                    print('printChord({}) ADDING chordName[{}]={} to chordNames={}'.format(self.c, self.c, self.chordNames[self.c], self.chordNames), file=self.tabsObj.DBG_FILE)
 #                    break
         if selected == 0 and len(limap):
             imap = limap[0]
-            print('printChord() currentName={} chordName={} imap={}'.format(currentName, chordName, imap), file=self.tabsObj.DBG_FILE)
+            print('printChord({}) currentName={} chordName={} imap={}'.format(self.c, currentName, chordName, imap), file=self.tabsObj.DBG_FILE)
             self.printChordName(row, col, chordName, imap)
-        if len(chordName) > 0:
-            self.chordNames[c] = chordName
-            print('printChord() ADDING chordName[{}]={} to chordNames={}'.format(c, self.chordNames[c], self.chordNames), file=self.tabsObj.DBG_FILE)
+            if len(chordName) > 0:
+                self.chordNames[self.c] = chordName
+                print('printChord({}) ADDING chordName[{}]={} to chordNames={}'.format(self.c, self.c, self.chordNames[self.c], self.chordNames), file=self.tabsObj.DBG_FILE)
         return chordName
     
     def printStrings(self):
@@ -212,16 +214,16 @@ class Chords(object):
     def add2Limap(self, imap, limap, chordName, dbg=1):
         if imap not in limap:
             if len(chordName) > 0:
-                if dbg: self.dumpLimaps(imap, limap, chordName, 'printChord(add2Limap()) prepend ')
+                if dbg: self.dumpLimaps(imap, limap, chordName, 'printChord(add2Limap({})) prepend '.format(self.c))
                 limap.insert(0, imap)
             else:
-                if dbg: self.dumpLimaps(imap, limap, chordName, 'printChord(add2Limap()) append ')
+                if dbg: self.dumpLimaps(imap, limap, chordName, 'printChord(add2Limap({})) append '.format(self.c))
                 limap.append(imap)
         elif len(chordName) > 0 and imap != limap[0]:
-            if dbg: self.dumpLimaps(imap, limap, chordName, 'printChord(add2Limap()) remove and prepend ')
+            if dbg: self.dumpLimaps(imap, limap, chordName, 'printChord(add2Limap({})) remove and prepend '.format(self.c))
             limap.remove(imap)
             limap.insert(0, imap)
-        if dbg: self.tabsObj.dumpLimap(limap, reason='add2Limap()')
+        if dbg: self.tabsObj.dumpLimap(limap, reason='add2Limap({})'.format(self.c))
         return limap
     
     def dumpLimaps(self, imap, limap, chordName, reason):
