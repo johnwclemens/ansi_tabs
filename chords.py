@@ -60,31 +60,35 @@ class Chords(object):
             self.printTabs()
             self.printTabs(capoed=1)
         (_notes, indices) = self.getNotesAndIndices(dbg=dbg)
-        aliases, limap, count, selected, chordName = [], [], 0, 0, ''
+        aliases, limap, lchords, count, selected, chordName = [], [], [], 0, 0, ''
         for i in range(len(indices)-1, -1, -1):
             if dbg: print('{}printChord({}) index={}'.format(self.indent, self.c, i), file=self.tabsObj.DBG_FILE)
             intervals = self.getIntervals(i, indices, dbg=dbg)
             (imap, imapKeys, imapNotes, chordKey) = self.getImapAndKeys(intervals, _notes, dbg=dbg)
             currentName = self.updateChords(i, chordKey, imap, count, dbg=dbg)
+            lchords.insert(0, currentName)
             limap = self.add2Limap(imap, limap, currentName, dbg=dbg)
-            self.tabsObj.chordInfo[self.c] = limap
             if len(currentName) > 0:
                 chordName = currentName
                 if chordName in self.tabsObj.selectChords:
-                    selectedChord = self.tabsObj.imap2String(self.tabsObj.selectChords[chordName])
-                    print('printChord({}) FOUND SELECTED chordName={} in selectChords[{}]={}'.format(self.c, chordName, chordName, selectedChord), file=self.tabsObj.DBG_FILE)
-                    selected = 1
-                    self.printChordName(row, col, chordName, imap)
-                    self.chordNames[self.c] = chordName
-                    print('printChord({}) ADDING chordName[{}]={} to chordNames={}'.format(self.c, self.c, self.chordNames[self.c], self.chordNames), file=self.tabsObj.DBG_FILE)
-#                    break
+                    selected += 1
+                    if selected == 1:
+                        selectedChord = self.tabsObj.imap2String(self.tabsObj.selectChords[chordName])
+                        print('printChord({}) FOUND SELECTED chordName={} in selectChords[{}]={}'.format(self.c, chordName, chordName, selectedChord), file=self.tabsObj.DBG_FILE)
+                        self.tabsObj.chordInfo[self.c] = {'INDEX': i, 'CHORDS': lchords, 'LIMAP': limap}
+                        self.printChordName(row, col, chordName, imap)
+                        self.chordNames[self.c] = chordName
+                        print('printChord({}) ADDING chordName[{}]={} to chordNames={}'.format(self.c, self.c, self.chordNames[self.c], self.chordNames), file=self.tabsObj.DBG_FILE)
         if selected == 0 and len(limap):
             imap = limap[0]
             print('printChord({}) currentName={} chordName={} imap={}'.format(self.c, currentName, chordName, imap), file=self.tabsObj.DBG_FILE)
             self.printChordName(row, col, chordName, imap)
+            self.tabsObj.chordInfo[self.c] = {'INDEX': i, 'CHORDS': lchords, 'LIMAP': limap}
             if len(chordName) > 0:
                 self.chordNames[self.c] = chordName
                 print('printChord({}) ADDING chordName[{}]={} to chordNames={}'.format(self.c, self.c, self.chordNames[self.c], self.chordNames), file=self.tabsObj.DBG_FILE)
+        if self.c in self.tabsObj.chordInfo:
+            self.tabsObj.dumpChordInfoCol(self.tabsObj.chordInfo[self.c], reason='printChord({})'.format(self.c))
         return chordName
     
     def printStrings(self):
@@ -223,6 +227,9 @@ class Chords(object):
             if dbg: self.dumpLimaps(imap, limap, chordName, 'printChord(add2Limap({})) remove and prepend '.format(self.c))
             limap.remove(imap)
             limap.insert(0, imap)
+        else:
+            if dbg: self.dumpLimaps(imap, limap, chordName, 'printChord(add2Limap({})) append '.format(self.c))
+            limap.append(imap)
         if dbg: self.tabsObj.dumpLimap(limap, reason='add2Limap({})'.format(self.c))
         return limap
     
@@ -405,7 +412,7 @@ class Chords(object):
                         elif '7' in imap:
                             if   '4' in imap:                  return '{}+M11'.format(r)    # augMaj11
                             elif '6' in imap:                  return '{}+M13n11'.format(r) # augMaj13(no11)
-        # Maybe omit all the n5 (no 5th) chords for simplicity
+        # Maybe omit all the n5 (no 5th) chords for simplicity?
         elif 'M3' in imap:
             if len(imap) == 3:
                 if   'b7' in imap:                             return '{}7n5'.format(r)     # 7(no5)
