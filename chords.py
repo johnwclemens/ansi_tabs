@@ -47,7 +47,7 @@ class Chords(object):
         self.tabsObj.printFileMark('<END_CHORDS_SECTION>')
         return self.chordNames
     
-    def printChord(self, c, dbg=1):
+    def printChord(self, c, dbg=2):
         '''Analyze notes in given column index and if a valid chord is discovered then print it in the appropriate chords section.'''
         self.c = c
         if self.c is None:
@@ -58,7 +58,7 @@ class Chords(object):
             print('printChord(c={}) row={} col={} len(chords)={} dbg={} BGN'.format(self.c, row, col, len(self.chords), dbg), file=self.tabsObj.DBG_FILE)
             self.printStrings()
             self.printTabs()
-            self.printTabs(capoed=1)
+        if dbg >= 3: self.printTabs(capoed=1)
         (_notes, indices) = self.getNotesAndIndices(dbg=dbg)
         aliases, limap, lchords, count, selected, chordName = [], [], [], 0, 0, ''
         for i in range(len(indices)-1, -1, -1):
@@ -169,7 +169,7 @@ class Chords(object):
         for i in range(1, len(sdeltas)): 
             rdeltas.append(sdeltas[i] - sdeltas[i-1])
             relimapKeys.append(self.INTERVALS[rdeltas[i]])
-        if dbg:
+        if dbg >= 2:
             print(']\n{}sdeltas     ['.format(self.indent), end='', file=self.tabsObj.DBG_FILE)
             for sd in sdeltas:
                 print('{:>5}'.format(sd), end=' ', file=self.tabsObj.DBG_FILE)
@@ -182,6 +182,7 @@ class Chords(object):
             print(']\n{}imap        ['.format(self.indent), end='', file=self.tabsObj.DBG_FILE)
             for k in imap:
                 print('{:>2}:{:<2}'.format(k, imap[k]), end=' ', file=self.tabsObj.DBG_FILE)
+        if dbg:
             print(']\n{}imapKeys    ['.format(self.indent), end='', file=self.tabsObj.DBG_FILE)
             for k in imapKeys:
                 print('{:>5}'.format(k), end=' ', file=self.tabsObj.DBG_FILE)

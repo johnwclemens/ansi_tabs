@@ -666,7 +666,7 @@ class Tabs(object):
             elif b == 72:  self.uiCmds['Shift H']()               # printHelpInfo()          # cmd line opt -h
             elif b == 9:   self.uiCmds['Ctrl I or Tab']()         # toggleCursorDir()        # cmd line opt -i
             elif b == 10:  self.uiCmds['Ctrl J']()                # shiftSelectTabs()        # N/A
-            elif b == 11:  self.uiCmds['Ctrl K'](dbg=1)           # printChord()             # N/A
+            elif b == 11:  self.uiCmds['Ctrl K'](dbg=2)           # printChord()             # N/A
             elif b == 75:  self.uiCmds['Shift K']()               # setCapo()                # cmd line opt -k?
             elif b == 12:  self.uiCmds['Ctrl L'](cs=1)            # goToLastTab()            # cmd line opt -l
             elif b == 76:  self.uiCmds['Shift L']()               # goToLastTab()            # cmd line opt -L
@@ -1770,9 +1770,9 @@ class Tabs(object):
         if imapstr in self.selectImaps:
             imap = self.selectImaps[imapstr]
             if r == 0:
-                print('wrapPrintInterval({:>3} {}) imap={}       FOUND imapstr={} in'.format(c, index, imap, imapstr), end=' ', file=Tabs.DBG_FILE)
+                print('wrapPrintInterval({:>3} {}) imap={}        FOUND imapstr={} in'.format(c, index, imap, imapstr), end=' ', file=Tabs.DBG_FILE)
                 self.printSelectImaps()
-                print('wrapPrintInterval({:>3} {}) imap={}    SWAPPING imapstr={}'.format(c, index, imap, self.imap2String(imap)), file=Tabs.DBG_FILE)
+                print('wrapPrintInterval({:>3} {}) imap={} SWAP MAP K&V imapstr={}'.format(c, index, imap, self.imap2String(imap)), file=Tabs.DBG_FILE)
         im = {imap[k]:k for k in imap}
         tab = self.tabs[r][c]
         if dbg: print('wrapPrintInterval({:>3} {}) imap={} tab={} im={} selectImaps={}'.format(c, index, imap, chr(tab), im, self.selectImaps), file=Tabs.DBG_FILE)
@@ -2050,6 +2050,7 @@ class Tabs(object):
     def printChord(self, c=None, dbg=0):
         '''Analyse the notes at the given column and if they form a chord print the chord in the chords section.'''
         self.chordsObj.printChord(c, dbg)
+        self.resetPos()
     
     def isTab(self, c):
         if c == '-' or Tabs.isFret(c) or self.isMod(c): return True
