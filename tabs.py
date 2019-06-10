@@ -7,7 +7,7 @@ import os, sys, shutil
 
 impFile = open('tabs_imp.log', 'w')
 
-'''Lame attempt at portability.  Should work on Windows, might work on Linux.'''
+'''Lame attempt at portability.  Should work on Windows, might work on Linux'''
 try:
     print('try: import tty, termios', file=impFile)
     impFile.flush()
@@ -55,19 +55,19 @@ import strings
 import collections
 
 class Tabs(object):
-    '''Model musical tab notation and tab editor functionality.'''
+    '''Model musical tab notation and tab editor functionality'''
     ESC = '\033'
     CSI = '\033\133'
     DBG_NAME = "Debug.txt"
     DBG_FILE = open(DBG_NAME, "w")
     
     def __init__(self, inName='tabs.tab', outName='tabs.tab'):
-        '''Initialize the Tabs object and start the user interactive console command loop method.'''
+        '''Initialize the Tabs object and start the user interactive console command loop method'''
         self.init(inName, outName)
         self.loop()
     
     def init(self, inName='tabs.tab', outName='tabs.tab'):
-        '''Init class instance, enable automatic reset of console via print(colorama.Style.RESET_ALL).'''
+        '''Init class instance, enable automatic reset of console via print(colorama.Style.RESET_ALL)'''
         colorama.init(autoreset=True)
         Tabs.clearScreen()
         self.initFiles(inName, outName)
@@ -512,7 +512,7 @@ class Tabs(object):
         return [tmp, htmp, rowStr]
     
     def appendLine(self, uicKey=None, pt=1):
-        '''Append another line of tabs to the display.'''
+        '''Append another line of tabs to the display'''
         tabs, htabs = [], []
         print('appendLine(old) numTabsPerString:{} = numLines:{} * numTabsPerStringPerLine:{}, numTabs:{} = numStrings:{} * len(tabs[0]):{}'.format(self.numTabsPerString, self.numLines, self.numTabsPerStringPerLine, self.numTabs, self.numStrings, len(self.tabs[0])), file=Tabs.DBG_FILE)
         self.numLines += 1
@@ -536,7 +536,7 @@ class Tabs(object):
             self.printh('{}: {}'.format(uicKey, self.appendLine.__doc__))
     
     def removeLine(self, uicKey=None):
-        '''Remove last line of tabs from the display.'''
+        '''Remove last line of tabs from the display'''
         tabs, htabs = [], []
         print('removeLine(old) numTabsPerString:{} = numLines:{} * numTabsPerStringPerLine:{}, numTabs:{} = numStrings:{} * len(tabs[0]):{}'.format(self.numTabsPerString, self.numLines, self.numTabsPerStringPerLine, self.numTabs, self.numStrings, len(self.tabs[0])), file=Tabs.DBG_FILE)
         self.numLines -= 1
@@ -559,7 +559,7 @@ class Tabs(object):
         self.printh('{}: {}'.format(uicKey, self.removeLine.__doc__))
     
     def quit(self, uicKey=None, reason='Received Quit Cmd, Exiting', code=0):
-        '''Quit with reason and exit code.'''
+        '''Quit with reason and exit code'''
         self.printLineInfo('quit(ExitCode={}, reason=\'{}\')'.format(code, reason))
         self.printh('{}: {}'.format(uicKey, self.quit.__doc__))
         print(self.CSI + self.styles['CONS'] + self.CSI + '{};{}HExitCode={}, reason={}'.format(self.lastRow + 1, 1, code, reason))
@@ -569,7 +569,7 @@ class Tabs(object):
         exit(code)
     
     def printHelpInfo(self, uicKey=None, ui=1):
-        '''Print help info ui=1 explicitly call printTabs() else assume it will be called.  [cmd line opt -h]'''
+        '''Print help info ui=1 explicitly call printTabs() else assume it will be called [cmd line opt -h]'''
         self.clearScreen()
         self.printHelpSummary()
         self.printHelpUiCmds()
@@ -653,7 +653,7 @@ class Tabs(object):
         self.uiKeys = sorted(self.uiCmds)
     
     def loop(self):
-        '''Run the user interactive loop, executing commands as they are entered via the keyboard.'''
+        '''Run the user interactive loop, executing commands as they are entered via the keyboard'''
         while True:
             b = ord(getwch())                                                           # get wide char -> int
             if self.isTab(chr(b)): self.uiCmds['Tablature'](b)                          # setTab()                 # N/A
@@ -728,7 +728,7 @@ class Tabs(object):
         self.moveTo(row, col)
     
     def moveTo(self, row=None, col=None, hi=0):
-        '''Move to given row and col (optionally hilite row and col num).'''
+        '''Move to given row and col (optionally hilite row and col num)'''
         if row is not None: self.row = row
         if col is not None: self.col = col
         print('moveTo({}, {}, {}) row={}, col={}, line={}'.format(row, col, hi, self.row, self.col, self.row2Line(self.row)), file=Tabs.DBG_FILE)
@@ -738,7 +738,7 @@ class Tabs(object):
             self.hiliteRowColNum()
    
     def moveLeft(self, uicKey=None, dbg=None):
-        '''Move cursor left one column on current line, wrapping to end of row on previous line or last line.'''
+        '''Move cursor left 1 column on current line wrapping to end of row on previous line or last line'''
         if dbg or self.dbgMove: print('moveLeft({}, {})'.format(self.row, self.col), file=Tabs.DBG_FILE)
         if self.col == self.bgnCol():
             line = self.row2Line(self.row)
@@ -748,7 +748,7 @@ class Tabs(object):
         self.printh('{}: {}'.format(uicKey, self.moveLeft.__doc__))
     
     def moveRight(self, uicKey=None, dbg=None):
-        '''Move cursor right one column on current line, wrapping to start of row on next line or first line.'''
+        '''Move cursor right 1 column on current line wrapping to start of row on next line or first line'''
         if dbg or self.dbgMove: print('moveRight({}, {})'.format(self.row, self.col), file=Tabs.DBG_FILE)
         if self.col == self.endCol():
             line = self.row2Line(self.row)
@@ -758,7 +758,7 @@ class Tabs(object):
         self.printh('{}: {}'.format(uicKey, self.moveRight.__doc__))
     
     def moveUp(self, uicKey=None, dbg=None):
-        '''Move cursor up one row on current line, wrapping to last row on previous line or last line.'''
+        '''Move cursor up 1 row on current line wrapping to last row on previous line or last line'''
         if dbg or self.dbgMove: self.printLineInfo('moveUp({}, {})'.format(self.row, self.col))
         line = self.row2Line(self.row)
         if self.row == self.bgnRow(line):
@@ -768,7 +768,7 @@ class Tabs(object):
         self.printh('{}: {}'.format(uicKey, self.moveUp.__doc__))
     
     def moveDown(self, uicKey=None, dbg=None):
-        '''Move cursor down one row on current line, wrapping to first row on next line or first line.'''
+        '''Move cursor down 1 row on current line wrapping to first row on next line or first line'''
         if dbg or self.dbgMove: self.printLineInfo('moveDown({}, {})'.format(self.row, self.col))
         line = self.row2Line(self.row)
         if self.row == self.endRow(line):
@@ -778,7 +778,7 @@ class Tabs(object):
         self.printh('{}: {}'.format(uicKey, self.moveDown.__doc__))
     
     def moveHome(self, uicKey=None, dbg=None):
-        '''Move cursor to start of row on current line, wrapping to end of row on previous line or last line.'''
+        '''Move cursor to start of row on current line wrapping to end of row on previous line or last line'''
         if dbg or self.dbgMove: print('moveHome({}, {})'.format(self.row, self.col), file=Tabs.DBG_FILE)
         if self.col == self.bgnCol():
             line = self.row2Line(self.row)
@@ -788,7 +788,7 @@ class Tabs(object):
         self.printh('{}: {}'.format(uicKey, self.moveHome.__doc__))
     
     def moveEnd(self, uicKey=None, dbg=None):
-        '''Move cursor to end of row on current line, wrapping to start of row on next line or first line.'''
+        '''Move cursor to end of row on current line wrapping to start of row on next line or first line'''
         if dbg or self.dbgMove: print('moveEnd({}, {})'.format(self.row, self.col), file=Tabs.DBG_FILE)
         if self.col == self.endCol():
             line = self.row2Line(self.row)
@@ -798,7 +798,7 @@ class Tabs(object):
         self.printh('{}: {}'.format(uicKey, self.moveEnd.__doc__))
     
     def movePageUp(self, uicKey=None, dbg=None):
-        '''Move cursor to first row on current line, wrapping to last row on previous line or last line.'''
+        '''Move cursor to first row on current line wrapping to last row on previous line or last line'''
         if dbg or self.dbgMove: self.printLineInfo('movePageUp({}, {})'.format(self.row, self.col))
         line = self.row2Line(self.row)
         if self.row == self.bgnRow(line):
@@ -808,7 +808,7 @@ class Tabs(object):
         self.printh('{}: {}'.format(uicKey, self.movePageUp.__doc__))
     
     def movePageDown(self, uicKey=None, dbg=None):
-        '''Move cursor to last row on current line, wrapping to first row on next line or first line.'''
+        '''Move cursor to last row on current line wrapping to first row on next line or first line'''
         if dbg or self.dbgMove: self.printLineInfo('movePageDown({}, {})'.format(self.row, self.col))
         line = self.row2Line(self.row)
         if self.row == self.endRow(line):
@@ -872,7 +872,7 @@ class Tabs(object):
         self.lastRow = self.ROW_OFF + self.numLines * self.lineDelta() - 1
     
     def toggleEditMode(self, uicKey=None, dbg=0):
-        '''Toggle between editing modes (insert or replace).'''
+        '''Toggle between editing modes (insert or replace)'''
         self.editMode = (self.editMode + 1) % len(self.EDIT_MODES)
         if self.displayLabels == self.DISPLAY_LABELS['ENABLED']:
             for line in range(0, self.numLines):
@@ -885,7 +885,7 @@ class Tabs(object):
         self.printh('{}: {}'.format(uicKey, self.toggleEditMode.__doc__))
     
     def toggleCursorMode(self, uicKey=None, dbg=0):
-        '''Toggle cursor automatic movement modes (M=melody, C=chord, or A=arpeggio).'''
+        '''Toggle cursor automatic movement modes (M=melody, C=chord, or A=arpeggio)'''
         self.cursorMode = (self.cursorMode + 1) % len(self.CURSOR_MODES)
         if self.displayLabels == self.DISPLAY_LABELS['ENABLED']:
             for line in range(0, self.numLines):
@@ -900,7 +900,7 @@ class Tabs(object):
         self.printh('{}: {}'.format(uicKey, self.toggleCursorMode.__doc__))
     
     def toggleCursorDir(self, uicKey=None, dbg=1):
-        '''Toggle direction (up or down) of cursor vertical movement.  [cmd line opt -i]'''
+        '''Toggle direction (up or down) of cursor vertical movement [cmd line opt -i]'''
         self.cursorDir = (self.cursorDir + 1) % len(self.CURSOR_DIRS)
         for line in range(0, self.numLines):
             for r in range(0, self.numStrings):
@@ -914,13 +914,13 @@ class Tabs(object):
         self.printh('{}: {}'.format(uicKey, self.toggleCursorDir.__doc__))
     
     def toggleEnharmonic(self, uicKey=None):
-        '''Toggle display of enharmonic between sharp and flat notes.  [cmd line opt -F]'''
+        '''Toggle display of enharmonic between sharp and flat notes [cmd line opt -F]'''
         self.enharmonic = (self.enharmonic + 1) % len(self.ENHARMONICS)
         self.printTabs()
         self.printh('{}: {}'.format(uicKey, self.toggleEnharmonic.__doc__))
     
     def toggleDisplayLabels(self, uicKey=None, pt=1):
-        '''Toggle display of Labels row, including cursor and insert mode characters.  [cmd line opt -a]'''
+        '''Toggle display of Labels row, including cursor and insert mode characters [cmd line opt -a]'''
         self.displayLabels = (self.displayLabels + 1) % len(self.DISPLAY_LABELS)
         line = self.row2Line(self.row)
         if self.displayLabels == self.DISPLAY_LABELS['ENABLED']:
@@ -936,7 +936,7 @@ class Tabs(object):
             self.printh('{}: {}'.format(uicKey, self.toggleDisplayLabels.__doc__))
     
     def toggleDisplayNotes(self, uicKey=None, pt=1):
-        '''Toggle (enable or disable) display of notes section.  [cmd line opt -n]'''
+        '''Toggle (enable or disable) display of notes section [cmd line opt -n]'''
         self.displayNotes = (self.displayNotes + 1) % len(self.DISPLAY_NOTES)
         line = self.row2Line(self.row)
         if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
@@ -952,7 +952,7 @@ class Tabs(object):
             self.printh('{}: {}'.format(uicKey, self.toggleDisplayNotes.__doc__))
     
     def toggleDisplayIntervals(self, uicKey=None, pt=1):
-        '''Toggle (enable or disable) display of intervals section.  [cmd line opt -o]'''
+        '''Toggle (enable or disable) display of intervals section [cmd line opt -o]'''
         self.displayIntervals = (self.displayIntervals + 1) % len(self.DISPLAY_INTERVALS)
         line = self.row2Line(self.row)
         if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
@@ -968,7 +968,7 @@ class Tabs(object):
             self.printh('{}: {}'.format(uicKey, self.toggleDisplayIntervals.__doc__))
     
     def toggleDisplayChords(self, uicKey=None, pt=1):
-        '''Toggle (enable or disable) display of chords section.  [cmd line opt -b]'''
+        '''Toggle (enable or disable) display of chords section [cmd line opt -b]'''
         self.displayChords = (self.displayChords + 1) % len(self.DISPLAY_CHORDS)
         line = self.row2Line(self.row)
         if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
@@ -1021,7 +1021,7 @@ class Tabs(object):
         else:         return ((c - 100) // 10)
     
     def selectRow(self, uicKey=None, up=0):
-        '''Select row, append to selected rows list, hilite current tab, and go up or down to next tab.'''
+        '''Select row, append to selected rows list, hilite current tab, and go up or down to next tab'''
         row, col, r, c, br, er = self.row, self.col, self.row2Index(self.row), self.col2Index(self.col), self.bgnRow(self.row2Line(self.row)), self.endRow(self.row2Line(self.row))
         print('selectRow(up={}) ({},{}) bgn r={}, c={}, selectRows={}, selectCols={}, br={}, er={}'.format(up, row, col, r, c, self.selectRows, self.selectCols, br, er), file=Tabs.DBG_FILE)
         if len(self.selectRows) < self.numStrings:
@@ -1040,7 +1040,7 @@ class Tabs(object):
         self.printh('{}: {}'.format(uicKey, self.selectRow.__doc__))
     
     def unselectRow(self, uicKey=None, up=0):
-        '''Unselect row, remove it from selected rows list, unhilite current tab, go up or down to next tab.'''
+        '''Unselect row, remove it from selected rows list, unhilite current tab, go up or down to next tab'''
         r = self.row2Index(self.row)
         c = self.col2Index(self.col)
         if len(self.selectRows):
@@ -1057,7 +1057,7 @@ class Tabs(object):
         self.printh('{}: {}'.format(uicKey, self.unselectRow.__doc__))
     
     def selectCol(self, uicKey=None, left=0):
-        '''Select column, append to selected columns list, hilite current tab, go left or right to next tab.'''
+        '''Select column, append to selected columns list, hilite current tab, go left or right to next tab'''
         cc = self.col2Index(self.col)
         print('selectCol(left={}) ({},{}), cc={} selectFlag={}, selectRows={}, selectCols={}'.format(left, self.row, self.col, cc, self.selectFlag, self.selectRows, self.selectCols), file=Tabs.DBG_FILE)
         if len(self.selectRows) == 0:
@@ -1079,7 +1079,7 @@ class Tabs(object):
         self.printh('{}: {}'.format(uicKey, self.selectCol.__doc__))
     
     def unselectCol(self, uicKey=None, left=0):
-        '''Unselect col, remove it from selected cols list, unhilite tab, and go left or right to next tab.'''
+        '''Unselect col, remove it from selected cols list, unhilite tab, and go left or right to next tab'''
         c = self.col2Index(self.col)
         print('unselectCol(left={}) ({},{}) c={} checking len(selectCols)={}'.format(left, self.row, self.col, c, len(self.selectCols)), file=Tabs.DBG_FILE)
         if len(self.selectCols):
@@ -1133,7 +1133,7 @@ class Tabs(object):
                 self.prints(chr(tab), row + self.numStrings, col, style + self.styles['NAT_NOTE'])
     
     def toggleHarmonicNote(self, uicKey=None):
-        '''Toggle between normal and harmonic note, set to closest natural harmonic note to tab fret number.'''
+        '''Toggle between normal and harmonic note, set to closest natural harmonic note to tab fret number'''
         line = self.row2Line(self.row)
         r, c = self.rowCol2Indices(self.row, self.col)
         tab = self.tabs[r][c]
@@ -1167,7 +1167,7 @@ class Tabs(object):
         self.printh('{}: {}'.format(uicKey, self.toggleHarmonicNote.__doc__))
     
     def setCapo(self, uicKey=None, c=None):
-        '''Place capo on fret specified by user input of a single character [0-9][a-o].  [cmd line opt -k]'''
+        '''Place capo on fret specified by user input of a single character [0-9][a-o] [cmd line opt -k]'''
         self.printh('{}: {}'.format(uicKey, self.setCapo.__doc__))
         if c is None: c = getwch()
         print('setCapo({}, {}) c={}({}) prevCapo={} check isFret(c) BGN'.format(self.row, self.col, ord(c), c, self.capo), file=Tabs.DBG_FILE)
@@ -1196,7 +1196,7 @@ class Tabs(object):
         return self.getFretByte(maxFN)
     
     def setTab(self, tab, dbg=0):
-        '''Set tab byte at current row and col, print corresponding tab character automatic move cursor.'''
+        '''Set tab byte at current row and col, print corresponding tab character automatic move cursor'''
         row, col = self.row, self.col
         rr, cc = self.rowCol2Indices(row, col)
         s, ss = rr + 1, self.getOrdSfx(rr + 1)
@@ -1250,7 +1250,7 @@ class Tabs(object):
         self.dumpTabs('setTab() end')
     
     def goTo(self, uicKey=None):
-        '''Go to col specified by user numeric input of up to 3 chars terminated by space char e.g. '123 '.'''
+        '''Go to col specified by user numeric input of up to 3 chars terminated by space char [-12 ]'''
         self.printh('{}: {}'.format(uicKey, self.goTo.__doc__))
         cc, tmp = '', []
         while len(tmp) < 3:
@@ -1262,7 +1262,7 @@ class Tabs(object):
             self.moveTo(col=c + self.COL_OFF - 1, hi=1)
     
     def goToLastTab(self, uicKey=None, cs=0, ll=0):
-        '''Go to last tab pos on current line or last line ll=1, of all strings or current string, cs=1.'''
+        '''Go to last tab pos on current line or last line ll=1, of all strings or current string, cs=1'''
         rr, cc = 0, 0
         if ll: lineBgn, lineEnd = self.numLines,               0
         else:  lineBgn, lineEnd = self.row2Line(self.row) + 1, self.row2Line(self.row)      # lineBgn - 1
@@ -1285,7 +1285,7 @@ class Tabs(object):
         self.printh('{}: {}'.format(uicKey, self.goToLastTab.__doc__))
     
     def moveCursor(self, uicKey=None, row=None, col=None, back=0):
-        '''Move cursor to next row and or col with automatic cursor mode optionally hilite new row and col.'''
+        '''Move cursor to next row and or col with automatic cursor mode optionally hilite new row and col'''
         print('moveCursor(row={}, col={}, back={}) old: row={}, col={} bgn'.format(row, col, back, self.row, self.col), file=Tabs.DBG_FILE)
         if row != None: self.row = row
         if col != None: self.col = col
@@ -1353,7 +1353,7 @@ class Tabs(object):
         self.resetPos()
     
     def deleteTab(self, uicKey=None, back=0, dbg=0):
-        '''Delete current tab setting it back to '-', with automatic cursor movement, wrapping across edges.'''
+        '''Delete current tab setting it back to '-', with automatic cursor movement, wrapping across edges'''
         row, col = self.row, self.col
         print('deleteTab(row={} col={} back={}) bgn'.format(row, col, back), file=Tabs.DBG_FILE)
         r, c = self.rowCol2Indices(row, col)
@@ -1376,7 +1376,7 @@ class Tabs(object):
         self.printh('{}: {}'.format(uicKey, self.deleteTab.__doc__))
     
     def deletePrevTab(self, uicKey=None, dbg=0):
-        '''Delete previous tab (i.e. backspace) position depends on cursor mode.'''
+        '''Delete previous tab (i.e. backspace) position depends on cursor mode'''
         self.deleteTab(back=1)
         row, col = self.row, self.col
         r, c = self.rowCol2Indices(row, col)
@@ -1401,7 +1401,7 @@ class Tabs(object):
             self.printColumnIvals(c, dbg=dbg)
     
     def eraseTabs(self, uicKey=None):
-        '''Erase all tabs and all corresponding notes, intervals, and chords (resets all tabs to '-').'''
+        '''Erase all tabs and all corresponding notes, intervals, and chords (resets all tabs to '-')'''
         print('eraseTabs()', file=Tabs.DBG_FILE)
         for r in range(0, len(self.tabs)):
             for c in range(0, len(self.tabs[r])):
@@ -1414,12 +1414,12 @@ class Tabs(object):
         self.printh('{}: {}'.format(uicKey, self.eraseTabs.__doc__))
     
     def resetTabs(self, uicKey=None):
-        '''Reset all tabs to their initial state at start up by re-reading the data file.'''
+        '''Reset all tabs to their initial state at start up by re-reading the data file'''
         self.init()
         self.printh('{}: {}'.format(uicKey, self.resetTabs.__doc__))
     
     def saveTabs(self, uicKey=None):
-        '''Save all tabs and ANSI codes to output file 'cat' cmd can be used to view the file.'''
+        '''Save all tabs and ANSI codes to output file 'cat' cmd can be used to view the file'''
         with open(self.outName, 'w') as self.outFile:
             self.printLineInfo('saveTabs({}, {}) bgn writing tabs to file'.format(self.row, self.col))
             Tabs.clearScreen(file=self.outFile, reason='saveTabs()')
@@ -1447,7 +1447,7 @@ class Tabs(object):
         print('}', file=self.outFile)
     
     def shiftSelectTabs(self, uicKey=None):
-        '''Shift selected tabs up or down # frets as user input of up to 2 digits terminated by space '-10 '.'''
+        '''Shift selected tabs up or down # frets,  user input of up to 2 digits terminated by space [-10 ]'''
         self.printh('{}: {}'.format(uicKey, self.shiftSelectTabs.__doc__))
         c, tmp = '', []
         while len(tmp) <= 3:
@@ -1477,7 +1477,7 @@ class Tabs(object):
             self.printTabs()
     
     def copySelectTabs(self, uicKey=None, arpg=None):
-        '''Copy selected tabs, arpg=1 xform a chord to an arpeggio, arpg=0 xform an arpeggio to a chord.'''
+        '''Copy selected tabs, arpg=1 xform a chord to an arpeggio, arpg=0 xform an arpeggio to a chord'''
         self.arpeggiate, ns, nt, nsr, nsc = arpg, self.numStrings, len(self.tabs[0]), len(self.selectRows), len(self.selectCols)
         if nsr == 0 or nsc == 0:
             self.printe('copySelectTabs() no tabs selected, nsr={}, nsc={}, use the CTRL ARROW keys to select rows and or columns'.format(nsr, nsc))
@@ -1510,7 +1510,7 @@ class Tabs(object):
         self.printh('{}: {}'.format(uicKey, self.copySelectTabs.__doc__))
     
     def deleteSelectTabs(self, uicKey=None, delSel=True):
-        '''Delete selected tabs and all corresponding notes, intervals, and chords, resets all tabs to '-'.'''
+        '''Delete selected tabs and all corresponding notes, intervals, and chords, resets all tabs to [-]'''
         self.printLineInfo('deleteSelectTabs({}, {}) delSel={} selectCols={}'.format(self.row, self.col, delSel, self.selectCols))
         self.selectCols.sort(key = int, reverse = True)
         for c in range(0, len(self.selectCols)):
@@ -1523,7 +1523,7 @@ class Tabs(object):
         self.printh('{}: {}'.format(uicKey, self.deleteSelectTabs.__doc__))
     
     def cutSelectTabs(self, uicKey=None, arpg=None):
-        '''Cut selected tabs keeping in memory for a corresponding paste cmd in the future.'''
+        '''Cut selected tabs keeping in memory for a corresponding paste cmd in the future'''
         self.copySelectTabs(arpg=arpg)
         self.deleteSelectTabs(delSel=False)
         self.printh('{}: {}'.format(uicKey, self.cutSelectTabs.__doc__))
@@ -1626,7 +1626,7 @@ class Tabs(object):
         return rangeError, nc, row, col, rr, cc, line, ns, nt, nsr, nsc, nst
     
     def pasteSelectTabs(self, uicKey=None, dbg=0):
-        '''Paste selected tabs as is or either stretched in time like arpeggio or compressed like a chord.'''
+        '''Paste selected tabs as is or either stretched in time like arpeggio or compressed like a chord'''
         rangeError, nc, row, col, rr, cc, line, ns, nt, nsr, nsc, nst = self._initPasteInfo()
         if nst == 0: return
         if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
@@ -1696,7 +1696,7 @@ class Tabs(object):
         print(' ROW_OFF={} lastRow={}, bgnCol={}, endCol={}, line={}'.format(self.ROW_OFF, self.lastRow, self.bgnCol(), self.endCol(), self.row2Line(self.row)), file=Tabs.DBG_FILE)
     
     def printTabs(self, uicKey=None, cs=0):
-        '''Print all labels, tabs, notes, intervals, and chords for every string on every line.'''
+        '''Print all labels, tabs, notes, intervals, and chords for every string on every line'''
         self.printLineInfo('printTabs(cs={}) outFile={} bgn'.format(cs, self.outFile))
         if cs: Tabs.clearScreen(reason='printTabs()')
         self.printFileMark('<BGN_TABS_SECTION>')
@@ -1882,7 +1882,7 @@ class Tabs(object):
         return s.strip()
     
     def printStatus(self, uicKey=None, hinfo=0):
-        '''Display the status line info with intervals and chords on the right and notes on the left.'''
+        '''Display the status line info with intervals and chords on the right and notes on the left'''
         r, c = self.rowCol2Indices(self.row, self.col)
         print('printStatus() row={} col={} r={} c={} bgn'.format(self.row, self.col, r, c), file=Tabs.DBG_FILE)
         tab = chr(self.tabs[r][c])
@@ -1954,7 +1954,7 @@ class Tabs(object):
             self.printChordInfo(r, c, index, reason='printChordStatus')
     
     def analyzeChord(self, uicKey=None, dbg=0):
-        '''Visit each chordInfo index one at a time updating only information on status line.'''
+        '''Visit each chordInfo index one at a time updating only information on status line'''
         r, c = self.rowCol2Indices(self.row, self.col)
         print('analyzeChord() row={} col={} r={} c={}'.format(self.row, self.col, r, c), file=Tabs.DBG_FILE)
         if c in self.chordInfo:
@@ -1968,7 +1968,7 @@ class Tabs(object):
         self.printh('{}: {}'.format(uicKey, self.analyzeChord.__doc__))
     
     def selectChord(self, uicKey=None, pt=1, dbg=1):
-        '''Select chordInfo index for chord names and intervals and info on the Status line.'''
+        '''Select chordInfo index for chord names and intervals and info on the Status line'''
         r, c = self.rowCol2Indices(self.row, self.col)
         if dbg: self.dumpChordInfo(self.chordInfo, reason='selectChord(pt={} c={}) row={} col={} r={}'.format(pt, c, self.row, self.col, r))
         if c in self.chordInfo:
@@ -2084,13 +2084,13 @@ class Tabs(object):
         return self.CSI + self.styles['ERROR'] + text + self.CSI + self.styles['CONS']
     
     def getNote(self, str, tab):
-        '''Return note object given string number and tab fret number byte.'''
+        '''Return note object given string number and tab fret number byte'''
         fret = self.getFretNum(tab)
         cfret = fret + self.getFretNum(self.capo)
         return notes.Note(self.getNoteIndex(str, cfret), self.enharmonic)
     
     def getHarmonicNote(self, str, tab):
-        '''Return harmonic note object given string number and tab fret number byte.'''
+        '''Return harmonic note object given string number and tab fret number byte'''
         fret = self.getFretNum(tab)
         hfret = self.HARMONIC_FRETS[fret]
         chfret = hfret + self.getFretNum(self.capo)
@@ -2099,14 +2099,14 @@ class Tabs(object):
         return n
     
     def getNoteIndex(self, str, f):
-        '''Convert string # from 1 based for high E first string and str=numStrings low E sixth string.'''
+        '''Convert string # from 1 based for high E first string and str=numStrings low E sixth string'''
         s = self.numStrings - str                     # Reverse and zero base the string numbering: str[1 ... numStrings] => s[(numStrings - 1) ... 0]
         i = self.stringMap[self.stringKeys[s]] + f    # calculate the fretted note index using the sorted map
 #        print('getNoteIndex() str={}, s={}, f={}, i={}, sk={}, sm={}'.format(str, s, f, i, self.stringKeys[s], self.stringMap[self.stringKeys[s]]), file=Tabs.DBG_FILE)
         return i
     
     def printChord(self, uicKey=None, c=None, dbg=0):
-        '''Analyze notes at given column and if they form a chord print the chord in chords section.'''
+        '''Analyze notes at given column and if they form a chord print the chord in chords section'''
         self.chordsObj.printChord(c, dbg)
         self.printh('{}: {}'.format(uicKey, self.printChord.__doc__))
     
