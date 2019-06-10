@@ -334,10 +334,11 @@ class Tabs(object):
         self.WHITE_MAGENTA = self.initText('WHITE', 'MAGENTA')
         self.WHITE_CYAN = self.initText('WHITE', 'CYAN')
         self.WHITE_RED = self.initText('WHITE', 'RED')
+        self.WHITE_GREEN = self.initText('WHITE', 'GREEN')
         self.styles = { 'NAT_NOTE':self.GREEN_WHITE, 'NAT_H_NOTE':self.YELLOW_WHITE,  'NAT_CHORD':self.GREEN_WHITE, 'MIN_COL_NUM':self.RED_WHITE,      'TABS':self.BLACK_WHITE,  'NUT_UP':self.WHITE_MAGENTA, 'NORMAL':'22;',
-                        'FLT_NOTE':self.BLUE_WHITE,  'FLT_H_NOTE':self.CYAN_WHITE,    'FLT_CHORD':self.BLUE_WHITE,  'MAJ_COL_NUM':self.BLACK_WHITE,  'H_TABS':self.BLACK_YELLOW, 'NUT_DN':self.WHITE_CYAN,    'BRIGHT':'1;',
+                        'FLT_NOTE':self.BLUE_WHITE,  'FLT_H_NOTE':self.CYAN_WHITE,    'FLT_CHORD':self.BLUE_WHITE,  'MAJ_COL_NUM':self.BLACK_WHITE,  'H_TABS':self.WHITE_GREEN,  'NUT_DN':self.WHITE_CYAN,    'BRIGHT':'1;',
                         'SHP_NOTE':self.RED_WHITE,   'SHP_H_NOTE':self.MAGENTA_WHITE, 'SHP_CHORD':self.RED_WHITE,        'STATUS':self.MAGENTA_WHITE, 'MODES':self.BLUE_WHITE,    'ERROR':self.WHITE_RED, 'CONS':self.BLACK_WHITE,
-                        'HLT_STUS':self.CYAN_WHITE,  'IVAL_LABEL':self.YELLOW_WHITE,  'CHORD_LABEL':self.GREEN_WHITE,   'NO_IVAL':self.BLACK_WHITE }
+                        'HLT_STUS':self.GREEN_WHITE,  'IVAL_LABEL':self.YELLOW_WHITE,  'CHORD_LABEL':self.GREEN_WHITE,   'NO_IVAL':self.BLACK_WHITE }
         self.HARMONIC_FRETS = { 12:12, 7:19, 19:19, 5:24, 24:24, 4:28, 9:28, 16:28, 28:28 }
         self.CURSOR_DIRS = { 'DOWN':0, 'UP':1 }
         self.CURSOR_MODES = { 'MELODY':0, 'CHORD':1, 'ARPEGGIO':2 }
@@ -604,6 +605,7 @@ class Tabs(object):
         self.registerUiCmd('Shift H',             self.printHelpInfo)
         self.registerUiCmd('Ctrl I Tab',          self.toggleCursorDir)
         self.registerUiCmd('Ctrl J',              self.shiftSelectTabs)
+        self.registerUiCmd('Shift J',             self.toggleHarmonicNote)
         self.registerUiCmd('Ctrl K',              self.printChord)
         self.registerUiCmd('Shift K',             self.setCapo)
         self.registerUiCmd('Ctrl L',              self.goToLastTab)
@@ -624,7 +626,7 @@ class Tabs(object):
         self.registerUiCmd('Shift X',             self.cutSelectTabs)
         self.registerUiCmd('Ctrl Z',              self.goToLastTab)
         self.registerUiCmd('Shift Z',             self.goToLastTab)
-        self.registerUiCmd('ESC',                 self.toggleHarmonicNote)
+        self.registerUiCmd('Escape',              self.printStatus)
         self.registerUiCmd('Space',               self.moveCursor)
         self.registerUiCmd('Home',                self.moveHome)
         self.registerUiCmd('End',                 self.moveEnd)
@@ -670,6 +672,7 @@ class Tabs(object):
             elif b == 72:  self.uiCmds['Shift H']         (uicKey='Shift H')            # printHelpInfo()          # cmd line opt -h
             elif b == 9:   self.uiCmds['Ctrl I Tab']      (uicKey='Ctrl I or Tab')      # toggleCursorDir()        # cmd line opt -i
             elif b == 10:  self.uiCmds['Ctrl J']          (uicKey='Ctrl J')             # shiftSelectTabs()        # N/A
+            elif b == 74:  self.uiCmds['Shift J']         (uicKey='Shift J')            # toggleHarmonicNote()     # N/A
             elif b == 11:  self.uiCmds['Ctrl K']          (uicKey='Ctrl K', dbg=2)      # printChord()             # N/A
             elif b == 75:  self.uiCmds['Shift K']         (uicKey='Shift K')            # setCapo()                # cmd line opt -k?
             elif b == 12:  self.uiCmds['Ctrl L']          (uicKey='Ctrl L', cs=1)       # goToLastTab()            # cmd line opt -l
@@ -690,7 +693,7 @@ class Tabs(object):
             elif b == 88:  self.uiCmds['Shift X']         (uicKey='Shift X', arpg=1)    # cutSelectTabs()          # N/A
             elif b == 26:  self.uiCmds['Ctrl Z']          (uicKey='Ctrl Z', ll=1, cs=1) # goToLastTab()            # cmd line opt -z
             elif b == 90:  self.uiCmds['Shift Z']         (uicKey='Shift Z', ll=1)      # goToLastTab()            # cmd line opt -Z
-            elif b == 27:  self.uiCmds['ESC']             (uicKey='ESC')                # toggleHarmonicNote()     # N/A
+            elif b == 27:  self.uiCmds['Escape']          (uicKey='Escape')             # printStatus()            # N/A
             elif b == 32:  self.uiCmds['Space']           (uicKey='Space')              # moveCursor()             # N/A
             elif b == 155: self.uiCmds['Alt Arrow Left']  (uicKey='Alt Arrow Left', left=1) # unselectCol()        # N/A
             elif b == 157: self.uiCmds['Alt Arrow Right'] (uicKey='Alt Arrow Right')        # unselectCol()        # N/A
@@ -1877,7 +1880,8 @@ class Tabs(object):
         for k in imap: s += '{} '.format(k)
         return s.strip()
     
-    def printStatus(self):
+    def printStatus(self, uicKey=None):
+        '''Display the status info regarding notes, intervals and chords on the status line.'''
         r, c = self.rowCol2Indices(self.row, self.col)
         print('printStatus() row={} col={} r={} c={} bgn'.format(self.row, self.col, r, c), file=Tabs.DBG_FILE)
         tab = chr(self.tabs[r][c])
@@ -1887,8 +1891,8 @@ class Tabs(object):
         else:                  self.printDefaultStatus(tab, r, c)
         Tabs.clearRow(arg=0, row=self.lastRow, col=0, file=self.outFile)
         self.printChordStatus(r, c)
-        self.resetPos()
         print('printStatus() row={} col={} r={} c={} end'.format(self.row, self.col, r, c), file=Tabs.DBG_FILE)
+        self.printh('{}: {}'.format(uicKey, self.printStatus.__doc__), col=70) # Between note info and chord info
     
     def printFretStatus(self, tab, r, c, dbg=0):
         s, ss = r + 1, self.getOrdSfx(r + 1)
@@ -1959,7 +1963,6 @@ class Tabs(object):
             self.analyzeIndices[c] = index % len(self.chordInfo[c]['LIMAP'])
             print('analyzeChord() index={} len(chordInfo[{}])={} analyzeIndices[c]={}'.format(index, c, len(self.chordInfo[c]['LIMAP']), self.analyzeIndices[c]), file=Tabs.DBG_FILE)
             self.printChordInfo(r, c, self.analyzeIndices[c], reason='analyzeChord()')
-#            self.resetPos()
         self.printh('{}: {}'.format(uicKey, self.analyzeChord.__doc__))
     
     def selectChord(self, uicKey=None, pt=1, dbg=1):
@@ -2056,13 +2059,11 @@ class Tabs(object):
     def prints(self, c, row, col, style):
        print(self.CSI + style + self.CSI + '{};{}H{}'.format(row, col, str(c)), end='', file=self.outFile)
     
-    def printh(self, reason, row=None, col=None, style=None):
-        if row is None:     row = self.row
+    def printh(self, reason, col=1, style=None):
         if col is None:     col = self.col
-        if style is None: style = self.styles['STATUS']
-        print('printh({}, {}) {}'.format(row, col, reason), file=Tabs.DBG_FILE)
-        print(self.CSI + style + self.CSI + '{};{}H{}'.format(self.lastRow, 1, reason), end='')
-        Tabs.clearRow(arg=0, file=self.outFile)
+        if style is None: style = self.styles['HLT_STUS']
+        print('printh(col={}) {}'.format(col, reason), file=Tabs.DBG_FILE)
+        print(self.CSI + style + self.CSI + '{};{}H{}'.format(self.lastRow, col, reason), end='')
         self.resetPos()
     
     def printe(self, reason, row=None, col=None, style=None, x=0):
