@@ -73,6 +73,7 @@ class Tabs(object):
         self.initFiles(inName, outName)
         self.initConsts()
         self.registerUiCmds()                                      # register the dictionary for all the user interactive commands
+        self.lastCmd = ''
         self.mods = {}                                             # dict of tab modification characters -> contextual descriptions
         self.dbgMove = True                                        # used for finding bugs in basic movement functionality
         self.capo = ord('0')                                       # essentially added to every tab that is a fret, written to the outFile and read from the inFile
@@ -627,6 +628,7 @@ class Tabs(object):
         self.registerUiCmd('Shift K',             self.setCapo)
         self.registerUiCmd('Shift L',             self.goToLastTab)
         self.registerUiCmd('Shift Q',             self.selectChord)
+        self.registerUiCmd('Shift R',             self.printLastCmd)
         self.registerUiCmd('Shift T',             self.removeLine)
         self.registerUiCmd('Shift X',             self.cutSelectTabs)
         self.registerUiCmd('Shift Z',             self.goToLastTab)
@@ -662,7 +664,7 @@ class Tabs(object):
             elif b == 0:   continue
             elif b == 1:   self.uiCmds['Ctrl A']          (uicKey='Ctrl A')             # toggleDisplayLabels()    # cmd line opt -a
             elif b == 2:   self.uiCmds['Ctrl B']          (uicKey='Ctrl B')             # toggleDisplayChords()    # cmd line opt -b
-            elif b == 3:   self.uiCmds['Ctrl C']          (uicKey='Shift C')            # copySelectTabs()         # N/A
+            elif b == 3:   self.uiCmds['Ctrl C']          (uicKey='Ctrl C')             # copySelectTabs()         # N/A
             elif b == 4:   self.uiCmds['Ctrl D']          (uicKey='Ctrl D')             # deleteSelectTabs()       # N/A
             elif b == 5:   self.uiCmds['Ctrl E']          (uicKey='Ctrl E')             # eraseTabs()              #?cmd line opt?
             elif b == 6:   self.uiCmds['Ctrl F']          (uicKey='Ctrl F')             # toggleEnharmonic()       # cmd line opt -F?
@@ -694,6 +696,7 @@ class Tabs(object):
             elif b == 75:  self.uiCmds['Shift K']         (uicKey='Shift K')            # setCapo()                # cmd line opt -k?
             elif b == 76:  self.uiCmds['Shift L']         (uicKey='Shift L')            # goToLastTab()            # cmd line opt -L
             elif b == 81:  self.uiCmds['Shift Q']         (uicKey='Shift Q')            # selectChord()            # N/A
+            elif b == 82:  self.uiCmds['Shift R']         (uicKey='Shift R')            # printLastCmd()         # N/A
             elif b == 84:  self.uiCmds['Shift T']         (uicKey='Shift T')            # removeLine()             # DBG?
             elif b == 88:  self.uiCmds['Shift X']         (uicKey='Shift X', arpg=1)    # cutSelectTabs()          # N/A
             elif b == 90:  self.uiCmds['Shift Z']         (uicKey='Shift Z', ll=1)      # goToLastTab()            # cmd line opt -Z
@@ -1884,6 +1887,11 @@ class Tabs(object):
         for k in imap: s += '{} '.format(k)
         return s.strip()
     
+    def printLastCmd(self, uicKey=None):
+        '''Display the last cmd info.'''
+        print('printLastCmd()'.format(), file=Tabs.DBG_FILE)
+        self.printh('{}'.format(self.lastCmd), status=1)
+    
     def printStatus(self, uicKey=None, hinfo=0):
         '''Display the status line info with intervals and chords on the right and notes on the left'''
         r, c = self.rowCol2Indices(self.row, self.col)
@@ -2067,6 +2075,7 @@ class Tabs(object):
     def printh(self, reason, col=61, style=None, status=0):
         if col is None:     col = self.col
         if style is None: style = self.styles['HLT_STUS']
+        self.lastCmd = reason
         print('printh(col={}) {}'.format(col, reason), file=Tabs.DBG_FILE)
         Tabs.clearRow(arg=2, row=self.lastRow, col=1, file=self.outFile)
         if not status:      self.printStatus()
