@@ -3,7 +3,7 @@
 import sys
 import os.path
 
-def parseCmdLine(options, dbg=None):
+def parseCmdLine(options, dbg=0):
     if options is None: raise Exception('Error! cmdArgs.parseCmdLine() options arg is required - raising Exception!')
     argc = len(sys.argv)
     if dbg: print(this, "argc = %s, arv = %s" % (argc, sys.argv))
@@ -21,7 +21,7 @@ def parseCmdLine(options, dbg=None):
             else:
                 print(this, "[%d] ERROR long [%s] [%s] [%s]: " % (idx, argv, key, vals), end='')
         elif len(argv) > 1 and argv[0] == '-':
-            if argv[1].isalpha():
+            if argv[1].isalpha() or argv[1] == '?':
                 vals = []
                 if len(argv) == 2:
                     key = argv[1:]

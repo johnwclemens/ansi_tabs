@@ -187,9 +187,11 @@ class Tabs(object):
             print('init() mods=\{ ', file=Tabs.DBG_FILE)
             for k in self.mods:
                 print('{}:{}, '.format(k, self.mods[k]), file=Tabs.DBG_FILE)
+            if '?' in self.argMap and len(self.argMap['?']) == 0: self.printHelpInfo(ui=0)            # display the help info
+            if 'h' in self.argMap and len(self.argMap['h']) == 0: self.printHelpInfo(ui=0)            # display the help info
             if 'F' in self.argMap and len(self.argMap['F']) == 0: self.toggleEnharmonic()             # enharmonic notes displayed as sharp or flat
             if 'i' in self.argMap and len(self.argMap['i']) == 0: self.toggleCursorDir(dbg=1)         # automatic cursor movement direction as down or up
-            if 'k' in self.argMap and len(self.argMap['k'])  > 0:  self.setCapo(c=self.argMap['k'][0]) # set capo at desired fret
+            if 'k' in self.argMap and len(self.argMap['k'])  > 0: self.setCapo(c=self.argMap['k'][0]) # set capo at desired fret
             if 'a' in self.argMap and len(self.argMap['a']) == 0: self.toggleDisplayLabels(pt=0)      # display edit mode, cursor mode, and column number labels in first row for each line
             if 'b' in self.argMap and len(self.argMap['b']) == 0: self.toggleDisplayChords(pt=0)      # chords display section
             if 'o' in self.argMap and len(self.argMap['o']) == 0: self.toggleDisplayIntervals(pt=0)   # intervals display section
@@ -198,7 +200,6 @@ class Tabs(object):
             if 'L' in self.argMap and len(self.argMap['L']) == 0: self.goToLastTab()                  # go to last tab on current line of all strings
             if 'z' in self.argMap and len(self.argMap['z']) == 0: self.goToLastTab(cs=1, ll=1)        # go to last tab on last line of current string
             if 'Z' in self.argMap and len(self.argMap['Z']) == 0: self.goToLastTab(ll=1)              # go to last tab on last line of all strings
-            if 'h' in self.argMap and len(self.argMap['h']) == 0: self.printHelpInfo(ui=0)            # display the help info
             self.testStruct()
             parse1, data1 = self.parseStateData(self.chordAliases, 'StartChordAliases')
             parse2, data2 = self.parseStateData(self.analyzeIndices, 'StartAnalyzeIndices')
@@ -575,6 +576,7 @@ class Tabs(object):
         self.printHelpUiCmds()
         print('{}'.format('Press any key to continue... (Note some of the help text may have scrolled off the screen, you should be able to scroll back to view it.)'))
         b = ord(getwch())
+        self.clearScreen()
         if ui: self.printTabs(cs=1)
         self.printh('{}: {}'.format(uicKey, self.printHelpInfo.__doc__))
     
@@ -592,42 +594,42 @@ class Tabs(object):
         self.uiKeys = []
         self.registerUiCmd('Tablature',           self.setTab)
         self.registerUiCmd('Ctrl A',              self.toggleDisplayLabels)
-        self.registerUiCmd('Shift A',             self.analyzeChord)
         self.registerUiCmd('Ctrl B',              self.toggleDisplayChords)
-        self.registerUiCmd('Shift B',             self.copySelectTabs)
         self.registerUiCmd('Ctrl C',              self.copySelectTabs)
-        self.registerUiCmd('Shift C',             self.copySelectTabs)
         self.registerUiCmd('Ctrl D',              self.deleteSelectTabs)
         self.registerUiCmd('Ctrl E',              self.eraseTabs)
         self.registerUiCmd('Ctrl F',              self.toggleEnharmonic)
         self.registerUiCmd('Ctrl G',              self.goTo)
         self.registerUiCmd('Ctrl H Backspace',    self.deletePrevTab)
-        self.registerUiCmd('Shift H',             self.printHelpInfo)
         self.registerUiCmd('Ctrl I Tab',          self.toggleCursorDir)
         self.registerUiCmd('Ctrl J',              self.shiftSelectTabs)
-        self.registerUiCmd('Shift J',             self.toggleHarmonicNote)
         self.registerUiCmd('Ctrl K',              self.printChord)
-        self.registerUiCmd('Shift K',             self.setCapo)
         self.registerUiCmd('Ctrl L',              self.goToLastTab)
-        self.registerUiCmd('Shift L',             self.goToLastTab)
         self.registerUiCmd('Ctrl M Enter',        self.toggleCursorMode)
         self.registerUiCmd('Ctrl N',              self.toggleDisplayNotes)
         self.registerUiCmd('Ctrl O',              self.toggleDisplayIntervals)
         self.registerUiCmd('Ctrl P',              self.printTabs)
         self.registerUiCmd('Ctrl Q',              self.quit)
-        self.registerUiCmd('Shift Q',             self.selectChord)
         self.registerUiCmd('Ctrl R',              self.resetTabs)
         self.registerUiCmd('Ctrl S',              self.saveTabs)
         self.registerUiCmd('Ctrl T',              self.appendLine)
-        self.registerUiCmd('Shift T',             self.removeLine)
         self.registerUiCmd('Ctrl U',              self.unselectAll)
         self.registerUiCmd('Ctrl V',              self.pasteSelectTabs)
         self.registerUiCmd('Ctrl X',              self.cutSelectTabs)
-        self.registerUiCmd('Shift X',             self.cutSelectTabs)
         self.registerUiCmd('Ctrl Z',              self.goToLastTab)
-        self.registerUiCmd('Shift Z',             self.goToLastTab)
         self.registerUiCmd('Escape',              self.printStatus)
         self.registerUiCmd('Space',               self.moveCursor)
+        self.registerUiCmd('?',                   self.printHelpInfo)
+        self.registerUiCmd('Shift A',             self.analyzeChord)
+        self.registerUiCmd('Shift B',             self.copySelectTabs)
+        self.registerUiCmd('Shift C',             self.copySelectTabs)
+        self.registerUiCmd('Shift H',             self.toggleHarmonicNote)
+        self.registerUiCmd('Shift K',             self.setCapo)
+        self.registerUiCmd('Shift L',             self.goToLastTab)
+        self.registerUiCmd('Shift Q',             self.selectChord)
+        self.registerUiCmd('Shift T',             self.removeLine)
+        self.registerUiCmd('Shift X',             self.cutSelectTabs)
+        self.registerUiCmd('Shift Z',             self.goToLastTab)
         self.registerUiCmd('Home',                self.moveHome)
         self.registerUiCmd('End',                 self.moveEnd)
         self.registerUiCmd('Page Up',             self.movePageUp)
@@ -659,42 +661,42 @@ class Tabs(object):
             if self.isTab(chr(b)): self.uiCmds['Tablature'](b)                          # setTab()                 # N/A
             elif b == 0:   continue
             elif b == 1:   self.uiCmds['Ctrl A']          (uicKey='Ctrl A')             # toggleDisplayLabels()    # cmd line opt -a
-            elif b == 65:  self.uiCmds['Shift A']         (uicKey='Shift A')            # analyzeChord()           # N/A
             elif b == 2:   self.uiCmds['Ctrl B']          (uicKey='Ctrl B')             # toggleDisplayChords()    # cmd line opt -b
-            elif b == 66:  self.uiCmds['Shift B']         (uicKey='Shift C', arpg=0)    # copySelectTabs()         # N/A
             elif b == 3:   self.uiCmds['Ctrl C']          (uicKey='Shift C')            # copySelectTabs()         # N/A
-            elif b == 67:  self.uiCmds['Shift C']         (uicKey='Shift C', arpg=1)    # copySelectTabs()         # N/A
             elif b == 4:   self.uiCmds['Ctrl D']          (uicKey='Ctrl D')             # deleteSelectTabs()       # N/A
             elif b == 5:   self.uiCmds['Ctrl E']          (uicKey='Ctrl E')             # eraseTabs()              #?cmd line opt?
             elif b == 6:   self.uiCmds['Ctrl F']          (uicKey='Ctrl F')             # toggleEnharmonic()       # cmd line opt -F?
             elif b == 7:   self.uiCmds['Ctrl G']          (uicKey='Ctrl G')             # goTo()                   #?cmd line opt -g?
             elif b == 8:   self.uiCmds['Ctrl H Backspace'](uicKey='Ctrl H Backspace')   # deletePrevTab()          # N/A
-            elif b == 72:  self.uiCmds['Shift H']         (uicKey='Shift H')            # printHelpInfo()          # cmd line opt -h
             elif b == 9:   self.uiCmds['Ctrl I Tab']      (uicKey='Ctrl I or Tab')      # toggleCursorDir()        # cmd line opt -i
             elif b == 10:  self.uiCmds['Ctrl J']          (uicKey='Ctrl J')             # shiftSelectTabs()        # N/A
-            elif b == 74:  self.uiCmds['Shift J']         (uicKey='Shift J')            # toggleHarmonicNote()     # N/A
             elif b == 11:  self.uiCmds['Ctrl K']          (uicKey='Ctrl K', dbg=2)      # printChord()             # N/A
-            elif b == 75:  self.uiCmds['Shift K']         (uicKey='Shift K')            # setCapo()                # cmd line opt -k?
             elif b == 12:  self.uiCmds['Ctrl L']          (uicKey='Ctrl L', cs=1)       # goToLastTab()            # cmd line opt -l
-            elif b == 76:  self.uiCmds['Shift L']         (uicKey='Shift L')            # goToLastTab()            # cmd line opt -L
             elif b == 13:  self.uiCmds['Ctrl M Enter']    (uicKey='Ctrl M or Enter')    # toggleCursorMode()       # cmd line opt -m
             elif b == 14:  self.uiCmds['Ctrl N']          (uicKey='Ctrl N')             # toggleDisplayNotes()     # cmd line opt -n
             elif b == 15:  self.uiCmds['Ctrl O']          (uicKey='Ctrl O')             # toggleDisplayIntervals() # cmd line opt -o
             elif b == 16:  self.uiCmds['Ctrl P']          (uicKey='Ctrl P')             # printTabs()              # DBG?
             elif b == 17:  self.uiCmds['Ctrl Q']          (uicKey='Ctrl Q')             # quit()                   # DBG?
-            elif b == 81:  self.uiCmds['Shift Q']         (uicKey='Shift Q')            # selectChord()            # N/A
             elif b == 18:  self.uiCmds['Ctrl R']          (uicKey='Ctrl R')             # resetTabs()              # DBG?
             elif b == 19:  self.uiCmds['Ctrl S']          (uicKey='Ctrl S')             # saveTabs()               # DBG?
             elif b == 20:  self.uiCmds['Ctrl T']          (uicKey='Ctrl T')             # appendLine()             # DBG?
-            elif b == 84:  self.uiCmds['Shift T']         (uicKey='Shift T')            # removeLine()             # DBG?
             elif b == 21:  self.uiCmds['Ctrl U']          (uicKey='Ctrl U')             # unselectAll()            # N/A
             elif b == 22:  self.uiCmds['Ctrl V']          (uicKey='Ctrl V')             # pasteSelectTabs()        # N/A
             elif b == 24:  self.uiCmds['Ctrl X']          (uicKey='Ctrl X')             # cutSelectTabs()          # N/A
-            elif b == 88:  self.uiCmds['Shift X']         (uicKey='Shift X', arpg=1)    # cutSelectTabs()          # N/A
             elif b == 26:  self.uiCmds['Ctrl Z']          (uicKey='Ctrl Z', ll=1, cs=1) # goToLastTab()            # cmd line opt -z
-            elif b == 90:  self.uiCmds['Shift Z']         (uicKey='Shift Z', ll=1)      # goToLastTab()            # cmd line opt -Z
             elif b == 27:  self.uiCmds['Escape']          (uicKey='Escape')             # printStatus()            # N/A
             elif b == 32:  self.uiCmds['Space']           (uicKey='Space')              # moveCursor()             # N/A
+            elif b == 63:  self.uiCmds['?']               (uicKey='?')                  # printHelpInfo()          # cmd line opt -?
+            elif b == 65:  self.uiCmds['Shift A']         (uicKey='Shift A')            # analyzeChord()           # N/A
+            elif b == 66:  self.uiCmds['Shift B']         (uicKey='Shift C', arpg=0)    # copySelectTabs()         # N/A
+            elif b == 67:  self.uiCmds['Shift C']         (uicKey='Shift C', arpg=1)    # copySelectTabs()         # N/A
+            elif b == 72:  self.uiCmds['Shift H']         (uicKey='Shift H')            # toggleHarmonicNote()     # N/A
+            elif b == 75:  self.uiCmds['Shift K']         (uicKey='Shift K')            # setCapo()                # cmd line opt -k?
+            elif b == 76:  self.uiCmds['Shift L']         (uicKey='Shift L')            # goToLastTab()            # cmd line opt -L
+            elif b == 81:  self.uiCmds['Shift Q']         (uicKey='Shift Q')            # selectChord()            # N/A
+            elif b == 84:  self.uiCmds['Shift T']         (uicKey='Shift T')            # removeLine()             # DBG?
+            elif b == 88:  self.uiCmds['Shift X']         (uicKey='Shift X', arpg=1)    # cutSelectTabs()          # N/A
+            elif b == 90:  self.uiCmds['Shift Z']         (uicKey='Shift Z', ll=1)      # goToLastTab()            # cmd line opt -Z
             elif b == 155: self.uiCmds['Alt Left Arrow']  (uicKey='Alt Left Arrow', left=1) # unselectCol()        # N/A
             elif b == 157: self.uiCmds['Alt Right Arrow'] (uicKey='Alt Right Arrow')        # unselectCol()        # N/A
             elif b == 152: self.uiCmds['Alt Up Arrow']    (uicKey='Alt Up Arrow', up=1) # unselectRow()            # N/A
@@ -1808,6 +1810,7 @@ class Tabs(object):
     def wrapPrintInterval(self, r, c, dbg=1):
         if c in self.analyzeIndices: index = self.analyzeIndices[c]
         else:                        index = 0
+        print('wrapPrintInterval({:>3} {})'.format(c, index), file=Tabs.DBG_FILE)
         imap = self.chordInfo[c]['LIMAP'][index]
         imapstr = self.imap2String(imap)
         print('wrapPrintInterval({:>3} {}) imap={} CHECKING IF imapstr={} IN selectImaps={}'.format(c, index, imap, imapstr, self.selectImaps), file=Tabs.DBG_FILE)
