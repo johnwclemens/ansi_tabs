@@ -642,14 +642,14 @@ class Tabs(object):
         self.registerUiCmd('Down Arrow',          self.moveDown)
         self.registerUiCmd('Left Arrow',          self.moveLeft)
         self.registerUiCmd('Right Arrow',         self.moveRight)
-        self.registerUiCmd('Ctrl Left Arrow',     self.selectCol)
-        self.registerUiCmd('Ctrl Right Arrow',    self.selectCol)
-        self.registerUiCmd('Ctrl Up Arrow',       self.selectRow)
-        self.registerUiCmd('Ctrl Down Arrow',     self.selectRow)
         self.registerUiCmd('Alt Left Arrow',      self.unselectCol)
         self.registerUiCmd('Alt Right Arrow',     self.unselectCol)
         self.registerUiCmd('Alt Up Arrow',        self.unselectRow)
         self.registerUiCmd('Alt Down Arrow',      self.unselectRow)
+        self.registerUiCmd('Ctrl Left Arrow',     self.selectCol)
+        self.registerUiCmd('Ctrl Right Arrow',    self.selectCol)
+        self.registerUiCmd('Ctrl Up Arrow',       self.selectRow)
+        self.registerUiCmd('Ctrl Down Arrow',     self.selectRow)
     
     def registerUiCmd(self, key, method):
         if key not in self.uiKeys:
@@ -690,13 +690,13 @@ class Tabs(object):
             elif b == 32:  self.uiCmds['Space']           (uicKey='Space')              # moveCursor()             # N/A
             elif b == 63:  self.uiCmds['?']               (uicKey='?')                  # printHelpInfo()          # cmd line opt -?
             elif b == 65:  self.uiCmds['Shift A']         (uicKey='Shift A')            # analyzeChord()           # N/A
-            elif b == 66:  self.uiCmds['Shift B']         (uicKey='Shift C', arpg=0)    # copySelectTabs()         # N/A
+            elif b == 66:  self.uiCmds['Shift B']         (uicKey='Shift B', arpg=0)    # copySelectTabs()         # N/A
             elif b == 67:  self.uiCmds['Shift C']         (uicKey='Shift C', arpg=1)    # copySelectTabs()         # N/A
             elif b == 72:  self.uiCmds['Shift H']         (uicKey='Shift H')            # toggleHarmonicNote()     # N/A
             elif b == 75:  self.uiCmds['Shift K']         (uicKey='Shift K')            # setCapo()                # cmd line opt -k?
             elif b == 76:  self.uiCmds['Shift L']         (uicKey='Shift L')            # goToLastTab()            # cmd line opt -L
             elif b == 81:  self.uiCmds['Shift Q']         (uicKey='Shift Q')            # selectChord()            # N/A
-            elif b == 82:  self.uiCmds['Shift R']         (uicKey='Shift R')            # printLastCmd()         # N/A
+            elif b == 82:  self.uiCmds['Shift R']         (uicKey='Shift R')            # printLastCmd()           # N/A
             elif b == 84:  self.uiCmds['Shift T']         (uicKey='Shift T')            # removeLine()             # DBG?
             elif b == 88:  self.uiCmds['Shift X']         (uicKey='Shift X', arpg=1)    # cutSelectTabs()          # N/A
             elif b == 90:  self.uiCmds['Shift Z']         (uicKey='Shift Z', ll=1)      # goToLastTab()            # cmd line opt -Z
@@ -876,7 +876,7 @@ class Tabs(object):
     def setLastRow(self):
         self.lastRow = self.ROW_OFF + self.numLines * self.lineDelta() - 1
     
-    def toggleEditMode(self, uicKey=None, dbg=0):
+    def toggleEditMode(self, uicKey=None, dbg=1):
         '''Toggle between editing modes (insert or replace)'''
         self.editMode = (self.editMode + 1) % len(self.EDIT_MODES)
         if self.displayLabels == self.DISPLAY_LABELS['ENABLED']:
@@ -889,7 +889,7 @@ class Tabs(object):
             if dbg: self.printLineInfo('toggleEditMode({}, {})'.format(self.row, self.col))
         self.printh('{}: {}'.format(uicKey, self.toggleEditMode.__doc__))
     
-    def toggleCursorMode(self, uicKey=None, dbg=0):
+    def toggleCursorMode(self, uicKey=None, dbg=1):
         '''Toggle cursor automatic movement modes (M=melody, C=chord, or A=arpeggio)'''
         self.cursorMode = (self.cursorMode + 1) % len(self.CURSOR_MODES)
         if self.displayLabels == self.DISPLAY_LABELS['ENABLED']:
@@ -1038,7 +1038,6 @@ class Tabs(object):
             if up: dir, pos = 'up', 'bgn'
             else:  dir, pos = 'down', 'end'
             self.printe('selectRow(up={}) ignoring cursor movement, because dir={} and row={} == {}Row'.format(up, dir, row, pos))
-#            self.resetPos()
             return
         if up: self.moveUp()
         else:  self.moveDown()
@@ -1062,7 +1061,7 @@ class Tabs(object):
         self.printh('{}: {}'.format(uicKey, self.unselectRow.__doc__))
     
     def selectCol(self, uicKey=None, left=0):
-        '''Select column, append to selected columns list, hilite current tab, go left or right to next tab'''
+        '''Select col, append to selected cols list, hilite current tab, go left or right to next tab'''
         cc = self.col2Index(self.col)
         print('selectCol(left={}) ({},{}), cc={} selectFlag={}, selectRows={}, selectCols={}'.format(left, self.row, self.col, cc, self.selectFlag, self.selectRows, self.selectCols), file=Tabs.DBG_FILE)
         if len(self.selectRows) == 0:
@@ -1150,7 +1149,6 @@ class Tabs(object):
                 self.prints(chr(tab), self.row, self.col, self.styles['H_TABS'])
                 if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
                     self.printNote(r + line * self.lineDelta() + self.endRow(0) + 1 , self.col, n, hn=1)
-                    self.resetPos()
                 pn = self.getNote(r + 1, tab)
                 print('toggleHarmonicNote({} {}) r={} c={} tab={} pn.n={} pn.i={} norm->harm n.n={} n.i={}'.format(self.row, self.col, r, c, chr(tab), pn.name, pn.index, n.name, n.index), file=Tabs.DBG_FILE)
             else: 
@@ -1162,7 +1160,6 @@ class Tabs(object):
             self.prints(chr(tab), self.row, self.col, self.styles['TABS'])
             if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
                 self.printNote(r + line * self.lineDelta() + self.endRow(0) + 1 , self.col, n)
-                self.resetPos()
             pn = self.getHarmonicNote(r + 1, tab)
             print('toggleHarmonicNote({} {}) r={} c={} tab={} pn.n={} pn.i={} harm->norm n.n={} n.i={}'.format(self.row, self.col, r, c, chr(tab), pn.name, pn.index, n.name, n.index), file=Tabs.DBG_FILE)
         if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
@@ -1208,13 +1205,17 @@ class Tabs(object):
         print('setTab({}, {}, {}, {}) tab={}({}), {}({}{}) string, bgn'.format(rr, cc, self.row, self.col, tab, chr(tab), self.getNote(s, 0).name, s, ss), file=Tabs.DBG_FILE)
         if self.bgnCol() > self.col > self.endCol() or self.ROW_OFF > self.row > self.ROW_OFF + self.numLines * self.lineDelta():
             return self.printe('row/col out of range setTab({},{},{}, {}) tab={}({})'.format(rr, cc, self.row, self.col, tab, chr(tab)), x=1)
-        self.tabs[rr][cc] = tab
         if self.editMode == self.EDIT_MODES['INSERT']:
+            print('setTab(INSERT) len={}'.format(len(self.tabs[rr])), file=Tabs.DBG_FILE)
             for c in range(len(self.tabs[rr]) - 1, cc, - 1):
+                if dbg: print('setTab(INSERT) before: tab[{}]={} tab[{}]={}'.format(c-1, chr(self.tabs[rr][c - 1]), c, chr(self.tabs[rr][c])), end=' ', file=Tabs.DBG_FILE)
                 self.tabs[rr][c] = self.tabs[rr][c - 1]
                 self.htabs[rr][c] = self.htabs[rr][c - 1]
+                if dbg: print('after: tab[{}]={} tab[{}]={}'.format(c-1, chr(self.tabs[rr][c - 1]), c, chr(self.tabs[rr][c])), file=Tabs.DBG_FILE)
+            self.tabs[rr][cc] = tab
             self.printTabs()
         elif self.editMode == self.EDIT_MODES['REPLACE']:
+            self.tabs[rr][cc] = tab
             self.prints(chr(tab), row, col, self.styles['TABS'])
             if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
                 if Tabs.isFret(chr(tab)):
