@@ -1296,14 +1296,14 @@ class Tabs(object):
         if row != None: self.row = row
         if col != None: self.col = col
         if self.cursorMode == self.CURSOR_MODES['MELODY']:
-            if back: self.moveLeft()
+            if back == 1: self.moveLeft()
             else:    self.moveRight()
         elif self.cursorMode == self.CURSOR_MODES['CHORD'] or self.cursorMode == self.CURSOR_MODES['ARPEGGIO']:
             if self.cursorMode == self.CURSOR_MODES['ARPEGGIO']:
                 self.moveRight()
             line = self.row2Line(self.row)
             if self.cursorDir == self.CURSOR_DIRS['DOWN']:
-                if back:
+                if back == 1:
                     if self.row > self.bgnRow(line):
                         self.moveUp()
                     else:
@@ -1319,7 +1319,7 @@ class Tabs(object):
                         self.row = self.bgnRow(line)
                         self.moveRight()
             elif self.cursorDir == self.CURSOR_DIRS['UP']:
-                if back:
+                if back == 1:
                     if self.row < self.endRow(line):
                         self.moveDown()
                     else:
@@ -1362,8 +1362,8 @@ class Tabs(object):
         '''Delete current tab setting it back to '-', with automatic cursor movement, wrapping across edges'''
         row, col = self.row, self.col
         print('deleteTab(row={} col={} back={}) bgn'.format(row, col, back), file=Tabs.DBG_FILE)
-        r, c = self.rowCol2Indices(row, col)
         if self.editMode == self.EDIT_MODES['INSERT']:
+            r, c = self.rowCol2Indices(row, col)
             print('deleteTab(row={} col={} back={}) r={} c={} EDIT_MODES[INSERT]'.format(row, col, back, r, c), file=Tabs.DBG_FILE)
             for cc in range(c, len(self.tabs[r]) - 1):
                 self.tabs[r][cc]  = self.tabs[r][cc + 1]
@@ -1371,13 +1371,13 @@ class Tabs(object):
             cc = len(self.tabs[r]) - 1
             self.tabs[r][cc]  = ord('-')
             self.htabs[r][cc] = ord('0')
-            if back: self.moveLeft()
+            if back == 1: self.moveLeft()
             self.printTabs()
         elif self.editMode == self.EDIT_MODES['REPLACE']:
             print('deleteTab(row={} col={} back={}) r={} c={} EDIT_MODES[REPLACE]'.format(row, col, back, r, c), file=Tabs.DBG_FILE)
             self.moveCursor(row=row, col=col, back=back)
-            if back: return
-            self._deleteTab(row, col, r, c)
+            if back == 1: return
+            self._deleteTab(row, col)
         self.printStatus()
         self.printh('{}: {}'.format(uicKey, self.deleteTab.__doc__))
     
@@ -1385,18 +1385,19 @@ class Tabs(object):
         '''Delete previous tab (i.e. backspace) position depends on cursor mode'''
         self.deleteTab(back=1)
         row, col = self.row, self.col
-        r, c = self.rowCol2Indices(row, col)
-        self._deleteTab(row, col, r, c)
+        self._deleteTab(row, col)
         self.printStatus()
         self.printh('{}: {}'.format(uicKey, self.deletePrevTab.__doc__))
     
-    def _deleteTab(self, row, col, r, c, dbg=0):
+    def _deleteTab(self, row, col, dbg=0):
+        r, c = self.rowCol2Indices(row, col)
+        print('_deleteTab({} {} {} {}) resetting tab to -/0 bgn'.format(row, col, r, c), file=Tabs.DBG_FILE)
         self.tabs[r][c] = ord('-')
         self.htabs[r][c] = ord('0')
         if c in self.chordInfo:
-            if dbg: print('deleteTab() deleting chordInfo[{}]={}'.format(c, self.chordInfo[c]), file=Tabs.DBG_FILE)
+            if dbg: print('_deleteTab() deleting chordInfo[{}]={}'.format(c, self.chordInfo[c]), file=Tabs.DBG_FILE)
             del self.chordInfo[c]
-            if dbg: self.dumpChordInfo(self.chordInfo, reason='deleteTab()' )
+            if dbg: self.dumpChordInfo(self.chordInfo, reason='_deleteTab()' )
         self.prints(chr(self.tabs[r][c]), row, col, self.styles['TABS'])
         if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
             self.prints(chr(self.tabs[r][c]), row + self.numStrings, col, self.styles['NAT_NOTE'])
@@ -1408,12 +1409,16 @@ class Tabs(object):
     
     def eraseTabs(self, uicKey=None):
         '''Erase all tabs and all corresponding notes, intervals, and chords (resets all tabs to '-')'''
-        print('eraseTabs()', file=Tabs.DBG_FILE)
+        print('eraseTabs() deleting chordAliases={} analyzeIndices={}'.format(self.chordAliases, self.analyzeIndices), file=Tabs.DBG_FILE)
+        self.chordAliases = {}
+        self.analyzeIndices = {}
+        print('eraseTabs() chordAliases={} analyzeIndices={} setting all tabs to - and htabs to 0'.format(self.chordAliases, self.analyzeIndices), file=Tabs.DBG_FILE)
         for r in range(0, len(self.tabs)):
             for c in range(0, len(self.tabs[r])):
                 self.tabs[r][c] = ord('-')
                 self.htabs[r][c] = ord('0')
                 if c in self.chordInfo:
+                    print('eraseTabs() deleting chordInfo[{}]={}'.format(c, self.chordInfo[c]), file=Tabs.DBG_FILE)
                     del self.chordInfo[c]
         self.maxFret = ord('0')
         self.printTabs()
@@ -1484,6 +1489,7 @@ class Tabs(object):
     
     def copySelectTabs(self, uicKey=None, arpg=None):
         '''Copy selected tabs, arpg=1 xform a chord to an arpeggio, arpg=0 xform an arpeggio to a chord'''
+        print('copySelectTabs() arpg={} chordAliases={} analyzeIndices={}'.format(arpg, self.chordAliases, self.analyzeIndices), file=Tabs.DBG_FILE)
         self.arpeggiate, ns, nt, nsr, nsc = arpg, self.numStrings, len(self.tabs[0]), len(self.selectRows), len(self.selectCols)
         if nsr == 0 or nsc == 0:
             self.printe('copySelectTabs() no tabs selected, nsr={}, nsc={}, use the CTRL ARROW keys to select rows and or columns'.format(nsr, nsc))
@@ -1530,6 +1536,7 @@ class Tabs(object):
     
     def cutSelectTabs(self, uicKey=None, arpg=None):
         '''Cut selected tabs keeping in memory for a corresponding paste cmd in the future'''
+        print('cutSelectTabs() arpg={}'.format(arpg), file=Tabs.DBG_FILE)
         self.copySelectTabs(arpg=arpg)
         self.deleteSelectTabs(delSel=False)
         self.printh('{}: {}'.format(uicKey, self.cutSelectTabs.__doc__))
@@ -1542,15 +1549,16 @@ class Tabs(object):
         for c in range(0, len(self.selectTabs)):
             print('    selectTabs[{}]={}'.format(c, self.selectTabs[c]), file=Tabs.DBG_FILE)
     
-    def deleteTabsCol(self, cc):
+    def deleteTabsCol(self, cc, dbg=0):
         row, col = self.indices2RowCol(0, cc)
-        print('deleteTabsCol({})'.format(cc), file=Tabs.DBG_FILE)
-        if cc in self.chordInfo:
-            print('deleteTabsCol() deleting chordInfo[{}]={}'.format(cc, self.chordInfo[cc]), file=Tabs.DBG_FILE)
-            del self.chordInfo[cc]
-            self.dumpChordInfo(self.chordInfo, reason='deleteTabsCol()')
-#        self.dumpTabs('deleteTabsCol({}, {}) (row,col)=({},{}), cc={} bgn: '.format(self.row, self.col, row, col, cc))
+        print('deleteTabsCol({}) row={} col={}'.format(cc, row, col), file=Tabs.DBG_FILE)
+        if dbg: self.dumpTabs('deleteTabsCol({}, {}) (row,col)=({},{}), cc={} bgn: '.format(self.row, self.col, row, col, cc))
         if self.editMode == self.EDIT_MODES['INSERT']:
+            print('deleteTabsCol(INSERT)'.format(cc, row, col), file=Tabs.DBG_FILE)
+            if cc in self.chordInfo:
+                print('deleteTabsCol() deleting chordInfo[{}]={}'.format(cc, self.chordInfo[cc]), file=Tabs.DBG_FILE)
+                del self.chordInfo[cc]
+            self.dumpChordInfo(self.chordInfo, reason='deleteTabsCol()')
             for r in range(0, self.numStrings):
                 for c in range(cc, len(self.tabs[r]) - 1):
                     self.tabs[r][c] = self.tabs[r][c + 1]
@@ -1560,21 +1568,10 @@ class Tabs(object):
                         del self.chordInfo[c + 1]
             self.printTabs()
         elif self.editMode == self.EDIT_MODES['REPLACE']:
+            print('deleteTabsCol(REPLACE)'.format(cc, row, col), file=Tabs.DBG_FILE)
             for r in range(0, self.numStrings):
-                tab = '-'
-                self.tabs[r][cc] = ord(tab)
-                self.htabs[r][cc] = ord('0')
-                self.prints(tab, r + row, col, self.styles['TABS'])
-                if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
-                    rr = r + row + self.numStrings
-                    print('deleteTabsCol(DISPLAY_NOTES) prints({}, {}, {})'.format(tab, rr, col), file=Tabs.DBG_FILE)
-                    self.prints(tab, rr, col, self.styles['NAT_NOTE'])
-                if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
-                    rr = r + row + self.numStrings + self.NOTES_LEN
-                    print('deleteTabsCol(DISPLAY_INTERVALS) prints({}, {}, {})'.format(tab, rr, col), file=Tabs.DBG_FILE)
-                    self.prints(tab, rr, col, self.styles['NAT_NOTE'])
-            self.printStatus()
-#        self.dumpTabs('deleteTabsCol({}, {}) col={} end: '.format(self.row, self.col, col))
+                self._deleteTab(row + r, col)
+        if dbg: self.dumpTabs('deleteTabsCol({}, {}) col={} end: '.format(self.row, self.col, col))
     
     def _initPasteInfo(self):
         nc, rangeError, row, col, rr, cc = 0, 0, self.row, self.col, 0, 0
@@ -1631,7 +1628,7 @@ class Tabs(object):
             if not rangeError: self.selectStyle(self.selectCols[c], self.styles['NORMAL'], rList=self.selectRows)
         return rangeError, nc, row, col, rr, cc, line, ns, nt, nsr, nsc, nst
     
-    def pasteSelectTabs(self, uicKey=None, dbg=0):
+    def pasteSelectTabs(self, uicKey=None, dbg=1):
         '''Paste selected tabs as is or either stretched in time like arpeggio or compressed like a chord'''
         rangeError, nc, row, col, rr, cc, line, ns, nt, nsr, nsc, nst = self._initPasteInfo()
         if nst == 0: return
@@ -1640,6 +1637,7 @@ class Tabs(object):
         if self.editMode == self.EDIT_MODES['INSERT']:
             self.printTabs()
         elif self.editMode == self.EDIT_MODES['REPLACE']:
+            print('pasteSelectTabs(REPLACE) cc={} nc={}'.format(cc, nc), file=Tabs.DBG_FILE)
             for c in range(cc, cc + nc):
                 if c >= len(self.tabs[0]):
                     self.printe('pasteSelectTabs() c={} + nc={} >= len(tabs[0])={} skip remaining columns'.format(c, nc, len(self.tabs[0])))

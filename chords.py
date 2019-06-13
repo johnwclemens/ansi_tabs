@@ -23,9 +23,16 @@ class Chords(object):
     def getChordKey(self, keys):
         return ' '.join(keys)
     
-    def eraseChord(self, c):
+    def eraseChord(self, c, rmv=1, dbg=1):
         row, col = self.tabsObj.indices2RowCol(self.tabsObj.numStrings + self.tabsObj.NOTES_LEN + self.tabsObj.INTERVALS_LEN, c)
-#        print('eraseChord(c={}) row={} col={}'.format(c, row, col), file=self.tabsObj.DBG_FILE)
+        if dbg and c == 0: print('eraseChord(c={} rmv={}) row={} col={} bgn'.format(c, rmv, row, col), file=self.tabsObj.DBG_FILE)
+        if rmv == 1:
+            if c in self.tabsObj.chordAliases:
+                print('eraseChord(rmv={}) deleting chordAliases[{}]={}'.format(rmv, c, self.tabsObj.chordAliases[c]), file=self.tabsObj.DBG_FILE)
+                del self.tabsObj.chordAliases[c]
+            if c in self.tabsObj.analyzeIndices:
+                print('eraseChord(rmv={}) deleting analyzeIndices[{}]={}'.format(rmv, c, self.tabsObj.analyzeIndices[c]), file=self.tabsObj.DBG_FILE)
+                del self.tabsObj.analyzeIndices[c]
         for r in range(self.tabsObj.CHORDS_LEN):
             self.tabsObj.prints(' ', r + row, col, self.tabsObj.styles['NAT_CHORD'])
     
@@ -38,7 +45,7 @@ class Chords(object):
                 self.tabsObj.prints(self.CHORD_LABEL[r], r + row, 1, self.tabsObj.styles['NAT_CHORD'])
                 self.tabsObj.prints(chr(self.tabsObj.capo), r + row, self.tabsObj.cursorModeCol, self.tabsObj.cursorDirStyle)
         for c in range(self.tabsObj.numTabsPerString):
-            self.eraseChord(c)
+            self.eraseChord(c, rmv=0)
             for r in range(self.tabsObj.numStrings):
                 if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][c])):
                     self.printChord(c=c)
@@ -52,7 +59,7 @@ class Chords(object):
         self.c = c
         if self.c is None:
             self.c = self.tabsObj.col - self.tabsObj.COL_OFF
-        self.eraseChord(self.c)
+        self.eraseChord(self.c, rmv=0)
         row, col = self.tabsObj.indices2RowCol(self.tabsObj.numStrings + self.tabsObj.NOTES_LEN + self.tabsObj.INTERVALS_LEN, self.c)
         if dbg:
             print('printChord(c={}) row={} col={} len(chords)={} dbg={} BGN'.format(self.c, row, col, len(self.chords), dbg), file=self.tabsObj.DBG_FILE)
