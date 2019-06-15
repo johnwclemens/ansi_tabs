@@ -73,7 +73,7 @@ class Tabs(object):
         self.initFiles(inName, outName)
         self.initConsts()
         self.registerUiCmds()                                      # register the dictionary for all the user interactive commands
-        self.lastCmd = ''
+        self.cmds = []
         self.mods = {}                                             # dict of tab modification characters -> contextual descriptions
         self.dbgMove = True                                        # used for finding bugs in basic movement functionality
         self.capo = ord('0')                                       # essentially added to every tab that is a fret, written to the outFile and read from the inFile
@@ -90,6 +90,8 @@ class Tabs(object):
         self.analyzeIndices = {}                                   # dict column index -> imap index being analyzed for chord info
         self.analyzeIndex = None                                   # current index for chord name analysis
         self.chordStatusCol = None                                 # tab column index used to display chord info on status row
+        self.selectChordAliases = []
+        self.selectAnalyzeIndices = []
         
         self.arpeggiate = 0                                        # used to transform chords to arpeggios
         self.selectFlag = 0                                        # used to un-hilite selected rows
@@ -201,7 +203,6 @@ class Tabs(object):
             if 'L' in self.argMap and len(self.argMap['L']) == 0: self.goToLastTab()                  # go to last tab on current line of all strings
             if 'z' in self.argMap and len(self.argMap['z']) == 0: self.goToLastTab(cs=1, ll=1)        # go to last tab on last line of current string
             if 'Z' in self.argMap and len(self.argMap['Z']) == 0: self.goToLastTab(ll=1)              # go to last tab on last line of all strings
-            self.testStruct()
             parse1, data1 = self.parseStateData(self.chordAliases, 'StartChordAliases')
             parse2, data2 = self.parseStateData(self.analyzeIndices, 'StartAnalyzeIndices')
             if parse1 and parse2:
@@ -361,8 +362,7 @@ class Tabs(object):
             self.strings = strings.Strings(Tabs.DBG_FILE, alias=alias, spelling=spelling)
         except Exception as ex:
             e = sys.exc_info()[0]
-            info = 'initStrings() Exception: \'{}\', e={}'.format(ex, str(e))
-            self.quit(info, code=1)
+            self.quit('initStrings() Exception: \'{}\', e={}'.format(ex, str(e)), code=1)
         self.stringMap = self.strings.map
         self.stringKeys = self.strings.keys
         self.numStrings = len(self.stringKeys)
@@ -562,7 +562,9 @@ class Tabs(object):
     
     def quit(self, uicKey=None, reason='Received Quit Cmd, Exiting', code=0):
         '''Quit with reason and exit code'''
-        self.printLineInfo('quit(ExitCode={}, reason=\'{}\')'.format(code, reason))
+        self.printLineInfo('    quit(ExitCode={}, reason=\'{}\')'.format(code, reason))
+        print('    quit() chordAliases={} analyzeIndices={}'.format(self.chordAliases, self.analyzeIndices), file=Tabs.DBG_FILE)
+        print('    quit() selectChordAliases={} selectAnalyzeIndices={}'.format(self.selectChordAliases, self.selectAnalyzeIndices), file=Tabs.DBG_FILE)
         self.printh('{}: {}'.format(uicKey, self.quit.__doc__))
         print(self.CSI + self.styles['CONS'] + self.CSI + '{};{}HExitCode={}, reason={}'.format(self.lastRow + 1, 1, code, reason))
 #        Tabs.DBG_FILE.flush()
@@ -722,7 +724,7 @@ class Tabs(object):
                 elif b == 141: self.uiCmds['Ctrl Up Arrow']    (uicKey='Ctrl Up Arrow', up=1)     # selectRow()            # N/A
                 elif b == 145: self.uiCmds['Ctrl Down Arrow']  (uicKey='Ctrl Down Arrow')         # selectRow()            # N/A
                 else:          self.printe('unsupported Escape Cmd: {}:{}'.format(chr(b), b))
-            else:              self.printe('unsupported Cmd Key: {}:{}'.format(chr(b), b))
+            else:              self.printe('unsupported Cmd Key: {}'.format(b))
     
     def resetPos(self):
         print(self.CSI + '{};{}H'.format(self.row, self.col), end='')
@@ -1364,7 +1366,7 @@ class Tabs(object):
         print('deleteTab(row={} col={} back={}) bgn'.format(row, col, back), file=Tabs.DBG_FILE)
         if self.editMode == self.EDIT_MODES['INSERT']:
             r, c = self.rowCol2Indices(row, col)
-            print('deleteTab(row={} col={} back={}) r={} c={} EDIT_MODES[INSERT]'.format(row, col, back, r, c), file=Tabs.DBG_FILE)
+            print('deleteTab(row={} col={} back={}) r={} c={} [INSERT]'.format(row, col, back, r, c), file=Tabs.DBG_FILE)
             for cc in range(c, len(self.tabs[r]) - 1):
                 self.tabs[r][cc]  = self.tabs[r][cc + 1]
                 self.htabs[r][cc] = self.htabs[r][cc + 1]
@@ -1374,7 +1376,7 @@ class Tabs(object):
             if back == 1: self.moveLeft()
             self.printTabs()
         elif self.editMode == self.EDIT_MODES['REPLACE']:
-            print('deleteTab(row={} col={} back={}) r={} c={} EDIT_MODES[REPLACE]'.format(row, col, back, r, c), file=Tabs.DBG_FILE)
+            print('deleteTab(row={} col={} back={}) [REPLACE]'.format(row, col, back), file=Tabs.DBG_FILE)
             self.moveCursor(row=row, col=col, back=back)
             if back == 1: return
             self._deleteTab(row, col)
@@ -1489,7 +1491,6 @@ class Tabs(object):
     
     def copySelectTabs(self, uicKey=None, arpg=None):
         '''Copy selected tabs, arpg=1 xform a chord to an arpeggio, arpg=0 xform an arpeggio to a chord'''
-        print('copySelectTabs() arpg={} chordAliases={} analyzeIndices={}'.format(arpg, self.chordAliases, self.analyzeIndices), file=Tabs.DBG_FILE)
         self.arpeggiate, ns, nt, nsr, nsc = arpg, self.numStrings, len(self.tabs[0]), len(self.selectRows), len(self.selectCols)
         if nsr == 0 or nsc == 0:
             self.printe('copySelectTabs() no tabs selected, nsr={}, nsc={}, use the CTRL ARROW keys to select rows and or columns'.format(nsr, nsc))
@@ -1497,7 +1498,7 @@ class Tabs(object):
         if arpg is None: size, nc = nsc,           nsc
         elif  arpg == 1: size, nc = nsc * nsr,     nsc
         elif  arpg == 0: size, nc = int(nsc / ns), int(nsc / ns)
-        self.printSelectTabs(info='copySelectTabs()', cols=1)
+        self.printSelectTabs(reason='copySelectTabs()', cols=1)
         for r in range(0, nsr):
             self.selectTabs.append(bytearray([ord(' ')] * size))
             self.selectHTabs.append(bytearray([ord('0')] * size))
@@ -1518,14 +1519,28 @@ class Tabs(object):
                 self.selectTabs[r][cst]  = self.tabs[rr][ct]
                 self.selectHTabs[r][cst] = self.htabs[rr][ct]
                 print('copySelectTabs() selectTabs[{}][{}]={}, tabs[{}][{}]={}'.format(r, cst, chr(self.selectTabs[r][cst]), rr, ct, chr(self.tabs[rr][ct])), file=Tabs.DBG_FILE)
-            self.printSelectTabs(info='copySelectTabs()')
+            self.copyChordAliasesAndAnalyzeIndices(ct)
+            self.printSelectTabs(reason='copySelectTabs()')
         self.printh('{}: {}'.format(uicKey, self.copySelectTabs.__doc__))
+    
+    def copyChordAliasesAndAnalyzeIndices(self, c):
+        print('copyChordAliasesAndAnalyzeIndices() chordAliases={} analyzeIndices={}'.format(self.chordAliases, self.analyzeIndices), file=Tabs.DBG_FILE)
+        if c in self.chordAliases:
+            print('copyChordAliasesAndAnalyzeIndices() FOUND c={} in chordAliases[{}]={}'.format(c, c, self.chordAliases[c]), file=Tabs.DBG_FILE)
+            self.selectChordAliases.append(c)
+        else: self.selectChordAliases.append(None)
+        if c in self.analyzeIndices:
+            print('copyChordAliasesAndAnalyzeIndices() FOUND c={} in analyzeIndices[{}]={}'.format(c, c, self.analyzeIndices[c]), file=Tabs.DBG_FILE)
+            self.selectAnalyzeIndices.append(c)
+        else: self.selectAnalyzeIndices.append(None)
+        print('copyChordAliasesAndAnalyzeIndices() selectChordAliases={} selectAnalyzeIndices={}'.format(self.selectChordAliases, self.selectAnalyzeIndices), file=Tabs.DBG_FILE)
     
     def deleteSelectTabs(self, uicKey=None, delSel=True):
         '''Delete selected tabs and all corresponding notes, intervals, and chords, resets all tabs to [-]'''
         self.printLineInfo('deleteSelectTabs({}, {}) delSel={} selectCols={}'.format(self.row, self.col, delSel, self.selectCols))
         self.selectCols.sort(key = int, reverse = True)
         for c in range(0, len(self.selectCols)):
+            print('deleteSelectTabs() c={}'.format(c), file=Tabs.DBG_FILE)
             self.deleteTabsCol(self.selectCols[c])
         if delSel:
             self.selectCols = []
@@ -1541,8 +1556,8 @@ class Tabs(object):
         self.deleteSelectTabs(delSel=False)
         self.printh('{}: {}'.format(uicKey, self.cutSelectTabs.__doc__))
     
-    def printSelectTabs(self, info='', cols=0):
-        print('printSelectTabs(cols={}, info={}) len(selectCols)={}, len(selectTabs)={}'.format(cols, info, len(self.selectCols), len(self.selectTabs)), file=Tabs.DBG_FILE)
+    def printSelectTabs(self, reason='', cols=0):
+        print('printSelectTabs(cols={}, reason={}) len(selectCols)={}, len(selectTabs)={}'.format(cols, reason, len(self.selectCols), len(self.selectTabs)), file=Tabs.DBG_FILE)
         if cols:
             for c in range(0, len(self.selectCols)):
                 print('    selectCols[{}]={}'.format(c, self.selectCols[c]), file=Tabs.DBG_FILE)
@@ -1625,8 +1640,19 @@ class Tabs(object):
                         rangeError = 1
                         break
             print('_initPasteInfo(loop1) c={} selectCols[c]={} selectCols={}'.format(c, self.selectCols[c], self.selectCols), file=Tabs.DBG_FILE)
+            self.pasteChordAliasesAndAnalyzeIndices(c, cc, ccc)
             if not rangeError: self.selectStyle(self.selectCols[c], self.styles['NORMAL'], rList=self.selectRows)
+        self.selectChordAliases, self.selectAnalyzeIndices = [], []
         return rangeError, nc, row, col, rr, cc, line, ns, nt, nsr, nsc, nst
+    
+    def pasteChordAliasesAndAnalyzeIndices(self, c, cc, ccc):
+        print('pasteChordAliasesAndAnalyzeIndices(c={}, cc={}. ccc={}) selectCols={} chordAliases={} analyzeIndices={}'.format(c, cc, ccc, self.selectCols, self.chordAliases, self.analyzeIndices), file=Tabs.DBG_FILE)
+        if self.selectChordAliases[c] != None and self.selectCols[c] in self.chordAliases:
+            self.chordAliases[ccc + cc] = self.chordAliases[self.selectCols[c]]
+            print('pasteChordAliasesAndAnalyzeIndices() chordAliases={}'.format(self.chordAliases), file=Tabs.DBG_FILE)
+        if self.selectAnalyzeIndices[c] != None and self.selectCols[c] in self.analyzeIndices:
+            self.analyzeIndices[ccc + cc] = self.analyzeIndices[self.selectCols[c]]
+            print('pasteChordAliasesAndAnalyzeIndices() analyzeIndices={}'.format(self.analyzeIndices), file=Tabs.DBG_FILE)
     
     def pasteSelectTabs(self, uicKey=None, dbg=1):
         '''Paste selected tabs as is or either stretched in time like arpeggio or compressed like a chord'''
@@ -1665,7 +1691,7 @@ class Tabs(object):
                         else:
                             self.prints(chr(tab), row + self.numStrings, col, self.styles['NAT_NOTE'])
                     if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
-                        if dbg: print('pasteSelectTabs(DISPLAY_INTERVALS) row={} col={} r={} c={} cc={} tab={} selectCols={} chordInfo={}'.format(row, col, r, c, cc, chr(tab), self.selectCols, self.chordInfo), file=Tabs.DBG_FILE)
+                        if dbg: print('pasteSelectTabs(INTERVALS) row={} col={} r={} c={} cc={} tab={} selectCols={} chordInfo={}'.format(row, col, r, c, cc, chr(tab), self.selectCols, self.chordInfo), file=Tabs.DBG_FILE)
                         self.printInterval(row + self.numStrings + self.NOTES_LEN, col, '-', dbg=0)
                         if c in self.chordInfo:
                             self.wrapPrintInterval(r, c, dbg=dbg)
@@ -1886,10 +1912,13 @@ class Tabs(object):
         for k in imap: s += '{} '.format(k)
         return s.strip()
     
-    def printLastCmd(self, uicKey=None):
+    def printLastCmd(self, uicKey=None, dbg=1):
         '''Display the last cmd info.'''
-        print('printLastCmd()'.format(), file=Tabs.DBG_FILE)
-        self.printh('{}'.format(self.lastCmd), status=1)
+        if dbg:
+            print('printLastCmd() cmds=[', file=Tabs.DBG_FILE)
+            for cmd in self.cmds: print('{}'.format(cmd), file=Tabs.DBG_FILE)
+            print(']', file=Tabs.DBG_FILE)
+        self.printh('{}'.format(self.cmds[-1]), status=1)
     
     def printStatus(self, uicKey=None, hinfo=0):
         '''Display the status line info with intervals and chords on the right and notes on the left'''
@@ -2074,7 +2103,7 @@ class Tabs(object):
     def printh(self, reason, col=61, style=None, status=0):
         if col is None:     col = self.col
         if style is None: style = self.styles['HLT_STUS']
-        self.lastCmd = reason
+        self.cmds.append(reason)
         print('printh(col={}) {}'.format(col, reason), file=Tabs.DBG_FILE)
         Tabs.clearRow(arg=2, row=self.lastRow, col=1, file=self.outFile)
         if not status:      self.printStatus()
