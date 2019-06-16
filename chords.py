@@ -25,7 +25,12 @@ class Chords(object):
     
     def eraseChord(self, c, rmv=1, dbg=1):
         row, col = self.tabsObj.indices2RowCol(self.tabsObj.numStrings + self.tabsObj.NOTES_LEN + self.tabsObj.INTERVALS_LEN, c)
-        if dbg and c == 0: print('eraseChord(c={} rmv={}) row={} col={} bgn'.format(c, rmv, row, col), file=self.tabsObj.DBG_FILE)
+        if dbg and c == 0: print('eraseChord(rmv={} c={}) row={} col={} bgn'.format(rmv, c, row, col), file=self.tabsObj.DBG_FILE)
+        if c in self.tabsObj.chordInfo:
+            print('eraseChord(rmv={} c={}) deleting chordInfo'.format(rmv, c), file=self.tabsObj.DBG_FILE)
+            self.tabsObj.dumpChordInfoCol(self.tabsObj.chordInfo[c])
+            del self.tabsObj.chordInfo[c]
+            self.tabsObj.dumpChordInfo(self.tabsObj.chordInfo)
         if rmv == 1:
             if c in self.tabsObj.chordAliases:
                 print('eraseChord(rmv={}) deleting chordAliases[{}]={}'.format(rmv, c, self.tabsObj.chordAliases[c]), file=self.tabsObj.DBG_FILE)
