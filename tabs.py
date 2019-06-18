@@ -74,7 +74,9 @@ class Tabs(object):
         self.initConsts()
         self.registerUiCmds()                                      # register the dictionary for all the user interactive commands
         self.cmds = []                                             # list of user interactive cmd history
+        self.cmdsIndex = 0                                         # cmd history index
         self.errors = []                                           # list of error message history
+        self.errorsIndex = 0                                       # error history index
         self.mods = {}                                             # dict of tab modification characters -> contextual descriptions
         self.dbgMove = True                                        # used for finding bugs in basic movement functionality
         self.capo = ord('0')                                       # essentially added to every tab that is a fret, written to the outFile and read from the inFile
@@ -625,12 +627,12 @@ class Tabs(object):
         self.registerUiCmd('Shift A',             self.analyzeChord)
         self.registerUiCmd('Shift B',             self.copySelectTabs)
         self.registerUiCmd('Shift C',             self.copySelectTabs)
-        self.registerUiCmd('Shift E',             self.printLastError)
+        self.registerUiCmd('Shift E',             self.printErrorHistory)
         self.registerUiCmd('Shift H',             self.toggleHarmonicNote)
         self.registerUiCmd('Shift K',             self.setCapo)
         self.registerUiCmd('Shift L',             self.goToLastTab)
         self.registerUiCmd('Shift Q',             self.selectChord)
-        self.registerUiCmd('Shift R',             self.printLastCmd)
+        self.registerUiCmd('Shift R',             self.printCmdHistory)
         self.registerUiCmd('Shift T',             self.removeLine)
         self.registerUiCmd('Shift X',             self.cutSelectTabs)
         self.registerUiCmd('Shift Z',             self.goToLastTab)
@@ -694,12 +696,12 @@ class Tabs(object):
             elif b == 65:  self.uiCmds['Shift A']         (uicKey='Shift A')            # analyzeChord()           # N/A
             elif b == 66:  self.uiCmds['Shift B']         (uicKey='Shift B', arpg=0)    # copySelectTabs()         # N/A
             elif b == 67:  self.uiCmds['Shift C']         (uicKey='Shift C', arpg=1)    # copySelectTabs()         # N/A
-            elif b == 69:  self.uiCmds['Shift E']         (uicKey='Shift E')            # printLastError()         # N/A
+            elif b == 69:  self.uiCmds['Shift E']         (uicKey='Shift E')            # printErrorHistory()      # N/A
             elif b == 72:  self.uiCmds['Shift H']         (uicKey='Shift H')            # toggleHarmonicNote()     # N/A
             elif b == 75:  self.uiCmds['Shift K']         (uicKey='Shift K')            # setCapo()                # cmd line opt -k?
             elif b == 76:  self.uiCmds['Shift L']         (uicKey='Shift L')            # goToLastTab()            # cmd line opt -L
             elif b == 81:  self.uiCmds['Shift Q']         (uicKey='Shift Q')            # selectChord()            # N/A
-            elif b == 82:  self.uiCmds['Shift R']         (uicKey='Shift R')            # printLastCmd()           # N/A
+            elif b == 82:  self.uiCmds['Shift R']         (uicKey='Shift R')            # printCmdHistory()        # N/A
             elif b == 84:  self.uiCmds['Shift T']         (uicKey='Shift T')            # removeLine()             # DBG?
             elif b == 88:  self.uiCmds['Shift X']         (uicKey='Shift X', arpg=1)    # cutSelectTabs()          # N/A
             elif b == 90:  self.uiCmds['Shift Z']         (uicKey='Shift Z', ll=1)      # goToLastTab()            # cmd line opt -Z
@@ -1944,22 +1946,6 @@ class Tabs(object):
         for k in imap: s += '{} '.format(k)
         return s.strip()
     
-    def printLastCmd(self, uicKey=None, dbg=1):
-        '''Display the last cmd info.'''
-        if dbg:
-            print('printLastCmd() cmds=[', file=Tabs.DBG_FILE)
-            for cmd in self.cmds: print('{}'.format(cmd), file=Tabs.DBG_FILE)
-            print(']', file=Tabs.DBG_FILE)
-        self.printh('{}'.format(self.cmds[-1]), status=1)
-    
-    def printLastError(self, uicKey=None, dbg=1):
-        '''Display the last error message.'''
-        if dbg:
-            print('printLastError() errors=[', file=Tabs.DBG_FILE)
-            for e in self.errors: print('{}'.format(e), file=Tabs.DBG_FILE)
-            print(']', file=Tabs.DBG_FILE)
-        self.printh('{}'.format(self.errors[-1]), status=1)
-    
     def printStatus(self, uicKey=None, hinfo=0):
         '''Display the status line info with intervals and chords on the right and notes on the left'''
         r, c = self.rowCol2Indices(self.row, self.col)
@@ -2127,18 +2113,29 @@ class Tabs(object):
             i += 1
         return chordName, imap
     
-    def prints(self, c, row, col, style):
-       print(Tabs.CSI + style + Tabs.CSI + '{};{}H{}'.format(row, col, str(c)), end='', file=self.outFile)
+    def printErrorHistory(self, uicKey=None, dbg=0):
+        '''Display error history.'''
+        if dbg:
+            print('printErrorHistory() errors=[', file=Tabs.DBG_FILE)
+            for i in range(len(self.errors)-1, -1, -1):
+                print('    [{}] {}'.format(i, self.errors[i]), file=Tabs.DBG_FILE)
+            print(']', file=Tabs.DBG_FILE)
+        print('printErrorHistory() [{}] {}'.format(self.errorsIndex, self.errors[self.errorsIndex]), file=Tabs.DBG_FILE)
+        self.printh('{}: {} [{}] {}'.format(uicKey, self.printErrorHistory.__doc__, self.errorsIndex, self.errors[self.errorsIndex]), col=1, hist=1)
+        self.errorsIndex += 1
+        if self.errorsIndex == len(self.errors): self.errorsIndex = 0
     
-    def printh(self, reason, col=61, style=None, status=0):
-        if col is None:     col = self.col
-        if style is None: style = self.styles['HLT_STUS']
-        self.cmds.append(reason)
-        print('printh(col={}) {}'.format(col, reason), file=Tabs.DBG_FILE)
-        Tabs.clearRow(arg=2, row=self.lastRow, col=1, file=self.outFile)
-        if not status:      self.printStatus()
-        print(Tabs.CSI + style + Tabs.CSI + '{};{}H{}'.format(self.lastRow, col, reason), end='')
-        self.resetPos()
+    def printCmdHistory(self, uicKey=None, dbg=0):
+        '''Display cmd history.'''
+        if dbg:
+            print('printCmdHistory() cmds=[', file=Tabs.DBG_FILE)
+            for i in range(len(self.cmds)-1, -1, -1):
+                print('    [{}] {}'.format(i, self.cmds[i]), file=Tabs.DBG_FILE)
+            print(']', file=Tabs.DBG_FILE)
+        print('printCmdHistory() [{}] {}'.format(self.cmdsIndex, self.cmds[self.cmdsIndex]), file=Tabs.DBG_FILE)
+        self.printh('{}: {} [{}] {}'.format(uicKey, self.printCmdHistory.__doc__, self.cmdsIndex, self.cmds[self.cmdsIndex]), col=1, hist=1)
+        self.cmdsIndex += 1
+        if self.cmdsIndex == len(self.cmds): self.cmdsIndex = 0
     
     def printe(self, reason, row=None, col=None, style=None, x=0):
         if row is None:     row = self.row
@@ -2150,6 +2147,19 @@ class Tabs(object):
         Tabs.clearRow(arg=0, file=self.outFile)
         self.resetPos()
         if x: exit()
+    
+    def printh(self, reason, col=61, style=None, status=0, hist=0):
+        if col is None:     col = self.col
+        if style is None: style = self.styles['HLT_STUS']
+        if hist == 0: self.cmds.append(reason)
+        print('printh(col={}) {}'.format(col, reason), file=Tabs.DBG_FILE)
+        Tabs.clearRow(arg=2, row=self.lastRow, col=1, file=self.outFile)
+        if not status:      self.printStatus()
+        print(Tabs.CSI + style + Tabs.CSI + '{};{}H{}'.format(self.lastRow, col, reason), end='')
+        self.resetPos()
+    
+    def prints(self, c, row, col, style):
+       print(Tabs.CSI + style + Tabs.CSI + '{};{}H{}'.format(row, col, str(c)), end='', file=self.outFile)
     
     def getNote(self, str, tab):
         '''Return note object given string number and tab fret number byte'''
