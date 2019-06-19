@@ -1776,13 +1776,15 @@ class Tabs(object):
                 else:                                            return flatStyle
         return defStyle
     
-    def printNotes(self):
+    def printNotes(self, dbg=1):
         self.printFileMark('<BGN_NOTES_SECTION>')
         for line in range(0, self.numLines):
             for r in range(0, self.numStrings):
                 row = r + line * self.lineDelta() + self.endRow(0) + 1
                 for c in range (0, self.numTabsPerStringPerLine):
-                    capTab = tab = self.tabs[r][c + line * self.numTabsPerStringPerLine]
+                    cc = c + line * self.numTabsPerStringPerLine
+                    capTab = tab = self.tabs[r][cc]
+                    if dbg and line == 0 and c == 0: print('printNotes() r={} tab={}({}) captab={}({}) bgn'.format(r, tab, chr(tab), capTab, chr(capTab)), file=Tabs.DBG_FILE)
                     if Tabs.isFret(chr(tab)):
                         capTab = self.getFretByte(self.getFretNum(tab) + self.getFretNum(self.capo))
                     if c == 0:
@@ -1790,14 +1792,14 @@ class Tabs(object):
                         self.printNote(row, self.editModeCol, n)
                         self.prints(chr(self.capo), row, self.cursorModeCol, self.cursorDirStyle)
                     if Tabs.isFret(chr(capTab)):
-                        if chr(self.htabs[r][c + line * self.numTabsPerStringPerLine]) == '1':
-                            print('printNotes() tab={}, capTab={}, tabc={}, chr(capTab)={}, tabFN={}, capoFN={}'.format(tab, capTab, chr(tab), chr(capTab), self.getFretNum(tab), self.getFretNum(capTab)), file=Tabs.DBG_FILE)
-                            n = self.getHarmonicNote(r + 1, tab)
+                        if chr(self.htabs[r][cc]) == '1':
+                            print('printNotes() r={} tab={}({}) captab={}({}), tabFN={}, capFN={}'.format(r, tab, chr(tab), capTab, chr(capTab), self.getFretNum(tab), self.getFretNum(capTab)), file=Tabs.DBG_FILE)
+                            n = self.getHarmonicNote(r + 1, capTab)
                             self.printNote(row, c + self.COL_OFF, n, hn=1)
                         else:
-                            n = self.getNote(r + 1, tab)
+                            n = self.getNote(r + 1, capTab)
                             self.printNote(row, c + self.COL_OFF, n)
-                    else: self.prints(chr(tab), row, c + self.COL_OFF, self.styles['NAT_NOTE'])
+                    else: self.prints(chr(capTab), row, c + self.COL_OFF, self.styles['NAT_NOTE'])
                 print(file=self.outFile)
             print()
         self.printFileMark('<END_NOTES_SECTION>')
@@ -1807,7 +1809,7 @@ class Tabs(object):
         style = self.getNoteStyle(n, style, hn)
         self.prints(n.name[0], row, col, style)
     
-    def printIntervals(self, dbg=0):
+    def printIntervals(self, dbg=1):
         self.printFileMark('<BGN_INTERVALS_SECTION>')
         for line in range(0, self.numLines):
             for r in range(0, self.numStrings):
@@ -1818,12 +1820,12 @@ class Tabs(object):
                     self.prints(' ', row, c, self.styles['IVAL_LABEL'])
             for c in range (0, self.numTabsPerStringPerLine):
                 cc = c + line * self.numTabsPerStringPerLine
-                self.printColumnIvals(cc, dbg=1)
+                self.printColumnIvals(cc, dbg=dbg)
         self.printFileMark('<END_INTERVALS_SECTION>')
     
     def printColumnIvals(self, c, dbg=1):
         line = self.colIndex2Line(c)
-        if dbg and c==0: print('printColumnIvals({}) line={} selectChords={}'.format(c, line, self.selectChords), file=Tabs.DBG_FILE)
+        if dbg and c==0: print('printColumnIvals({}) bgn line={} selectChords={}'.format(c, line, self.selectChords), file=Tabs.DBG_FILE)
         for r in range(0, self.numStrings):
             row = r + self.bgnRow(line) + self.numStrings + self.NOTES_LEN
             cc = c % self.numTabsPerStringPerLine
@@ -1837,7 +1839,7 @@ class Tabs(object):
     def wrapPrintInterval(self, r, c, dbg=1):
         if c in self.analyzeIndices: index = self.analyzeIndices[c]
         else:                        index = 0
-        print('wrapPrintInterval({:>3} {})'.format(c, index), file=Tabs.DBG_FILE)
+        print('wrapPrintInterval({:>3} {}) bgn'.format(c, index), file=Tabs.DBG_FILE)
         imap = self.chordInfo[c]['LIMAP'][index]
         imapstr = self.imap2String(imap)
         print('wrapPrintInterval({:>3} {}) imap={} CHECKING IF imapstr={} IN selectImaps={}'.format(c, index, imap, imapstr, self.selectImaps), file=Tabs.DBG_FILE)
@@ -1851,14 +1853,17 @@ class Tabs(object):
         tab = self.tabs[r][c]
         if dbg: print('wrapPrintInterval({:>3} {}) imap={} tab={} im={} selectImaps={}'.format(c, index, imap, chr(tab), im, self.selectImaps), file=Tabs.DBG_FILE)
         if Tabs.isFret(chr(tab)):
-            row, col = self.indices2RowCol(r, c)
-            if chr(self.htabs[r][c]) == '1':
-                n = self.getHarmonicNote(r + 1, tab)
-            else:
-                n = self.getNote(r + 1, tab)
-            nn = n.name
-            if nn in im:
-                self.printInterval(row + self.numStrings + self.NOTES_LEN, col, im[nn], dbg=dbg)
+            capTab = self.getFretByte(self.getFretNum(tab) + self.getFretNum(self.capo))
+            if Tabs.isFret(chr(capTab)):
+                row, col = self.indices2RowCol(r, c)
+                if chr(self.htabs[r][c]) == '1':
+                    n = self.getHarmonicNote(r + 1, capTab)
+                else:
+                    n = self.getNote(r + 1, capTab)
+                nn = n.name
+                if dbg: print('wrapPrintInterval({:>3} {}) imap={} capTab={} note={}'.format(c, index, imap, chr(capTab), nn), file=Tabs.DBG_FILE)
+                if nn in im:
+                    self.printInterval(row + self.numStrings + self.NOTES_LEN, col, im[nn], dbg=dbg)
     
     def printInterval(self, row, col, ival, dbg=1):
         style = self.styles['NAT_H_NOTE']
@@ -2163,8 +2168,8 @@ class Tabs(object):
     
     def getNote(self, str, tab):
         '''Return note object given string number and tab fret number byte'''
-        fret = self.getFretNum(tab)
-        cfret = fret + self.getFretNum(self.capo)
+        cfret = self.getFretNum(tab)
+#        cfret = fret + self.getFretNum(self.capo)
         return notes.Note(self.getNoteIndex(str, cfret), self.enharmonic)
     
     def getHarmonicNote(self, str, tab):

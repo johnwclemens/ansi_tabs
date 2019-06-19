@@ -59,7 +59,7 @@ class Chords(object):
         self.tabsObj.printFileMark('<END_CHORDS_SECTION>')
         return self.chordNames
     
-    def printChord(self, c, dbg=2):
+    def printChord(self, c, dbg=3):
         '''Analyze notes in given column index and if a valid chord is discovered then print it in the appropriate chords section.'''
         self.c = c
         if self.c is None:
@@ -126,20 +126,22 @@ class Chords(object):
     def getNotesAndIndices(self, dbg=0):
         _notes = []
         for r in range(self.tabsObj.numStrings):
-            tab = self.tabsObj.getFretByte(self.tabsObj.getFretNum(self.tabsObj.tabs[r][self.c]) + self.tabsObj.getFretNum(self.tabsObj.capo))
-            if self.tabsObj.isFret(chr(tab)):
-                note = self.tabsObj.getNote(r + 1, tab)
-                _notes.insert(0, note.name)
+            if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][self.c])):
+                tab = self.tabsObj.getFretByte(self.tabsObj.getFretNum(self.tabsObj.tabs[r][self.c]) + self.tabsObj.getFretNum(self.tabsObj.capo))
+                if self.tabsObj.isFret(chr(tab)):
+                    note = self.tabsObj.getNote(r + 1, tab)
+                    _notes.insert(0, note.name)
         if dbg:
             print(']\n{}notes       ['.format(self.indent), end='', file=self.tabsObj.DBG_FILE)
             for t in range(len(_notes)):
                 print('{:>5}'.format(_notes[t]), end=' ', file=self.tabsObj.DBG_FILE)
         indices = []
         for r in range(self.tabsObj.numStrings):
-            tab = self.tabsObj.getFretByte(self.tabsObj.getFretNum(self.tabsObj.tabs[r][self.c]) + self.tabsObj.getFretNum(self.tabsObj.capo))
-            if self.tabsObj.isFret(chr(tab)):
-                note = self.tabsObj.getNote(r + 1, tab)
-                indices.insert(0, note.index)
+            if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][self.c])):
+                tab = self.tabsObj.getFretByte(self.tabsObj.getFretNum(self.tabsObj.tabs[r][self.c]) + self.tabsObj.getFretNum(self.tabsObj.capo))
+                if self.tabsObj.isFret(chr(tab)):
+                    note = self.tabsObj.getNote(r + 1, tab)
+                    indices.insert(0, note.index)
         if dbg:
             print(']\n{}indices     ['.format(self.indent), end='', file=self.tabsObj.DBG_FILE)
             for t in range(len(indices)):
