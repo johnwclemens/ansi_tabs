@@ -451,11 +451,12 @@ class Tabs(object):
                         tab = chr(data[i+1])
                         tmp.append(data[i+1])
                         if Tabs.isFret(tab):
-                            tabFN = self.getFretNum(ord(tab))
-                            maxFN = self.getFretNum(self.maxFret)
-                            if tabFN > maxFN: 
-                                self.maxFret = ord(tab)
-                                print('readTabs() updating chr(mf)={}, maxFret={}, maxFN={}, tabFN={}'.format(chr(self.maxFret), self.maxFret, self.getFretNum(self.maxFret), tabFN), file=Tabs.DBG_FILE)
+                            if col != '1' and col != '2':
+                                tabFN = self.getFretNum(ord(tab))
+                                maxFN = self.getFretNum(self.maxFret)
+                                if tabFN > maxFN:
+                                    self.maxFret = ord(tab)
+                                    print('readTabs() [{},{}] updating chr(mf)={}, maxFret={}, maxFN={}, tabFN={}'.format(row, col, chr(self.maxFret), self.maxFret, self.getFretNum(self.maxFret), tabFN), file=Tabs.DBG_FILE)
                         if hasFrag:
                             print('readTabs({}) {} {} [{},{}], ii={}, p1={}, p2={}, i={}, bgn={} {} \'{}\' data=\'{}\' tmp=\'{}\''.format(rowStr, cnt, len(fragment), row, col, ii, p1, p2, i, bgn, hasFrag, tab, ''.join([chr(data[p]) for p in range(ii, i+2)]), ''.join([chr(tmp[p]) for p in range(0, len(tmp))])), file=Tabs.DBG_FILE)
                             hasFrag = False
@@ -1256,7 +1257,9 @@ class Tabs(object):
             cc = len(self.tabs[r]) - 1
             self.tabs[r][cc]  = ord('-')
             self.htabs[r][cc] = ord('0')
-            if back == 1: self.moveLeft()
+#            if back == 1: self.moveLeft()
+            self.moveCursor(row=row, col=col, back=back)
+            if back == 1: return
             self.printTabs()
         elif self.editMode == self.EDIT_MODES['REPLACE']:
             print('deleteTab(row={} col={} back={}) [REPLACE]'.format(row, col, back), file=Tabs.DBG_FILE)
@@ -2029,7 +2032,7 @@ class Tabs(object):
             print('printChordStatus() c={} analyzeIndices={}'.format(c, self.analyzeIndices), file=Tabs.DBG_FILE)
             if c in self.analyzeIndices: index = self.analyzeIndices[c]
             else:                        index = 0
-            self.printChordInfo(r, c, index, reason='printChordStatus')
+            self.printChordInfo(r, c, index, reason='printChordStatus()')
     
     def analyzeChord(self, uicKey=None, dbg=0):
         '''Visit each chordInfo index one at a time updating only information on status line'''
@@ -2053,7 +2056,7 @@ class Tabs(object):
             index = self.analyzeIndices[c]
             self.chordInfo[c]['INDEX'] = index
             self.dumpChordInfoCol(self.chordInfo[c], reason='selectChord(c={})'.format(c))
-            name, imap = self.printChordInfo(r, c, index, reason='selectChord{}')
+            name, imap = self.printChordInfo(r, c, index, reason='selectChord()')
             print('selectChord(c={}) index={} analyzeIndices[c]={} chordAliases={}'.format(c, index, self.analyzeIndices[c], self.chordAliases), file=Tabs.DBG_FILE)
             if c in self.chordAliases:
                 print('selectChord(c={}) found c in chordAliases={}'.format(c, self.chordAliases), file=Tabs.DBG_FILE)
@@ -2085,8 +2088,16 @@ class Tabs(object):
     
     def printChordInfo(self, r, c, m, reason=None, dbg=1):
         tab = chr(self.tabs[r][c])
-        print('printChordInfo(r={} c={} m={} tab={})'.format(r, c, m, tab), file=Tabs.DBG_FILE)
-        if m in self.chordInfo[c]: print('printChordInfo(r={} c={} m={} tab={}) chordInfo[{}][{}]={}={}'.format(r, c, m, tab, self.imap2String(self.chordInfo[c][m])), file=Tabs.DBG_FILE)
+        print('printChordInfo(r={} c={} m={} tab={}) bgn reason={}'.format(r, c, m, tab, reason), file=Tabs.DBG_FILE)
+        self.dumpInfo('printChordInfo()')
+        if m in self.chordInfo[c]['LIMAP']: print('printChordInfo(r={} c={} m={} tab={}) chordInfo[{}][{}]={}={}'.format(r, c, m, tab, self.imap2String(self.chordInfo[c]['LIMAP'][m])), file=Tabs.DBG_FILE)
+#        else:
+#            self.printe('printChordInfo() m={} NOT IN chordInfo[{}] setting m=0 and removing c={} in chordAliases and analyzeIndices'.format(m , c, c))
+#            m = 0
+#            if c in self.chordAliases: del self.chordAliases[c]
+#            if c in self.analyzeIndices: del self.analyzeIndices[c]
+#            self.dumpInfo('printChordInfo() removing c={} in chordAliases and analyzeIndices'.format(c))
+#            return
         imap = self.chordInfo[c]['LIMAP'][m]
         imapKeys = sorted(imap, key=self.chordsObj.imapKeyFunc, reverse=False)
         if dbg: 
