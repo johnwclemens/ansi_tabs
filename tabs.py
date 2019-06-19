@@ -564,7 +564,11 @@ class Tabs(object):
     
     def quit(self, uicKey=None, reason='Received Quit Cmd, Exiting', code=0):
         '''Quit with reason and exit code'''
+        for i in range(18): print('##########', end='', file=Tabs.DBG_FILE)
+        print(file=Tabs.DBG_FILE)
         self.printLineInfo('    quit(ExitCode={}, reason=\'{}\')'.format(code, reason))
+        for i in range(18): print('##########', end='', file=Tabs.DBG_FILE)
+        print(file=Tabs.DBG_FILE)
         self.dumpInfo('quit()')
         self.printh('{}: {}'.format(uicKey, self.quit.__doc__))
         print(Tabs.CSI + self.styles['CONS'] + Tabs.CSI + '{};{}HExitCode={}, reason={}'.format(self.lastRow + 1, 1, code, reason))
@@ -1177,7 +1181,7 @@ class Tabs(object):
                 print('setCapo() c={}({}) capo={} capFN={} chr(mf)={} maxFret={} maxFN={} setting capo'.format(ord(c), c, self.capo, capFN, chr(self.maxFret), self.maxFret, maxFN), file=Tabs.DBG_FILE)
                 self.printTabs()
     
-    def setTab(self, tab, dbg=0):
+    def setTab(self, tab, dbg=1):
         '''Set tab byte at current row and col, print corresponding tab character automatic move cursor'''
         row, col = self.row, self.col
         rr, cc = self.rowCol2Indices(row, col)
@@ -1199,11 +1203,13 @@ class Tabs(object):
             self.prints(chr(tab), row, col, self.styles['TABS'])
             if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
                 if Tabs.isFret(chr(tab)):
-                    n = self.getNote(s, tab)
-                    print('setTab(DISPLAY_NOTES) tab={}({}) nn={}'.format(tab, chr(tab), n.name), file=Tabs.DBG_FILE)
-                    self.printNote(row + self.numStrings, col, n)
-                else:
-                    self.prints(chr(tab), row + self.numStrings, col, self.styles['NAT_NOTE'])
+                    capTab = self.getFretByte(self.getFretNum(tab) + self.getFretNum(self.capo))
+                    if Tabs.isFret(chr(capTab)):
+                        n = self.getNote(s, capTab)
+                        print('setTab(DISPLAY_NOTES) tab={}({}) capTab={}({}) nn={}'.format(tab, chr(tab), capTab, chr(capTab), n.name), file=Tabs.DBG_FILE)
+                        self.printNote(row + self.numStrings, col, n)
+                    else:
+                        self.prints(chr(capTab), row + self.numStrings, col, self.styles['NAT_NOTE'])
             if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
                 self.chordsObj.eraseChord(cc)
                 if cc in self.chordInfo: 
@@ -1227,8 +1233,10 @@ class Tabs(object):
                 if cc not in self.chordInfo:
                     print('setTab(DISPLAY_INTERVALS) row={} col={} ival={}'.format(row, col, 'R'), file=Tabs.DBG_FILE)
                     if Tabs.isFret(chr(tab)):
-                        self.printInterval(row + self.numStrings + self.NOTES_LEN, col, 'R', dbg=dbg)
-                    else: print('setTab(DISPLAY_INTERVALS) NOT a Fret tab={}'.format(chr(tab)), file=Tabs.DBG_FILE)
+                        capTab = self.getFretByte(self.getFretNum(tab) + self.getFretNum(self.capo))
+                        if Tabs.isFret(chr(capTab)):
+                            self.printInterval(row + self.numStrings + self.NOTES_LEN, col, 'R', dbg=dbg)
+                        else: print('setTab(DISPLAY_INTERVALS) NOT a Fret capTab={}'.format(chr(capTab)), file=Tabs.DBG_FILE)
                 else:
                     for r in range(self.numStrings):
                         self.wrapPrintInterval(r, cc, dbg=dbg)
