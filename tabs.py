@@ -2090,14 +2090,8 @@ class Tabs(object):
         tab = chr(self.tabs[r][c])
         print('printChordInfo(r={} c={} m={} tab={}) bgn reason={}'.format(r, c, m, tab, reason), file=Tabs.DBG_FILE)
         self.dumpInfo('printChordInfo()')
-        if m in self.chordInfo[c]['LIMAP']: print('printChordInfo(r={} c={} m={} tab={}) chordInfo[{}][{}]={}={}'.format(r, c, m, tab, self.imap2String(self.chordInfo[c]['LIMAP'][m])), file=Tabs.DBG_FILE)
-#        else:
-#            self.printe('printChordInfo() m={} NOT IN chordInfo[{}] setting m=0 and removing c={} in chordAliases and analyzeIndices'.format(m , c, c))
-#            m = 0
-#            if c in self.chordAliases: del self.chordAliases[c]
-#            if c in self.analyzeIndices: del self.analyzeIndices[c]
-#            self.dumpInfo('printChordInfo() removing c={} in chordAliases and analyzeIndices'.format(c))
-#            return
+        if m < len(self.chordInfo[c]['LIMAP']): print('printChordInfo() m={} < len(self.chordInfo[c][LIMAP])={}'.format(m, len(self.chordInfo[c]['LIMAP'])), file=Tabs.DBG_FILE)
+        else: print('printChordInfo(?) m={} >= len(self.chordInfo[c][LIMAP])={}'.format(r, c, m, tab, len(self.chordInfo[c]['LIMAP'])), file=Tabs.DBG_FILE)
         imap = self.chordInfo[c]['LIMAP'][m]
         imapKeys = sorted(imap, key=self.chordsObj.imapKeyFunc, reverse=False)
         if dbg: 
