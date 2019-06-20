@@ -80,7 +80,7 @@ class Tabs(object):
         self.mods = {}                                             # dict of tab modification characters -> contextual descriptions
         self.dbgMove = True                                        # used for finding bugs in basic movement functionality
         self.capo = ord('0')                                       # essentially added to every tab that is a fret, written to the outFile and read from the inFile
-        self.maxFret = ord('0')                                    # update in setTab() and readTabs()
+        self.maxFretInfo = {'MAX':-1, 'LINE':-1, 'STR':-1, 'COL':-1} # dict -> max fret info (max, line, row, col)
         self.chordsObj = None                                      # the chords.Chords instance
         
         self.htabs = []                                            # list of bytearrays, one for each string; for harmonic tabs
@@ -453,10 +453,10 @@ class Tabs(object):
                         if Tabs.isFret(tab):
                             if col != '1' and col != '2':
                                 tabFN = self.getFretNum(ord(tab))
-                                maxFN = self.getFretNum(self.maxFret)
+                                maxFN = self.getFretNum(self.maxFretInfo['MAX'])
                                 if tabFN > maxFN:
-                                    self.maxFret = ord(tab)
-                                    print('readTabs() [{},{}] updating chr(mf)={}, maxFret={}, maxFN={}, tabFN={}'.format(row, col, chr(self.maxFret), self.maxFret, self.getFretNum(self.maxFret), tabFN), file=Tabs.DBG_FILE)
+                                    self.maxFretInfo['MAX'], self.maxFretInfo['LINE'], self.maxFretInfo['STR'], self.maxFretInfo['COL'] = ord(tab), self.row2Line(int(rowStr)), int(rowStr), int(col)
+                                    self.dumpMaxFretInfo('readTabs({} {})'.format(row, col))
                         if hasFrag:
                             print('readTabs({}) {} {} [{},{}], ii={}, p1={}, p2={}, i={}, bgn={} {} \'{}\' data=\'{}\' tmp=\'{}\''.format(rowStr, cnt, len(fragment), row, col, ii, p1, p2, i, bgn, hasFrag, tab, ''.join([chr(data[p]) for p in range(ii, i+2)]), ''.join([chr(tmp[p]) for p in range(0, len(tmp))])), file=Tabs.DBG_FILE)
                             hasFrag = False
@@ -567,7 +567,7 @@ class Tabs(object):
         '''Quit with reason and exit code'''
         for i in range(18): print('##########', end='', file=Tabs.DBG_FILE)
         print(file=Tabs.DBG_FILE)
-        self.printLineInfo('    quit(ExitCode={}, reason=\'{}\')'.format(code, reason))
+        self.dumpLineInfo('    quit(ExitCode={}, reason=\'{}\')'.format(code, reason))
         for i in range(18): print('##########', end='', file=Tabs.DBG_FILE)
         print(file=Tabs.DBG_FILE)
         self.dumpInfo('quit()')
@@ -633,6 +633,7 @@ class Tabs(object):
         self.registerUiCmd('Shift B',             self.copySelectTabs)
         self.registerUiCmd('Shift C',             self.copySelectTabs)
         self.registerUiCmd('Shift E',             self.printErrorHistory)
+        self.registerUiCmd('Shift F',             self.printMaxFretInfo)
         self.registerUiCmd('Shift H',             self.toggleHarmonicNote)
         self.registerUiCmd('Shift K',             self.setCapo)
         self.registerUiCmd('Shift L',             self.goToLastTab)
@@ -702,6 +703,7 @@ class Tabs(object):
             elif b == 66:  self.uiCmds['Shift B']         (uicKey='Shift B', arpg=0)    # copySelectTabs()         # N/A
             elif b == 67:  self.uiCmds['Shift C']         (uicKey='Shift C', arpg=1)    # copySelectTabs()         # N/A
             elif b == 69:  self.uiCmds['Shift E']         (uicKey='Shift E')            # printErrorHistory()      # N/A
+            elif b == 70:  self.uiCmds['Shift F']         (uicKey='Shift F')            # printMaxFretInfo()       # N/A
             elif b == 72:  self.uiCmds['Shift H']         (uicKey='Shift H')            # toggleHarmonicNote()     # N/A
             elif b == 75:  self.uiCmds['Shift K']         (uicKey='Shift K')            # setCapo()                # cmd line opt -k?
             elif b == 76:  self.uiCmds['Shift L']         (uicKey='Shift L')            # goToLastTab()            # cmd line opt -L
@@ -774,7 +776,7 @@ class Tabs(object):
     
     def moveUp(self, uicKey=None, dbg=None):
         '''Move cursor up 1 row on current line wrapping to last row on previous line or last line'''
-        if dbg or self.dbgMove: self.printLineInfo('moveUp({}, {})'.format(self.row, self.col))
+        if dbg or self.dbgMove: self.dumpLineInfo('moveUp({}, {})'.format(self.row, self.col))
         line = self.row2Line(self.row)
         if self.row == self.bgnRow(line):
             if line == 0: self.moveTo(row=self.endRow(self.numLines - 1), hi=1)
@@ -784,7 +786,7 @@ class Tabs(object):
     
     def moveDown(self, uicKey=None, dbg=None):
         '''Move cursor down 1 row on current line wrapping to first row on next line or first line'''
-        if dbg or self.dbgMove: self.printLineInfo('moveDown({}, {})'.format(self.row, self.col))
+        if dbg or self.dbgMove: self.dumpLineInfo('moveDown({}, {})'.format(self.row, self.col))
         line = self.row2Line(self.row)
         if self.row == self.endRow(line):
             if line == self.numLines - 1: self.moveTo(row=self.bgnRow(0), hi=1)
@@ -814,7 +816,7 @@ class Tabs(object):
     
     def movePageUp(self, uicKey=None, dbg=None):
         '''Move cursor to first row on current line wrapping to last row on previous line or last line'''
-        if dbg or self.dbgMove: self.printLineInfo('movePageUp({}, {})'.format(self.row, self.col))
+        if dbg or self.dbgMove: self.dumpLineInfo('movePageUp({}, {})'.format(self.row, self.col))
         line = self.row2Line(self.row)
         if self.row == self.bgnRow(line):
             if line == 0: self.moveTo(row=self.endRow(self.numLines - 1), hi=1)
@@ -824,7 +826,7 @@ class Tabs(object):
     
     def movePageDown(self, uicKey=None, dbg=None):
         '''Move cursor to last row on current line wrapping to first row on next line or first line'''
-        if dbg or self.dbgMove: self.printLineInfo('movePageDown({}, {})'.format(self.row, self.col))
+        if dbg or self.dbgMove: self.dumpLineInfo('movePageDown({}, {})'.format(self.row, self.col))
         line = self.row2Line(self.row)
         if self.row == self.endRow(line):
             if line == self.numLines - 1: self.moveTo(row=self.bgnRow(0), hi=1)
@@ -943,7 +945,7 @@ class Tabs(object):
                     self.prints('I', r, self.editModeCol, self.styles['MODES'])
                 elif self.editMode == self.EDIT_MODES['REPLACE']:
                     self.prints('R', r, self.editModeCol, self.styles['MODES'])
-            if dbg: self.printLineInfo('toggleEditMode({}, {})'.format(self.row, self.col))
+            if dbg: self.dumpLineInfo('toggleEditMode({}, {})'.format(self.row, self.col))
         self.printh('{}: {}'.format(uicKey, self.toggleEditMode.__doc__))
     
     def toggleCursorMode(self, uicKey=None, dbg=1):
@@ -958,7 +960,7 @@ class Tabs(object):
                     self.prints('C', r, self.cursorModeCol, self.styles['MODES'])
                 elif self.cursorMode == self.CURSOR_MODES['ARPEGGIO']:
                     self.prints('A', r, self.cursorModeCol, self.styles['MODES'])
-            if dbg: self.printLineInfo('toggleCursorMode({}, {})'.format(self.row, self.col))
+            if dbg: self.dumpLineInfo('toggleCursorMode({}, {})'.format(self.row, self.col))
         self.printh('{}: {}'.format(uicKey, self.toggleCursorMode.__doc__))
     
     def toggleCursorDir(self, uicKey=None, dbg=1):
@@ -972,7 +974,7 @@ class Tabs(object):
                 self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings                                      , self.cursorModeCol, self.cursorDirStyle)
                 self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings + self.NOTES_LEN                     , self.cursorModeCol, self.cursorDirStyle)
                 self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings + self.NOTES_LEN + self.INTERVALS_LEN, self.cursorModeCol, self.cursorDirStyle)
-        if dbg: self.printLineInfo('toggleCursorDir({}) line={} row={} col={}'.format(self.cursorDir, line, self.row, self.col))
+        if dbg: self.dumpLineInfo('toggleCursorDir({}) line={} row={} col={}'.format(self.cursorDir, line, self.row, self.col))
         self.printh('{}: {}'.format(uicKey, self.toggleCursorDir.__doc__))
     
     def toggleEnharmonic(self, uicKey=None):
@@ -992,7 +994,7 @@ class Tabs(object):
             self.ROW_OFF = 1
             self.row -= 1
         self.setLastRow()
-        self.printLineInfo('toggleDisplayLabels({}) line={} row={} col={}'.format(self.displayLabels, line, self.row, self.col))
+        self.dumpLineInfo('toggleDisplayLabels({}) line={} row={} col={}'.format(self.displayLabels, line, self.row, self.col))
         if pt: 
             self.printTabs(cs=1)
             self.printh('{}: {}'.format(uicKey, self.toggleDisplayLabels.__doc__))
@@ -1008,7 +1010,7 @@ class Tabs(object):
             self.row -= line * self.NOTES_LEN
             self.NOTES_LEN = 0
         self.setLastRow()
-        self.printLineInfo('toggleDisplayNotes({}) line={} row={} col={}'.format(self.displayNotes, line, self.row, self.col))
+        self.dumpLineInfo('toggleDisplayNotes({}) line={} row={} col={}'.format(self.displayNotes, line, self.row, self.col))
         if pt: 
             self.printTabs(cs=1)
             self.printh('{}: {}'.format(uicKey, self.toggleDisplayNotes.__doc__))
@@ -1024,7 +1026,7 @@ class Tabs(object):
             self.row -= line * self.INTERVALS_LEN
             self.INTERVALS_LEN = 0
         self.setLastRow()
-        self.printLineInfo('toggleDisplayIntervals({} {}) line={} row={} col={}'.format(self.displayIntervals, pt, line, self.row, self.col))
+        self.dumpLineInfo('toggleDisplayIntervals({} {}) line={} row={} col={}'.format(self.displayIntervals, pt, line, self.row, self.col))
         if pt: 
             self.printTabs(cs=1)
             self.printh('{}: {}'.format(uicKey, self.toggleDisplayIntervals.__doc__))
@@ -1042,7 +1044,7 @@ class Tabs(object):
             self.row -= line * self.CHORDS_LEN
             self.CHORDS_LEN = 0
         self.setLastRow()
-        self.printLineInfo('toggleDisplayChords({}) line={} row={} col={}'.format(self.displayChords, line, self.row, self.col))
+        self.dumpLineInfo('toggleDisplayChords({}) line={} row={} col={}'.format(self.displayChords, line, self.row, self.col))
         if pt: 
             self.printTabs(cs=1)
             self.printh('{}: {}'.format(uicKey, self.toggleDisplayChords.__doc__))
@@ -1118,8 +1120,9 @@ class Tabs(object):
         self.prints(self.hiliteRowNum, self.row, self.editModeCol, self.styles['BRIGHT'] + self.styles['TABS'])
         self.resetPos()
     
-    def findMaxFret(self):
+    def getMaxFretInfo(self, dbg=1):
         maxFN = 0
+        if dbg: print('getMaxFretInfo() len(tabs)={} len(tabs[0])={}'.format(len(self.tabs), len(self.tabs[0])), file=Tabs.DBG_FILE)
         for r in range(0, len(self.tabs)):
             for c in range(0, len(self.tabs[r])):
                 tab = self.tabs[r][c]
@@ -1127,8 +1130,16 @@ class Tabs(object):
                     currFN = self.getFretNum(tab)
                     if currFN > maxFN:
                         maxFN = currFN
-        print('findMaxFret() maxFN={}'.format(maxFN), file=Tabs.DBG_FILE)
-        return self.getFretByte(maxFN)
+                        self.maxFretInfo['MAX'], self.maxFretInfo['LINE'], self.maxFretInfo['STR'], self.maxFretInfo['COL'] = self.getFretByte(maxFN), self.colIndex2Line(c), self.indices2Row(r, c)-1, self.index2Col(c)
+                        print('getMaxFretInfo() r={} c={} tab={}({}) maxFN={}'.format(r, c, tab, chr(tab), maxFN), file=Tabs.DBG_FILE)
+        self.dumpMaxFretInfo('getMaxFretInfo()')
+    
+    def dumpMaxFretInfo(self, reason):
+        print('dumpMaxFretInfo() {} max={}({}) line={} string={} col={}'.format(reason, self.maxFretInfo['MAX'], chr(self.maxFretInfo['MAX']), self.maxFretInfo['LINE']+1, self.maxFretInfo['STR'], self.maxFretInfo['COL']-2), file=Tabs.DBG_FILE)
+    
+    def printMaxFretInfo(self, uicKey=None):
+        '''Print max fret info'''
+        self.printh('{}: {} max={}({}) line={} string={} col={}'.format(uicKey, self.printMaxFretInfo.__doc__, self.maxFretInfo['MAX'], chr(self.maxFretInfo['MAX']), self.maxFretInfo['LINE']+1, self.maxFretInfo['STR'], self.maxFretInfo['COL']-2))
     
     def goTo(self, uicKey=None):
         '''Go to col specified by user numeric input of up to 3 chars terminated by space char [123 ]'''
@@ -1172,14 +1183,14 @@ class Tabs(object):
         print('setCapo({}, {}) c={}({}) prevCapo={} check isFret(c) BGN'.format(self.row, self.col, ord(c), c, self.capo), file=Tabs.DBG_FILE)
         if Tabs.isFret(c):
             capFN = self.getFretNum(ord(c))
-            maxFN = self.getFretNum(self.maxFret)
-            print('setCapo() c={}({}) maxFret={}({}) check capFN:{} + maxFN:{} <= {}?'.format(ord(c), c, self.maxFret, chr(self.maxFret), capFN, maxFN, self.NUM_FRETS), file=Tabs.DBG_FILE)
+            maxFN = self.getFretNum(self.maxFretInfo['MAX'])
+            print('setCapo() c={}({}) maxFret={}({}) check capFN:{} + maxFN:{} <= {}?'.format(ord(c), c, self.maxFretInfo['MAX'], chr(self.maxFretInfo['MAX']), capFN, maxFN, self.NUM_FRETS), file=Tabs.DBG_FILE)
             if capFN + maxFN > self.NUM_FRETS:
-                info = 'setCapo() c={}({}) capo={} capFN:{} + maxFN:{} > {}!  maxFret={}({})'.format(ord(c), c, self.capo, capFN, maxFN, self.NUM_FRETS, self.maxFret, chr(self.maxFret))
+                info = 'setCapo() c={}({}) capo={} capFN:{} + maxFN:{} > {}!  maxFret={}({})'.format(ord(c), c, self.capo, capFN, maxFN, self.NUM_FRETS, self.maxFretInfo['MAX'], chr(self.maxFretInfo['MAX']))
                 self.printe(info)
             else:
                 self.capo = ord(c)
-                print('setCapo() c={}({}) capo={} capFN={} maxFret={}({}) maxFN={} setting capo'.format(ord(c), c, self.capo, capFN, self.maxFret, chr(self.maxFret), maxFN), file=Tabs.DBG_FILE)
+                print('setCapo() c={}({}) capo={} capFN={} maxFret={}({}) maxFN={} setting capo'.format(ord(c), c, self.capo, capFN, self.maxFretInfo['MAX'], chr(self.maxFretInfo['MAX']), maxFN), file=Tabs.DBG_FILE)
                 self.printTabs()
     
     def setTab(self, tab, dbg=1):
@@ -1242,6 +1253,7 @@ class Tabs(object):
                     for r in range(self.numStrings):
                         self.wrapPrintInterval(r, cc, dbg=dbg)
         self.moveCursor()
+        self.getMaxFretInfo()
         self.dumpTabs('setTab() end')
     
     def deleteTab(self, uicKey=None, back=0, dbg=0):
@@ -1266,6 +1278,7 @@ class Tabs(object):
             self.moveCursor(row=row, col=col, back=back)
             if back == 1: return
             self._deleteTab(row, col)
+        self.getMaxFretInfo()
         self.printStatus()
         self.printh('{}: {}'.format(uicKey, self.deleteTab.__doc__))
     
@@ -1308,19 +1321,20 @@ class Tabs(object):
                 if c in self.chordInfo:
                     print('eraseTabs() deleting chordInfo[{}]={}'.format(c, self.chordInfo[c]), file=Tabs.DBG_FILE)
                     del self.chordInfo[c]
-        self.maxFret = ord('0')
+        self.maxFretInfo['MAX'] = ord('0')
         self.printTabs()
         self.printh('{}: {}'.format(uicKey, self.eraseTabs.__doc__))
     
     def resetTabs(self, uicKey=None):
         '''Reset all tabs to their initial state at start up by re-reading the data file'''
         self.init()
+        self.getMaxFretInfo()
         self.printh('{}: {}'.format(uicKey, self.resetTabs.__doc__))
     
     def saveTabs(self, uicKey=None):
         '''Save all tabs and ANSI codes to output file 'cat' cmd can be used to view the file'''
         with open(self.outName, 'w') as self.outFile:
-            self.printLineInfo('saveTabs({}, {}) bgn writing tabs to file'.format(self.row, self.col))
+            self.dumpLineInfo('saveTabs({}, {}) bgn writing tabs to file'.format(self.row, self.col))
             Tabs.clearScreen(file=self.outFile, reason='saveTabs()')
             print(self.cmdLine, file=self.outFile)
             print('cmdLineArgs:', file=self.outFile)
@@ -1333,7 +1347,7 @@ class Tabs(object):
             self.moveTo(hi=1)
             print(Tabs.CSI + self.styles['NORMAL'] + self.styles['CONS'] + Tabs.CSI + '{};{}H'.format(self.lastRow, 1), end='', file=self.outFile) # set the file cursor to the front of the next row (NUM_STR+r+1, 0) and set the foreground and background color
             self.dumpTabs('saveTabs(h)', h=1)
-            self.printLineInfo('saveTabs({}, {}) end writing tabs to file'.format(self.row, self.col))
+            self.dumpLineInfo('saveTabs({}, {}) end writing tabs to file'.format(self.row, self.col))
         self.outFile = None
         self.printTabs()
         self.printh('{}: {}'.format(uicKey, self.saveTabs.__doc__))
@@ -1485,6 +1499,7 @@ class Tabs(object):
         self.selectCols = []
         if shifted:
             self.printTabs()
+        self.maxFretInfo['MAX'] += shift
     
     def copySelectTabs(self, uicKey=None, arpg=None):
         '''Copy selected tabs, arpg=1 xform a chord to an arpeggio, arpg=0 xform an arpeggio to a chord'''
@@ -1536,7 +1551,7 @@ class Tabs(object):
     
     def deleteSelectTabs(self, uicKey=None, rmv=1):
         '''Delete selected tabs and all corresponding notes, intervals, and chords, resets all tabs to [-]'''
-        self.printLineInfo('deleteSelectTabs({}, {}) rmv={} selectCols={}'.format(self.row, self.col, rmv, self.selectCols))
+        self.dumpLineInfo('deleteSelectTabs({}, {}) rmv={} selectCols={}'.format(self.row, self.col, rmv, self.selectCols))
         self.selectCols.sort(key = int, reverse = True)
         for c in range(0, len(self.selectCols)):
             print('deleteSelectTabs() c={}'.format(c), file=Tabs.DBG_FILE)
@@ -1545,7 +1560,7 @@ class Tabs(object):
             self.selectCols = []
         if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
             self.chordsObj.printChords()
-        self.maxFret = self.findMaxFret()
+        self.getMaxFretInfo()
         self.printh('{}: {}'.format(uicKey, self.deleteSelectTabs.__doc__))
     
     def cutSelectTabs(self, uicKey=None, arpg=None):
@@ -1586,6 +1601,7 @@ class Tabs(object):
             for r in range(0, self.numStrings):
                 self._deleteTab(row + r, col, rmv=rmv)
         if dbg: self.dumpTabs('deleteTabsCol({}, {}) col={} end: '.format(self.row, self.col, col))
+        self.getMaxFretInfo()
     
     def _initPasteInfo(self):
         nc, rangeError, row, col, rr, cc = 0, 0, self.row, self.col, 0, 0
@@ -1700,6 +1716,7 @@ class Tabs(object):
             self.selectTabs, self.selectHTabs, self.selectCols, self.selectRows = [], [], [], []
         self.arpeggiate, self.selectFlag = 0, 0
         self.dumpTabs('pasteSelectTabs({},{}) end row={}, col={}'.format(self.arpeggiate, self.cursorDir, row, col))
+        self.getMaxFretInfo()
         self.printh('{}: {}'.format(uicKey, self.pasteSelectTabs.__doc__))
     
     def dumpTabs(self, reason='', h=None):
@@ -1719,15 +1736,15 @@ class Tabs(object):
                         print(chr(self.htabs[r][c + line * self.numTabsPerStringPerLine]), end='', file=Tabs.DBG_FILE)
                 print('', file=Tabs.DBG_FILE)
     
-    def printLineInfo(self, reason):
-        print('{} numStrings={}, numLines={}, lineDelta={},'.format(reason, self.numStrings, self.numLines, self.lineDelta()), end='', file=Tabs.DBG_FILE)
+    def dumpLineInfo(self, reason):
+        print('{} maxFN={} numStrings={} numLines={} lineDelta={}'.format(reason, chr(self.maxFretInfo['MAX']), self.numStrings, self.numLines, self.lineDelta()), end='', file=Tabs.DBG_FILE)
         for line in range(0, self.numLines):
-            print(' bgnRow{}={}, endRow{}={},'.format(line, self.bgnRow(line), line, self.endRow(line)), end='', file=Tabs.DBG_FILE)
-        print(' ROW_OFF={} lastRow={}, bgnCol={}, endCol={}, line={}'.format(self.ROW_OFF, self.lastRow, self.bgnCol(), self.endCol(), self.row2Line(self.row)), file=Tabs.DBG_FILE)
+            print(' bgnRow{}={} endRow{}={}'.format(line, self.bgnRow(line), line, self.endRow(line)), end='', file=Tabs.DBG_FILE)
+        print(' ROW_OFF={} lastRow={} bgnCol={} endCol={} line={}'.format(self.ROW_OFF, self.lastRow, self.bgnCol(), self.endCol(), self.row2Line(self.row)), file=Tabs.DBG_FILE)
     
     def printTabs(self, uicKey=None, cs=0):
         '''Print all labels, tabs, notes, intervals, and chords for every string on every line'''
-        self.printLineInfo('printTabs(cs={}) outFile={} bgn'.format(cs, self.outFile))
+        self.dumpLineInfo('printTabs(cs={}) bgn outFile={}'.format(cs, self.outFile))
         if cs: Tabs.clearScreen(reason='printTabs()')
         self.printFileMark('<BGN_TABS_SECTION>')
         for line in range(self.numLines):
@@ -1756,7 +1773,7 @@ class Tabs(object):
         if self.row > 0 and self.col > 0:
             print(Tabs.CSI + self.styles['NORMAL'] + self.styles['CONS'] + Tabs.CSI + '{};{}H'.format(self.row, self.col), end='') # restore the console cursor to the given position (row, col) and set the foreground and background color
         self.printStatus()
-        self.printLineInfo('printTabs(cs={}) outFile={} end'.format(cs, self.outFile))
+        self.dumpLineInfo('printTabs(cs={}) end outFile={}'.format(cs, self.outFile))
         self.printh('{}: {}'.format(uicKey, self.printTabs.__doc__))
     
     def printFileMark(self, mark):
