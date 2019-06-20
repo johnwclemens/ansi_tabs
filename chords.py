@@ -51,10 +51,13 @@ class Chords(object):
                 self.tabsObj.prints(chr(self.tabsObj.capo), r + row, self.tabsObj.cursorModeCol, self.tabsObj.cursorDirStyle)
         for c in range(self.tabsObj.numTabsPerString):
             self.eraseChord(c, rmv=0)
+            noteCount = 0
             for r in range(self.tabsObj.numStrings):
                 if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][c])):
-                    self.printChord(c=c)
-                    break
+                    noteCount += 1
+                    if noteCount > 1:
+                        self.printChord(c=c)
+                        break
             print(file=self.tabsObj.outFile)
         self.tabsObj.printFileMark('<END_CHORDS_SECTION>')
         return self.chordNames

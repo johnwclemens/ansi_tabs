@@ -1173,13 +1173,13 @@ class Tabs(object):
         if Tabs.isFret(c):
             capFN = self.getFretNum(ord(c))
             maxFN = self.getFretNum(self.maxFret)
-            print('setCapo() c={}({}) chr(mf)={} maxFret={} check capFN:{} + maxFN:{} <= {}?'.format(ord(c), c, chr(self.maxFret), self.maxFret, capFN, maxFN, self.NUM_FRETS), file=Tabs.DBG_FILE)
+            print('setCapo() c={}({}) maxFret={}({}) check capFN:{} + maxFN:{} <= {}?'.format(ord(c), c, self.maxFret, chr(self.maxFret), capFN, maxFN, self.NUM_FRETS), file=Tabs.DBG_FILE)
             if capFN + maxFN > self.NUM_FRETS:
-                info = 'setCapo() c={}({}) capo={} capFN:{} + maxFN:{} > {}!  chr(mf)={} maxFret={}'.format(ord(c), c, self.capo, capFN, maxFN, self.NUM_FRETS, chr(self.maxFret), self.maxFret)
+                info = 'setCapo() c={}({}) capo={} capFN:{} + maxFN:{} > {}!  maxFret={}({})'.format(ord(c), c, self.capo, capFN, maxFN, self.NUM_FRETS, self.maxFret, chr(self.maxFret))
                 self.printe(info)
             else:
-                self.capo = ord(c)            
-                print('setCapo() c={}({}) capo={} capFN={} chr(mf)={} maxFret={} maxFN={} setting capo'.format(ord(c), c, self.capo, capFN, chr(self.maxFret), self.maxFret, maxFN), file=Tabs.DBG_FILE)
+                self.capo = ord(c)
+                print('setCapo() c={}({}) capo={} capFN={} maxFret={}({}) maxFN={} setting capo'.format(ord(c), c, self.capo, capFN, self.maxFret, chr(self.maxFret), maxFN), file=Tabs.DBG_FILE)
                 self.printTabs()
     
     def setTab(self, tab, dbg=1):
@@ -1977,7 +1977,7 @@ class Tabs(object):
         if hinfo: self.printh('{}: {}'.format(uicKey, self.printStatus.__doc__), status=1)
         else:     self.resetPos()
     
-    def printFretStatus(self, tab, r, c, dbg=0):
+    def printFretStatus(self, tab, r, c, dbg=1):
         s, ss = r + 1, self.getOrdSfx(r + 1)
         f, fs = self.getFretNum(ord(tab)), self.getOrdSfx(self.getFretNum(ord(tab)))
         statStyle, fretStyle, typeStyle, noteStyle = Tabs.CSI + self.styles['STATUS'], Tabs.CSI + self.styles['TABS'], Tabs.CSI + self.styles['TABS'], Tabs.CSI + self.styles['TABS']
@@ -2026,6 +2026,7 @@ class Tabs(object):
         print(tabStyle + '{}{}'.format(s, ss) + statStyle + ' string ' + tabStyle + 'muted' + statStyle + ' not played', end='', file=self.outFile)
     
     def printChordStatus(self, r, c, dbg=1):
+        if dbg: self.dumpChordInfo(self.chordInfo, reason='printChordStatus() CHECKING IF c={} IN chordInfo'.format(c))
         if c in self.chordInfo:
             if dbg: self.dumpChordInfo(self.chordInfo, reason='printChordStatus()'.format(c))
             print('printChordStatus() c={} chordNames={} chordAliases={} selectChords={}'.format(c, self.chordsObj.chordNames, self.chordAliases, self.selectChords), file=Tabs.DBG_FILE)
@@ -2240,7 +2241,7 @@ class Tabs(object):
         else:                    return 'th'
     
     @staticmethod
-    def clearRow(arg=2, row=None, col=None, file=None, dbg=0): # arg=0: cursor to end of line, arg=1: begin of line to cursor, arg=2: entire line
+    def clearRow(arg=2, row=None, col=None, file=None, dbg=1): # arg=0: cursor to end of line, arg=1: begin of line to cursor, arg=2: entire line
         if dbg: print('clearRow() arg={} row={}, col={}'.format(arg, row, col), file=Tabs.DBG_FILE)
         if row is not None and col is not None:
             print(Tabs.CSI + '{};{}H'.format(row, col), end='', file=file)
