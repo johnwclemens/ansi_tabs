@@ -1522,7 +1522,7 @@ class Tabs(object):
         if arpg is None: size, nc = nsc,           nsc
         elif  arpg == 1: size, nc = nsc * nsr,     nsc
         elif  arpg == 0: size, nc = int(nsc / ns), int(nsc / ns)
-        self.printSelectTabs(reason='copySelectTabs()', cols=1)
+        self.dumpSelectTabs(reason='copySelectTabs()', cols=1)
         for r in range(0, nsr):
             self.selectTabs.append(bytearray([ord(' ')] * size))
             self.selectHTabs.append(bytearray([ord('0')] * size))
@@ -1544,7 +1544,7 @@ class Tabs(object):
                 self.selectHTabs[r][cst] = self.htabs[rr][ct]
                 print('copySelectTabs() selectTabs[{}][{}]={}, tabs[{}][{}]={}'.format(r, cst, chr(self.selectTabs[r][cst]), rr, ct, chr(self.tabs[rr][ct])), file=Tabs.DBG_FILE)
             self.copyColInfo(ct)
-            self.printSelectTabs(reason='copySelectTabs()')
+            self.dumpSelectTabs(reason='copySelectTabs()')
         self.printh('{}: {}'.format(uicKey, self.copySelectTabs.__doc__))
     
     def copyColInfo(self, c):
@@ -1582,8 +1582,8 @@ class Tabs(object):
         self.deleteSelectTabs(rmv=0)
         self.printh('{}: {}'.format(uicKey, self.cutSelectTabs.__doc__))
     
-    def printSelectTabs(self, reason='', cols=0):
-        print('printSelectTabs(cols={}, reason={}) len(selectCols)={}, len(selectTabs)={}'.format(cols, reason, len(self.selectCols), len(self.selectTabs)), file=Tabs.DBG_FILE)
+    def dumpSelectTabs(self, reason='', cols=0):
+        print('dumpSelectTabs(cols={}, reason={}) len(selectCols)={}, len(selectTabs)={}'.format(cols, reason, len(self.selectCols), len(self.selectTabs)), file=Tabs.DBG_FILE)
         if cols:
             for c in range(0, len(self.selectCols)):
                 print('    selectCols[{}]={}'.format(c, self.selectCols[c]), file=Tabs.DBG_FILE)
@@ -1887,7 +1887,7 @@ class Tabs(object):
             imap = self.selectImaps[imapstr]
             if r == 0:
                 print('wrapPrintInterval({:>3} {}) imap={}        FOUND imapstr={} in'.format(c, index, imap, imapstr), end=' ', file=Tabs.DBG_FILE)
-                self.printSelectImaps()
+                self.dumpSelectImaps()
                 print('wrapPrintInterval({:>3} {}) imap={} SWAP MAP K&V imapstr={}'.format(c, index, imap, self.imap2String(imap)), file=Tabs.DBG_FILE)
         im = {imap[k]:k for k in imap}
         tab = self.tabs[r][c]
@@ -2104,13 +2104,13 @@ class Tabs(object):
             print('selectChord(c={}) index={} selectChords[{}]={}'.format(c, index, name, self.selectChords[name]), file=Tabs.DBG_FILE)
             im = self.chordInfo[c]['LIMAP'][index]
             print('selectChord(c={}) adding key={} : val={} to '.format(c, self.imap2String(im), imap), end='', file=Tabs.DBG_FILE)
-            self.printSelectImaps()
+            self.dumpSelectImaps()
             self.selectImaps[self.imap2String(im)] = imap
-            self.printSelectImaps()
+            self.dumpSelectImaps()
             if pt: self.printTabs()
         self.printh('{}: {}'.format(uicKey, self.selectChord.__doc__))
     
-    def printSelectImaps(self):
+    def dumpSelectImaps(self):
         print('selectImaps={{'.format(), end=' ', file=Tabs.DBG_FILE)
         for k in self.selectImaps:
             print('{} : {}'.format(k, self.selectImaps[k]), end=', ', file=Tabs.DBG_FILE)
@@ -2233,8 +2233,8 @@ class Tabs(object):
     def getHarmonicNote(self, str, tab):
         '''Return harmonic note object given string number and tab fret number byte'''
         fret = self.getFretNum(tab)
-        hfret = self.HARMONIC_FRETS[fret]
-        chfret = hfret + self.getFretNum(self.capo)
+        chfret = self.HARMONIC_FRETS[fret]
+#        chfret = hfret + self.getFretNum(self.capo)
         n = notes.Note(self.getNoteIndex(str, chfret), self.enharmonic)
         print('getHarmonicNote({}, {}) f={}, hf={}, chf={}, n.i={}, n.n={}, n.o={})'.format(str, tab, fret, hfret, chfret, n.index, n.name, n.getOctaveNum()), file=Tabs.DBG_FILE)
         return n
