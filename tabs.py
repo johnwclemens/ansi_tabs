@@ -2161,16 +2161,19 @@ class Tabs(object):
         return chordName, imap
     
     def printErrorHistory(self, uicKey=None, back=1, dbg=1):
-        '''Display error history.'''
-        if back == 1: iBgn, iEnd, iDelta = len(self.errors)-1, -1, -1
-        else:         iBgn, iEnd, iDelta = 0, len(self.errors), 1
+        '''Display error history'''
+        if back == 1: iBgn, iEnd, iDelta, dir = len(self.errors)-1, -1, -1, 'BACKWARD'
+        else:         iBgn, iEnd, iDelta, dir = 0, len(self.errors), 1, 'FORWARD'
+        if self.errorsIndex == None:
+            self.printh('{}: {} {} No error history to display - Press ? for help'.format(uicKey, self.printErrorHistory.__doc__, dir), col=1, hist=1)
+            return
         if dbg:
             print('printErrorHistory({} {} {}) back={} errorsIndex={} errors[len={}]=['.format(iBgn, iEnd, iDelta, back, self.errorsIndex, len(self.errors)), file=Tabs.DBG_FILE)
             for i in range(iBgn, iEnd, iDelta):
                 print('    [{}] {}'.format(i, self.errors[i]), file=Tabs.DBG_FILE)
             print(']', file=Tabs.DBG_FILE)
         print('printErrorHistory() [{}] {}'.format(self.errorsIndex, self.errors[self.errorsIndex]), file=Tabs.DBG_FILE)
-        self.printh('{}: {} [{}] {}'.format(uicKey, self.printErrorHistory.__doc__, self.errorsIndex, self.errors[self.errorsIndex]), col=1, hist=1)
+        self.printh('{}: {} {} [{}] {}'.format(uicKey, self.printErrorHistory.__doc__, dir, self.errorsIndex, self.errors[self.errorsIndex]), col=1, hist=1)
         if back == 1:
             self.errorsIndex -= 1
             if self.errorsIndex == -1:               self.errorsIndex = len(self.errors) - 1
@@ -2179,16 +2182,19 @@ class Tabs(object):
             if self.errorsIndex == len(self.errors): self.errorsIndex = 0
     
     def printCmdHistory(self, uicKey=None, back=1, dbg=1):
-        '''Display cmd history.'''
-        if back == 1: iBgn, iEnd, iDelta = len(self.cmds)-1, -1, -1
-        else:         iBgn, iEnd, iDelta = 0, len(self.cmds), 1
+        '''Display cmd history'''
+        if back == 1: iBgn, iEnd, iDelta, dir = len(self.cmds)-1, -1, -1, 'BACKWARD'
+        else:         iBgn, iEnd, iDelta, dir = 0, len(self.cmds), 1, 'FORWARD'
+        if self.cmdsIndex == None:
+            self.printh('{}: {} {} No command history to display - Press ? for help'.format(uicKey, self.printCmdHistory.__doc__, dir), col=1, hist=1)
+            return
         if dbg:
             print('printCmdHistory({} {} {}) back={} cmdsIndex={} cmds[len={}]=['.format(iBgn, iEnd, iDelta, back, self.cmdsIndex, len(self.cmds)), file=Tabs.DBG_FILE)
             for i in range(iBgn, iEnd, iDelta):
                 print('    [{}] {}'.format(i, self.cmds[i]), file=Tabs.DBG_FILE)
             print(']', file=Tabs.DBG_FILE)
         print('printCmdHistory() [{}] {}'.format(self.cmdsIndex, self.cmds[self.cmdsIndex]), file=Tabs.DBG_FILE)
-        self.printh('{}: {} [{}] {}'.format(uicKey, self.printCmdHistory.__doc__, self.cmdsIndex, self.cmds[self.cmdsIndex]), col=1, hist=1)
+        self.printh('{}: {} {} [{}] {}'.format(uicKey, self.printCmdHistory.__doc__, dir, self.cmdsIndex, self.cmds[self.cmdsIndex]), col=1, hist=1)
         if back == 1:
             self.cmdsIndex -= 1
             if self.cmdsIndex == -1:             self.cmdsIndex = len(self.cmds) - 1
