@@ -364,7 +364,6 @@ class Tabs(object):
     
     def initText(self, FG, BG):
         return '3' + self.COLORS[FG] + ';4' + self.COLORS[BG] + 'm'
-#        return '3' + FG + ';4' + BG + 'm'
     
     def initStrings(self, alias=None, spelling=None):
         print('initStrings(alias={}, spelling={})'.format(alias, spelling), file=Tabs.DBG_FILE)
@@ -692,7 +691,7 @@ class Tabs(object):
             elif b == 8:   self.uiCmds['Ctrl H Backspace'](uicKey='Ctrl H Backspace')   # deletePrevTab()          # N/A
             elif b == 9:   self.uiCmds['Ctrl I Tab']      (uicKey='Ctrl I or Tab')      # toggleCursorDir()        # cmd line opt -i
             elif b == 10:  self.uiCmds['Ctrl J']          (uicKey='Ctrl J')             # shiftSelectTabs()        # N/A
-            elif b == 11:  self.uiCmds['Ctrl K']          (uicKey='Ctrl K', dbg=2)      # printChord()             # N/A
+            elif b == 11:  self.uiCmds['Ctrl K']          (uicKey='Ctrl K', dbg=3)      # printChord()             # N/A
             elif b == 12:  self.uiCmds['Ctrl L']          (uicKey='Ctrl L', cs=1)       # goToLastTab()            # cmd line opt -l
             elif b == 13:  self.uiCmds['Ctrl M Enter']    (uicKey='Ctrl M or Enter')    # toggleCursorMode()       # cmd line opt -m
             elif b == 14:  self.uiCmds['Ctrl N']          (uicKey='Ctrl N')             # toggleDisplayNotes()     # cmd line opt -n
@@ -2164,10 +2163,10 @@ class Tabs(object):
     def printErrorHistory(self, uicKey=None, back=1, dbg=1):
         '''Display error history.'''
         if back == 1: iBgn, iEnd, iDelta = len(self.errors)-1, -1, -1
-        else:         iBgn, iEnd, iDelta = 0, len(self.errors)-1, 1
+        else:         iBgn, iEnd, iDelta = 0, len(self.errors), 1
         if dbg:
             print('printErrorHistory({} {} {}) back={} errorsIndex={} errors[len={}]=['.format(iBgn, iEnd, iDelta, back, self.errorsIndex, len(self.errors)), file=Tabs.DBG_FILE)
-            for i in range(len(self.errors)-1, -1, -1):
+            for i in range(iBgn, iEnd, iDelta):
                 print('    [{}] {}'.format(i, self.errors[i]), file=Tabs.DBG_FILE)
             print(']', file=Tabs.DBG_FILE)
         print('printErrorHistory() [{}] {}'.format(self.errorsIndex, self.errors[self.errorsIndex]), file=Tabs.DBG_FILE)
@@ -2182,7 +2181,7 @@ class Tabs(object):
     def printCmdHistory(self, uicKey=None, back=1, dbg=1):
         '''Display cmd history.'''
         if back == 1: iBgn, iEnd, iDelta = len(self.cmds)-1, -1, -1
-        else:         iBgn, iEnd, iDelta = 0, len(self.cmds)-1, 1
+        else:         iBgn, iEnd, iDelta = 0, len(self.cmds), 1
         if dbg:
             print('printCmdHistory({} {} {}) back={} cmdsIndex={} cmds[len={}]=['.format(iBgn, iEnd, iDelta, back, self.cmdsIndex, len(self.cmds)), file=Tabs.DBG_FILE)
             for i in range(iBgn, iEnd, iDelta):
