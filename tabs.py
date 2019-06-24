@@ -136,7 +136,7 @@ class Tabs(object):
         self.editMode = self.EDIT_MODES['REPLACE']                 # select insert mode as insert or replace
         self.cursorMode = self.CURSOR_MODES['MELODY']              # select cursor mode as melody, arpeggio or chord
         self.cursorDirStyle = self.styles['NUT_DN']                # select cursor direction as up or down (displayed on capo/nut)
-#        self.testList()
+        self.testAscii()
         
         self.cmdLine = ''
         for arg in sys.argv:
@@ -193,6 +193,7 @@ class Tabs(object):
             print('init() mods=\{ ', file=Tabs.DBG_FILE)
             for k in self.mods:
                 print('{}:{}, '.format(k, self.mods[k]), file=Tabs.DBG_FILE)
+            if 'help' in self.argMap and len(self.argMap['help']) == 0: self.printHelpInfo(ui=0)      # display the help info
             if '?' in self.argMap and len(self.argMap['?']) == 0: self.printHelpInfo(ui=0)            # display the help info
             if 'h' in self.argMap and len(self.argMap['h']) == 0: self.printHelpInfo(ui=0)            # display the help info
             if 'F' in self.argMap and len(self.argMap['F']) == 0: self.toggleEnharmonic()             # enharmonic notes displayed as sharp or flat
@@ -267,6 +268,10 @@ class Tabs(object):
         b = [e for e in reversed(a)]
         print('testList() b={}'.format(b), file=Tabs.DBG_FILE)
         exit()
+    
+    def testAscii(self):
+        print('testAscii()', file=Tabs.DBG_FILE)
+        for i in range(0, 128): print('    {}({})'.format(i, chr(i)), file=Tabs.DBG_FILE)
     
     def testAnsi(self):
         print(Tabs.CSI + self.styles['TABS']       + Tabs.CSI + '{};{}H{}'.format(1, 1, 'TABS'), file=file)
@@ -481,7 +486,7 @@ class Tabs(object):
                             tmp, htmp, rowStr = self.appendTabs(tmp, htmp, rowStr)
                             tmp.append(data[i + 1])
                             if dbg: print('readTabs({}) {} [{},{}] \'{}\' setting numTabsPerStringPerLine={} tmp=\'{}\''.format(rowStr, cnt, row, col, tab, self.numTabsPerStringPerLine, ''.join([chr(tmp[p]) for p in range(0, len(tmp))])), file=Tabs.DBG_FILE)
-                        elif self.isTab(tab) and self.numTabsPerStringPerLine != 0 and int(col) == self.COL_OFF - 1 + self.numTabsPerStringPerLine:# and len(tmp) > 1 and tmp[1] == '|':
+                        elif self.isTab(tab) and self.numTabsPerStringPerLine != 0 and int(col) == self.COL_OFF - 1 + self.numTabsPerStringPerLine:
                             tmp, htmp, rowStr = self.appendTabs(tmp, htmp, rowStr)
                     else:
                         info = 'readTabs() prior to bgnTabs!'
@@ -586,7 +591,7 @@ class Tabs(object):
         exit(code)
     
     def printHelpInfo(self, uicKey=None, ui=1):
-        '''Print help info ui=1 explicitly call printTabs() else assume it will be called [cmd line opt -h]'''
+        '''Print help info, ui=1 explicitly call printTabs() [cmd line opt -h or -? or --help]'''
         self.clearScreen()
         self.printHelpSummary()
         self.printHelpUiCmds()
@@ -615,7 +620,7 @@ class Tabs(object):
         self.registerUiCmd('Ctrl D',              self.deleteSelectTabs)
         self.registerUiCmd('Ctrl E',              self.eraseTabs)
         self.registerUiCmd('Ctrl F',              self.toggleEnharmonic)
-        self.registerUiCmd('Ctrl G',              self.goTo)
+        self.registerUiCmd('Ctrl G',              self.goToCol)
         self.registerUiCmd('Ctrl H Backspace',    self.deletePrevTab)
         self.registerUiCmd('Ctrl I Tab',          self.toggleCursorDir)
         self.registerUiCmd('Ctrl J',              self.shiftSelectTabs)
@@ -687,7 +692,7 @@ class Tabs(object):
             elif b == 4:   self.uiCmds['Ctrl D']          (uicKey='Ctrl D')             # deleteSelectTabs()       # N/A
             elif b == 5:   self.uiCmds['Ctrl E']          (uicKey='Ctrl E')             # eraseTabs()              #?cmd line opt?
             elif b == 6:   self.uiCmds['Ctrl F']          (uicKey='Ctrl F')             # toggleEnharmonic()       # cmd line opt -F?
-            elif b == 7:   self.uiCmds['Ctrl G']          (uicKey='Ctrl G')             # goTo()                   #?cmd line opt -g?
+            elif b == 7:   self.uiCmds['Ctrl G']          (uicKey='Ctrl G')             # goToCol()                #?cmd line opt -g?
             elif b == 8:   self.uiCmds['Ctrl H Backspace'](uicKey='Ctrl H Backspace')   # deletePrevTab()          # N/A
             elif b == 9:   self.uiCmds['Ctrl I Tab']      (uicKey='Ctrl I or Tab')      # toggleCursorDir()        # cmd line opt -i
             elif b == 10:  self.uiCmds['Ctrl J']          (uicKey='Ctrl J')             # shiftSelectTabs()        # N/A
@@ -744,8 +749,9 @@ class Tabs(object):
                 elif b == 116: self.uiCmds['Ctrl Right Arrow'] (uicKey='Ctrl Right Arrow')        # selectCol()            # N/A
                 elif b == 141: self.uiCmds['Ctrl Up Arrow']    (uicKey='Ctrl Up Arrow', up=1)     # selectRow()            # N/A
                 elif b == 145: self.uiCmds['Ctrl Down Arrow']  (uicKey='Ctrl Down Arrow')         # selectRow()            # N/A
-                else:          self.printe('unsupported Escape Cmd: {}:{}'.format(chr(b), b))
-            else:              self.printe('unsupported Cmd Key: {}'.format(b))
+                else:          self.printe('unsupported Escape Cmd: {}({})'.format(b, chr(b)))
+            elif 0 <= b <= 127: self.printe('unsupported Cmd Key: {}({})'.format(b, chr(b)))
+            else: self.printe('unsupported Cmd Key: {}'.format(b))
     
     def resetPos(self):
         print(Tabs.CSI + '{};{}H'.format(self.row, self.col), end='')
@@ -1152,9 +1158,9 @@ class Tabs(object):
         '''Print max fret info'''
         self.printh('{}: {} max={}({}) line={} string={} col={}'.format(uicKey, self.printMaxFretInfo.__doc__, self.maxFretInfo['MAX'], chr(self.maxFretInfo['MAX']), self.maxFretInfo['LINE']+1, self.maxFretInfo['STR'], self.maxFretInfo['COL']-2))
     
-    def goTo(self, uicKey=None):
-        '''Go to col specified by user numeric input of up to 3 chars terminated by space char [123 ]'''
-        self.printh('{}: {}'.format(uicKey, self.goTo.__doc__))
+    def goToCol(self, uicKey=None):
+        '''Go to col given by user input of up to 3 digits terminated by space char [12 ][123]'''
+        self.printh('{}: {}'.format(uicKey, self.goToCol.__doc__))
         cc, tmp = '', []
         while len(tmp) < 3:
             cc = getwch()
@@ -1162,7 +1168,9 @@ class Tabs(object):
             else: break
         if len(tmp):
             c = int(''.join(tmp))
-            self.moveTo(col=c + self.COL_OFF - 1, hi=1)
+            if 1 <= c <= self.numTabsPerStringPerLine:
+                self.moveTo(col=c + self.COL_OFF - 1, hi=1)
+            else: self.printe('col [{}] out of range 1-{}'.format(c, self.numTabsPerStringPerLine))
     
     def goToLastTab(self, uicKey=None, cs=0, ll=0):
         '''Go to last tab pos on current line or last line ll=1, of all strings or current string, cs=1'''
@@ -1192,7 +1200,8 @@ class Tabs(object):
         self.printh('{}: {}'.format(uicKey, self.setCapo.__doc__))
         if c is None: c = getwch()
         print('setCapo({}, {}) c={}({}) prevCapo={} check isFret(c) BGN'.format(self.row, self.col, ord(c), c, self.capo), file=Tabs.DBG_FILE)
-        if Tabs.isFret(c):
+        if not Tabs.isFret(c): self.printe('[{}] not a fret num, enter the fret num as a single char [0-9][a-o]'.format(c))
+        else:
             capFN = self.getFretNum(ord(c))
             maxFN = self.getFretNum(self.maxFretInfo['MAX'])
             print('setCapo() c={}({}) maxFret={}({}) check capFN:{} + maxFN:{} <= {}?'.format(ord(c), c, self.maxFretInfo['MAX'], chr(self.maxFretInfo['MAX']), capFN, maxFN, self.NUM_FRETS), file=Tabs.DBG_FILE)
@@ -1639,13 +1648,13 @@ class Tabs(object):
                         print('_initPasteInfo(INSERT) c={} >= cc={} + nc={}, tabs[{}][{}]={}'.format(c, cc, nc, r, c, chr(self.tabs[r][c])), file=Tabs.DBG_FILE)
                     elif self.arpeggiate:
                         self.tabs[r][c] = ord('-')
-                        self.htabs[r][c] = ord('-')
+                        self.htabs[r][c] = ord('0')
                         print('_initPasteInfo(INSERT) c={} < cc={} + nst={}, tabs[{}][{}]={}'.format(c, cc, nst, r, c, chr(self.tabs[r][c])), file=Tabs.DBG_FILE)
         elif self.editMode == self.EDIT_MODES['REPLACE'] and self.arpeggiate and cc + nst < nt:
             for c in range(cc, cc + nst):
                 for r in range(0, nsr):
                     self.tabs[r][c] = ord('-')
-                    self.htabs[r][c] = ord('-')
+                    self.htabs[r][c] = ord('0')
                     print('_initPasteInfo(REPLACE) tabs[{}][{}]={}'.format(r, c, chr(self.tabs[r][c])), file=Tabs.DBG_FILE)
         for c in range(0, nsc):
             if rangeError: break
@@ -2182,7 +2191,7 @@ class Tabs(object):
             if self.errorsIndex == len(self.errors): self.errorsIndex = 0
     
     def printCmdHistory(self, uicKey=None, back=1, dbg=1):
-        '''Display cmd history'''
+        '''Display command history'''
         if back == 1: iBgn, iEnd, iDelta, dir = len(self.cmds)-1, -1, -1, 'BACKWARD'
         else:         iBgn, iEnd, iDelta, dir = 0, len(self.cmds), 1, 'FORWARD'
         if self.cmdsIndex == None:
@@ -2324,6 +2333,7 @@ The command line arg -L moves the cursor to the last tab on the current line of 
 The command line arg -z moves the cursor to the last tab on the last line of the current string  
 The command line arg -Z moves the cursor to the last tab on the last line of all strings  
 The command line arg -h enables display of this help info.  
+The command line arg -? enables display of this help info.  
 
 Tabs are displayed in the tabs section with an optional row to label and highlight the selected tab column.  
 An optional notes section and an optional chords section can also be displayed below the tabs section.  
