@@ -1168,16 +1168,19 @@ class Tabs(object):
             else: break
         if len(tmp):
             c = int(''.join(tmp))
-            if 1 <= c <= self.numTabsPerStringPerLine:
-                self.moveTo(col=c + self.COL_OFF - 1, hi=1)
-            else: self.printe('col [{}] out of range 1-{}'.format(c, self.numTabsPerStringPerLine))
+            col = self.index2Col(c)
+            line = self.colIndex2Line(c)
+            print('goToCol({} {}) c={} col={} line={}'.format(self.row, self.col, c, col, line), file=Tabs.DBG_FILE)
+            row = self.bgnRow(0) + line * self.lineDelta()
+            print('goToCol() row={} bgnRow(0)={} line={} lineDelta={}'.format(row, self.bgnRow(0), line, self.lineDelta()), file=Tabs.DBG_FILE)
+            self.moveTo(row=row, col=col, hi=1)
     
     def goToLastTab(self, uicKey=None, cs=0, ll=0):
         '''Go to last tab pos on current line or last line ll=1, of all strings or current string, cs=1'''
         rr, cc = 0, 0
         if ll: lineBgn, lineEnd = self.numLines,               0
-        else:  lineBgn, lineEnd = self.row2Line(self.row) + 1, self.row2Line(self.row)      # lineBgn - 1
-        if cs: rowBgn,  rowEnd = self.row2Index(self.row),     self.row2Index(self.row) + 1 # rowBgn + 1
+        else:  lineBgn, lineEnd = self.row2Line(self.row) + 1, self.row2Line(self.row)
+        if cs: rowBgn,  rowEnd = self.row2Index(self.row),     self.row2Index(self.row) + 1
         else:  rowBgn,  rowEnd = 0,                            self.numStrings
         print('goToLastTab({}, {}) cs={}, ll={}, rowBng={}, rowEnd={}, lineBgn={}, lineEnd={}'.format(self.row, self.col, cs, ll, rowBgn, rowEnd, lineBgn, lineEnd), file=Tabs.DBG_FILE)
         for line in range(lineBgn, lineEnd, -1):
