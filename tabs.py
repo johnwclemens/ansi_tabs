@@ -231,6 +231,7 @@ class Tabs(object):
                     self.selectChord(pt=0)
             self.printTabs()                                     # display the tabs section, optionally display the notes, intervals, and chords sections and the modes/labels row
             self.moveTo(self.ROW_OFF, self.COL_OFF, hi=1)        # display the status and hilite the first tab character
+            self.printh('{}: {}'.format('?', self.printHelpInfo.__doc__))
     
     def parseStateData(self, data, dataType):
         try:
@@ -641,7 +642,7 @@ class Tabs(object):
         exit(code)
     
     def printHelpInfo(self, uicKey=None, ui=1):
-        '''Print help info, ui=1 explicitly call printTabs() [cmd line opt -h or -? or --help]'''
+        '''Print help info (press the '?' key) [cmd line opt -h or -? or --help]'''
         self.clearScreen()
         self.printHelpSummary()
         self.printHelpUiCmds()
@@ -2232,7 +2233,6 @@ class Tabs(object):
         else: self.chordStatusCol = infoCol
         if dbg: print('printChordInfo() infoCol={} len(chordName)={} len(chordDelim)={} chordStatusCol={}'.format(infoCol, len(chordName), len(chordDelim), self.chordStatusCol), file=Tabs.DBG_FILE)
         print('printChordInfo(r={} c={} m={} tab={}) chordName={}, info={}, infoCol={}, chordStatusCol={}'.format(r, c, m, tab, chordName, info, infoCol, self.chordStatusCol), file=Tabs.DBG_FILE)
-        self.clearRow(arg=0, row=self.lastRow, col=self.chordStatusCol, file=self.outFile)
         style = Tabs.CSI + self.styles['HLT_STUS']
         if len(chordName) > 0:
             style = Tabs.CSI + self.getEnharmonicStyle(chordName, self.styles['NAT_NOTE'], self.styles['FLT_NOTE'], self.styles['SHP_NOTE'])
@@ -2295,7 +2295,6 @@ class Tabs(object):
         self.errorsIndex = len(self.errors) - 1
         print('ERROR! printe({}, {}) r={} c={} {}'.format(row, col, self.row2Index(row), self.col2Index(col), reason), file=Tabs.DBG_FILE)
         print(Tabs.CSI + style + Tabs.CSI + '{};{}H{}'.format(self.lastRow, 1, reason), end='')
-        self.clearRow(arg=0, row=self.lastRow, col=1, file=self.outFile)
         self.resetPos()
         if x: exit()
     
