@@ -68,7 +68,12 @@ class Tabs(object):
     
     def init(self, inName='tabs.tab', outName='tabs.tab'):
         '''Init class instance, enable automatic reset of console via print(colorama.Style.RESET_ALL)'''
+        cnt = sys.stdout.write('init() before colorama.int()')
+        print('init() cnt={} type(sys.stdout)={}'.format(cnt, type(sys.stdout)), file=Tabs.DBG_FILE)
         colorama.init(autoreset=True)
+        cnt = sys.stdout.write('init() after colorama.int()')
+        print('init() cnt={} type(sys.stdout)={}'.format(cnt, type(sys.stdout)), file=Tabs.DBG_FILE)
+
         Tabs.clearScreen()
         self.initFiles(inName, outName)
         self.initConsts()
@@ -78,10 +83,11 @@ class Tabs(object):
         self.errors = []                                           # list of error message history
         self.errorsIndex = None                                    # error history index
         self.mods = {}                                             # dict of tab modification characters -> contextual descriptions
-        self.dbgMove = True                                        # used for finding bugs in basic movement functionality
+        self.txts = {}                                             # same as mods, except with ANSI codes removed
         self.capo = ord('0')                                       # essentially added to every tab that is a fret, written to the outFile and read from the inFile
-        self.maxFretInfo = {'MAX':-1, 'LINE':-1, 'STR':-1, 'COL':-1} # dict -> max fret info (max, line, row, col)
+        self.maxFretInfo = {'MAX':0, 'LINE':-1, 'STR':-1, 'COL':-1} # dict -> max fret info (max, line, row, col)
         self.chordsObj = None                                      # the chords.Chords instance
+        self.dbgMove = True                                        # used for finding bugs in basic movement functionality
         
         self.htabs = []                                            # list of bytearrays, one for each string; for harmonic tabs
         self.tabCount = 0                                          # used by appendTabs()
@@ -193,6 +199,10 @@ class Tabs(object):
             print('init() mods=\{ ', file=Tabs.DBG_FILE)
             for k in self.mods:
                 print('{}:{}, '.format(k, self.mods[k]), file=Tabs.DBG_FILE)
+            self.txts = self.modsObj.getTxts()
+            print('init() txts=\{ ', file=Tabs.DBG_FILE)
+            for k in self.txts:
+                print('{}:{}, '.format(k, self.txts[k]), file=Tabs.DBG_FILE)
             if 'help' in self.argMap and len(self.argMap['help']) == 0: self.printHelpInfo(ui=0)      # display the help info
             if '?' in self.argMap and len(self.argMap['?']) == 0: self.printHelpInfo(ui=0)            # display the help info
             if 'h' in self.argMap and len(self.argMap['h']) == 0: self.printHelpInfo(ui=0)            # display the help info
@@ -285,30 +295,52 @@ class Tabs(object):
         exit()
     
     def testAnsi2(self):
-        print(Tabs.CSI + '22;31;47m' + Tabs.CSI + '{};{}H{}'.format(1, 1, 'Normal Red on White'))
-        print(Tabs.CSI +  '1;31;47m' + Tabs.CSI + '{};{}H{}'.format(2, 1, 'Bright Red on White'))
-        print(Tabs.CSI + '22;32;47m' + Tabs.CSI + '{};{}H{}'.format(3, 1, 'Normal Green on White'))
-        print(Tabs.CSI +  '1;32;47m' + Tabs.CSI + '{};{}H{}'.format(4, 1, 'Bright Green on White'))
-        print(Tabs.CSI + '22;33;47m' + Tabs.CSI + '{};{}H{}'.format(5, 1, 'Normal Yellow on White'))
-        print(Tabs.CSI +  '1;33;47m' + Tabs.CSI + '{};{}H{}'.format(6, 1, 'Bright Yellow on White'))
-        print(Tabs.CSI + '22;34;47m' + Tabs.CSI + '{};{}H{}'.format(7, 1, 'Normal Blue on White'))
-        print(Tabs.CSI +  '1;34;47m' + Tabs.CSI + '{};{}H{}'.format(8, 1, 'Bright Blue on White'))
-        print(Tabs.CSI + '22;35;47m' + Tabs.CSI + '{};{}H{}'.format(9, 1, 'Normal Magenta on White'))
-        print(Tabs.CSI +  '1;35;47m' + Tabs.CSI + '{};{}H{}'.format(10, 1, 'Bright Magenta on White'))
-        print(Tabs.CSI + '22;36;47m' + Tabs.CSI + '{};{}H{}'.format(11, 1, 'Normal Cyan on White'))
-        print(Tabs.CSI +  '1;36;47m' + Tabs.CSI + '{};{}H{}'.format(12, 1, 'Bright Cyan on White'))
-        print(Tabs.CSI + '22;40;47m' + Tabs.CSI + '{};{}H{}'.format(13, 1, 'Normal Black on White'))
-        print(Tabs.CSI +  '1;40;47m' + Tabs.CSI + '{};{}H{}'.format(14, 1, 'Bright Black on White'))
+        print(Tabs.CSI + '22;30;47m' + Tabs.CSI + '{};{}H{}'.format( 1, 1, 'Normal Black   on White'))
+        print(Tabs.CSI +  '1;30;47m' + Tabs.CSI + '{};{}H{}'.format( 2, 1, 'Bright Black   on White'))
+        print(Tabs.CSI + '22;31;47m' + Tabs.CSI + '{};{}H{}'.format( 3, 1, 'Normal Red     on White'))
+        print(Tabs.CSI +  '1;31;47m' + Tabs.CSI + '{};{}H{}'.format( 4, 1, 'Bright Red     on White'))
+        print(Tabs.CSI + '22;32;47m' + Tabs.CSI + '{};{}H{}'.format( 5, 1, 'Normal Green   on White'))
+        print(Tabs.CSI +  '1;32;47m' + Tabs.CSI + '{};{}H{}'.format( 6, 1, 'Bright Green   on White'))
+        print(Tabs.CSI + '22;33;47m' + Tabs.CSI + '{};{}H{}'.format( 7, 1, 'Normal Yellow  on White'))
+        print(Tabs.CSI +  '1;33;47m' + Tabs.CSI + '{};{}H{}'.format( 8, 1, 'Bright Yellow  on White'))
+        print(Tabs.CSI + '22;34;47m' + Tabs.CSI + '{};{}H{}'.format( 9, 1, 'Normal Blue    on White'))
+        print(Tabs.CSI +  '1;34;47m' + Tabs.CSI + '{};{}H{}'.format(10, 1, 'Bright Blue    on White'))
+        print(Tabs.CSI + '22;35;47m' + Tabs.CSI + '{};{}H{}'.format(11, 1, 'Normal Magenta on White'))
+        print(Tabs.CSI +  '1;35;47m' + Tabs.CSI + '{};{}H{}'.format(12, 1, 'Bright Magenta on White'))
+        print(Tabs.CSI + '22;36;47m' + Tabs.CSI + '{};{}H{}'.format(13, 1, 'Normal Cyan    on White'))
+        print(Tabs.CSI +  '1;36;47m' + Tabs.CSI + '{};{}H{}'.format(14, 1, 'Bright Cyan    on White'))
+        
+        print(Tabs.CSI + '22;37;40m' + Tabs.CSI + '{};{}H{}'.format(15, 1, 'Normal White   on Black'))
+        print(Tabs.CSI +  '1;37;40m' + Tabs.CSI + '{};{}H{}'.format(16, 1, 'Bright White   on Black'))
+        print(Tabs.CSI + '22;31;40m' + Tabs.CSI + '{};{}H{}'.format(17, 1, 'Normal Red     on Black'))
+        print(Tabs.CSI +  '1;31;40m' + Tabs.CSI + '{};{}H{}'.format(18, 1, 'Bright Red     on Black'))
+        print(Tabs.CSI + '22;32;40m' + Tabs.CSI + '{};{}H{}'.format(19, 1, 'Normal Green   on Black'))
+        print(Tabs.CSI +  '1;32;40m' + Tabs.CSI + '{};{}H{}'.format(20, 1, 'Bright Green   on Black'))
+        print(Tabs.CSI + '22;33;40m' + Tabs.CSI + '{};{}H{}'.format(21, 1, 'Normal Yellow  on Black'))
+        print(Tabs.CSI +  '1;33;40m' + Tabs.CSI + '{};{}H{}'.format(22, 1, 'Bright Yellow  on Black'))
+        print(Tabs.CSI + '22;34;40m' + Tabs.CSI + '{};{}H{}'.format(23, 1, 'Normal Blue    on Black'))
+        print(Tabs.CSI +  '1;34;40m' + Tabs.CSI + '{};{}H{}'.format(24, 1, 'Bright Blue    on Black'))
+        print(Tabs.CSI + '22;35;40m' + Tabs.CSI + '{};{}H{}'.format(25, 1, 'Normal Magenta on Black'))
+        print(Tabs.CSI +  '1;35;40m' + Tabs.CSI + '{};{}H{}'.format(26, 1, 'Bright Magenta on Black'))
+        print(Tabs.CSI + '22;36;40m' + Tabs.CSI + '{};{}H{}'.format(27, 1, 'Normal Cyan    on Black'))
+        print(Tabs.CSI +  '1;36;40m' + Tabs.CSI + '{};{}H{}'.format(28, 1, 'Bright Cyan    on Black'))
         exit()
     
     def testAnsi3(self):
-        print(Tabs.CSI + '22;37;40m' + Tabs.CSI + '1B' + Tabs.CSI + '1C' + 'Normal White on Black', end='')
-        print(Tabs.CSI + '22;37;41m' + Tabs.CSI + '1B' + Tabs.CSI + '1C' + 'Normal White on Red', end='')
-        print(Tabs.CSI + '22;37;42m' + Tabs.CSI + '1B' + Tabs.CSI + '1C' + 'Normal White on Green', end='')
-        print(Tabs.CSI + '22;37;43m' + Tabs.CSI + '1B' + Tabs.CSI + '1C' + 'Normal White on Yellow', end='')
-        print(Tabs.CSI + '22;37;44m' + Tabs.CSI + '1B' + Tabs.CSI + '1C' + 'Normal White on Blue', end='')
-        print(Tabs.CSI + '22;37;45m' + Tabs.CSI + '1B' + Tabs.CSI + '1C' + 'Bright White on Magenta', end='')
-        print(Tabs.CSI + '22;37;46m' + Tabs.CSI + '1B' + Tabs.CSI + '1C' + 'Bright White on Cyan', end='')
+        print(Tabs.CSI + '22;37;40m' + Tabs.CSI + '0B' + Tabs.CSI +  '0D' + 'Normal White on Black',   end='')
+        print(Tabs.CSI +  '1;37;40m' + Tabs.CSI + '1B' + Tabs.CSI + '21D' + 'Bright White on Black',   end='')
+        print(Tabs.CSI + '22;37;41m' + Tabs.CSI + '1B' + Tabs.CSI +  '0D' + 'Normal White on Red',     end='')
+        print(Tabs.CSI +  '1;37;41m' + Tabs.CSI + '1B' + Tabs.CSI + '19D' + 'Bright White on Red',     end='')
+        print(Tabs.CSI + '22;37;42m' + Tabs.CSI + '1B' + Tabs.CSI +  '0D' + 'Normal White on Green',   end='')
+        print(Tabs.CSI +  '1;37;42m' + Tabs.CSI + '1B' + Tabs.CSI + '21D' + 'Bright White on Green',   end='')
+        print(Tabs.CSI + '22;37;43m' + Tabs.CSI + '1B' + Tabs.CSI +  '0D' + 'Normal White on Yellow',  end='')
+        print(Tabs.CSI +  '1;37;43m' + Tabs.CSI + '1B' + Tabs.CSI + '22D' + 'Bright White on Yellow',  end='')
+        print(Tabs.CSI + '22;37;44m' + Tabs.CSI + '1B' + Tabs.CSI +  '0D' + 'Normal White on Blue',    end='')
+        print(Tabs.CSI +  '1;37;44m' + Tabs.CSI + '1B' + Tabs.CSI + '20D' + 'Bright White on Blue',    end='')
+        print(Tabs.CSI + '22;37;45m' + Tabs.CSI + '1B' + Tabs.CSI +  '0D' + 'Normal White on Magenta', end='')
+        print(Tabs.CSI +  '1;37;45m' + Tabs.CSI + '1B' + Tabs.CSI + '23D' + 'Bright White on Magenta', end='')
+        print(Tabs.CSI + '22;37;46m' + Tabs.CSI + '1B' + Tabs.CSI +  '0D' + 'Normal White on Cyan',    end='')
+        print(Tabs.CSI +  '1;37;46m' + Tabs.CSI + '1B' + Tabs.CSI + '20D' + 'Bright White on Cyan',    end='')
         exit()
     
     def testStruct(self):
@@ -353,10 +385,28 @@ class Tabs(object):
         self.WHITE_CYAN = self.initText('WHITE', 'CYAN')
         self.WHITE_RED = self.initText('WHITE', 'RED')
         self.WHITE_GREEN = self.initText('WHITE', 'GREEN')
+        self.WHITE_BLUE = self.initText('WHITE', 'BLUE')
+        self.WHITE_YELLOW = self.initText('WHITE', 'YELLOW')
+        self.WHITE_BLACK = self.initText('WHITE', 'BLACK')
+        self.YELLOW_BLACK = self.initText('YELLOW', 'BLACK')
+        self.RED_BLACK = self.initText('RED', 'BLACK')
+        self.BLUE_BLACK = self.initText('BLUE', 'BLACK')
+        self.GREEN_BLACK = self.initText('GREEN', 'BLACK')
+        self.CYAN_BLACK = self.initText('CYAN', 'BLACK')
+        self.MAGENTA_BLACK = self.initText('MAGENTA', 'BLACK')
+        self.RED_GREEN = self.initText('RED', 'GREEN')
         self.styles = { 'NAT_NOTE':self.GREEN_WHITE, 'NAT_H_NOTE':self.YELLOW_WHITE,   'NAT_CHORD':self.GREEN_WHITE, 'MIN_COL_NUM':self.RED_WHITE,      'TABS':self.BLACK_WHITE,  'NUT_UP':self.WHITE_MAGENTA, 'NORMAL':'22;',
                         'FLT_NOTE':self.BLUE_WHITE,  'FLT_H_NOTE':self.CYAN_WHITE,     'FLT_CHORD':self.BLUE_WHITE,  'MAJ_COL_NUM':self.BLACK_WHITE,  'H_TABS':self.WHITE_GREEN,  'NUT_DN':self.WHITE_CYAN,    'BRIGHT':'1;',
                         'SHP_NOTE':self.RED_WHITE,   'SHP_H_NOTE':self.MAGENTA_WHITE,  'SHP_CHORD':self.RED_WHITE,        'STATUS':self.MAGENTA_WHITE, 'MODES':self.BLUE_WHITE,    'ERROR':self.WHITE_RED, 'CONS':self.BLACK_WHITE,
                         'HLT_STUS':self.GREEN_WHITE, 'IVAL_LABEL':self.YELLOW_WHITE, 'CHORD_LABEL':self.GREEN_WHITE,     'NO_IVAL':self.BLACK_WHITE }
+#        self.styles = { 'NAT_NOTE':self.WHITE_GREEN, 'NAT_H_NOTE':self.WHITE_YELLOW,   'NAT_CHORD':self.WHITE_GREEN, 'MIN_COL_NUM':self.WHITE_RED,      'TABS':self.WHITE_BLACK,  'NUT_UP':self.WHITE_MAGENTA, 'NORMAL':'22;',
+#                        'FLT_NOTE':self.WHITE_BLUE,  'FLT_H_NOTE':self.WHITE_CYAN,     'FLT_CHORD':self.WHITE_BLUE,  'MAJ_COL_NUM':self.WHITE_BLACK,  'H_TABS':self.WHITE_GREEN,  'NUT_DN':self.WHITE_CYAN,    'BRIGHT':'1;',
+#                        'SHP_NOTE':self.WHITE_RED,   'SHP_H_NOTE':self.WHITE_MAGENTA,  'SHP_CHORD':self.WHITE_RED,        'STATUS':self.WHITE_MAGENTA, 'MODES':self.WHITE_BLUE,    'ERROR':self.WHITE_RED, 'CONS':self.WHITE_BLACK,
+#                        'HLT_STUS':self.WHITE_GREEN, 'IVAL_LABEL':self.WHITE_YELLOW, 'CHORD_LABEL':self.WHITE_GREEN,     'NO_IVAL':self.WHITE_BLACK }
+#        self.styles = { 'NAT_NOTE':self.GREEN_BLACK, 'NAT_H_NOTE':self.YELLOW_BLACK,   'NAT_CHORD':self.GREEN_BLACK, 'MIN_COL_NUM':self.RED_BLACK,      'TABS':self.WHITE_BLACK,  'NUT_UP':self.MAGENTA_BLACK, 'NORMAL':'22;',
+#                        'FLT_NOTE':self.BLUE_BLACK,  'FLT_H_NOTE':self.CYAN_BLACK,     'FLT_CHORD':self.BLUE_BLACK,  'MAJ_COL_NUM':self.WHITE_BLACK,  'H_TABS':self.GREEN_BLACK,  'NUT_DN':self.CYAN_BLACK,    'BRIGHT':'1;',
+#                        'SHP_NOTE':self.RED_BLACK,   'SHP_H_NOTE':self.MAGENTA_BLACK,  'SHP_CHORD':self.RED_BLACK,        'STATUS':self.MAGENTA_BLACK, 'MODES':self.BLUE_BLACK,    'ERROR':self.RED_BLACK, 'CONS':self.WHITE_BLACK,
+#                        'HLT_STUS':self.GREEN_BLACK, 'IVAL_LABEL':self.YELLOW_BLACK, 'CHORD_LABEL':self.GREEN_BLACK,     'NO_IVAL':self.WHITE_BLACK }
         self.HARMONIC_FRETS = { 12:12, 7:19, 19:19, 5:24, 24:24, 4:28, 9:28, 16:28, 28:28 }
         self.CURSOR_DIRS = { 'DOWN':0, 'UP':1 }
         self.CURSOR_MODES = { 'MELODY':0, 'CHORD':1, 'ARPEGGIO':2 }
@@ -1357,7 +1407,7 @@ class Tabs(object):
     def saveTabs(self, uicKey=None):
         '''Save all tabs and ANSI codes to output file 'cat' cmd can be used to view the file'''
         with open(self.outName, 'w') as self.outFile:
-            self.dumpLineInfo('saveTabs({}, {}) bgn writing tabs to file'.format(self.row, self.col))
+            self.dumpLineInfo('saveTabs({}, {}) bgn writing tabs to file type={}'.format(self.row, self.col, self.outFile))
             Tabs.clearScreen(file=self.outFile, reason='saveTabs()')
             print(self.cmdLine, file=self.outFile)
             print('cmdLineArgs:', file=self.outFile)
@@ -1760,7 +1810,7 @@ class Tabs(object):
                 print('', file=Tabs.DBG_FILE)
     
     def dumpLineInfo(self, reason):
-        print('{} maxFN={} numStrings={} numLines={} lineDelta={}'.format(reason, chr(self.maxFretInfo['MAX']), self.numStrings, self.numLines, self.lineDelta()), end='', file=Tabs.DBG_FILE)
+        print('{} maxFN={}({}) numStrings={} numLines={} lineDelta={}'.format(reason, self.maxFretInfo['MAX'], chr(self.maxFretInfo['MAX']), self.numStrings, self.numLines, self.lineDelta()), end='', file=Tabs.DBG_FILE)
         for line in range(0, self.numLines):
             print(' bgnRow{}={} endRow{}={}'.format(line, self.bgnRow(line), line, self.endRow(line)), end='', file=Tabs.DBG_FILE)
         print(' ROW_OFF={} lastRow={} bgnCol={} endCol={} line={}'.format(self.ROW_OFF, self.lastRow, self.bgnCol(), self.endCol(), self.row2Line(self.row)), file=Tabs.DBG_FILE)
@@ -2008,12 +2058,12 @@ class Tabs(object):
         print('printStatus() row={} col={} r={} c={} bgn'.format(self.row, self.col, r, c), file=Tabs.DBG_FILE)
         tab = chr(self.tabs[r][c])
         print('printStatus() row={} col={} r={} c={} tab={}({})'.format(self.row, self.col, r, c, self.tabs[r][c], tab), file=Tabs.DBG_FILE)
-        if   Tabs.isFret(tab): self.printFretStatus(tab, r, c)
-        elif tab in self.mods: self.printModStatus(tab, r, c)
-        else:                  self.printDefaultStatus(tab, r, c)
-        Tabs.clearRow(arg=0, row=self.lastRow, col=0, file=self.outFile)
+        if   Tabs.isFret(tab): cnt = self.printFretStatus(tab, r, c)
+        elif tab in self.mods: cnt = self.printModStatus(tab, r, c)
+        else:                  cnt = self.printDefaultStatus(tab, r, c)
+        self.clearRow(arg=0, row=self.lastRow, col=cnt, file=self.outFile)
         self.printChordStatus(r, c)
-        print('printStatus() row={} col={} r={} c={} end'.format(self.row, self.col, r, c), file=Tabs.DBG_FILE)
+        print('printStatus() row={} col={} r={} c={} cnt={} end'.format(self.row, self.col, r, c, cnt), file=Tabs.DBG_FILE)
         if hinfo: self.printh('{}: {}'.format(uicKey, self.printStatus.__doc__), status=1)
         else:     self.resetPos()
     
@@ -2027,14 +2077,27 @@ class Tabs(object):
             if n.name[1] == '#': noteStyle = Tabs.CSI + self.styles['SHP_NOTE']
             else:                noteStyle = Tabs.CSI + self.styles['FLT_NOTE']
         if dbg: print('printFretStatus({}) r={}, c={}, tab={}, n.n={}, n.o={}, n.i={}, {}'.format(noteType, r, c, tab, n.name, n.getOctaveNum(), n.index, n.getPhysProps()), file=Tabs.DBG_FILE)
-        print(tabStyle + Tabs.CSI + '{};{}H{}'.format(self.lastRow, 1, tab), end='', file=self.outFile)
-        if f != 0: print(fretStyle + ' {}{}'.format(s, ss) + statStyle + ' string ' + fretStyle + '{}{}'.format(f, fs) + statStyle + ' fret ', end='', file=self.outFile)
-        else:      print(fretStyle + ' {}{}'.format(s, ss) + statStyle + ' string ' + fretStyle + 'open' + statStyle + ' fret ', end='', file=self.outFile)
-        if noteType: print(typeStyle + '{} '.format(noteType), end='', file=self.outFile)
+        print(tabStyle + Tabs.CSI + '{};{}H{} '.format(self.lastRow, 1, tab), end='', file=self.outFile)
+        txt = tab + ' '
+        if f != 0:
+            print(fretStyle + '{}{}'.format(s, ss) + statStyle + ' string ' + fretStyle + '{}{}'.format(f, fs) + statStyle + ' fret ', end='', file=self.outFile)
+            txt += '{}{}'.format(s, ss) + ' string ' + '{}{}'.format(f, fs) + ' fret '
+        else:
+            print(fretStyle + '{}{}'.format(s, ss) + statStyle + ' string ' + fretStyle + 'open' + statStyle + ' fret ', end='', file=self.outFile)
+            txt += '{}{}'.format(s, ss) + ' string ' + 'open' + ' fret '
+        if noteType:
+            print(typeStyle + '{} '.format(noteType), end='', file=self.outFile)
+            txt += '{} '.format(noteType)
         print(noteStyle + '{}{}'.format(n.name, n.getOctaveNum()), end='', file=self.outFile)
         print(statStyle + ' index=' + fretStyle + '{}'.format(n.index), end='', file=self.outFile)
         print(statStyle + ' freq=' + fretStyle + '{:03.1f}'.format(n.getFreq()) + statStyle + 'Hz', end='', file=self.outFile)
         print(statStyle + ' wvln=' + fretStyle + '{:04.3f}'.format(n.getWaveLen()) + statStyle + 'm', end='', file=self.outFile)
+        txt += '{}{}'.format(n.name, n.getOctaveNum())
+        txt += ' index=' + '{}'.format(n.index)
+        txt += ' freq=' + '{:03.1f}'.format(n.getFreq()) + 'Hz'
+        txt += ' wvln=' + '{:04.3f}'.format(n.getWaveLen()) + 'm'
+        print('printFretStatus() txt[len={}]={}'.format(len(txt), txt), file=Tabs.DBG_FILE)
+        return len(txt)+1
     
     def printModStatus(self, tab, r, c):
         ph, nh, s, ss = 0, 0,  r + 1, self.getOrdSfx(r + 1)
@@ -2058,12 +2121,20 @@ class Tabs(object):
         self.modsObj.setMods(dir1=dir1, dir2=dir2, prevFN=prevFN, nextFN=nextFN, prevNote=prevNote, nextNote=nextNote, ph=ph, nh=nh)
         print(Tabs.CSI + self.styles['TABS'] + Tabs.CSI + '{};{}H{} '.format(self.lastRow, 1, tab), end='', file=self.outFile)
         print(Tabs.CSI + self.styles['TABS'] + '{}{}'.format(s, ss) + Tabs.CSI + self.styles['STATUS'] + ' string {}'.format(self.mods[tab]), end='', file=self.outFile)
+        txt = tab + ' '
+        txt += '{}{}'.format(s, ss) + ' string {}'.format(self.txts[tab])
+        print('printModStatus() txt[len={}]={}'.format(len(txt), txt), file=Tabs.DBG_FILE)
+        return len(txt)+1
     
     def printDefaultStatus(self, tab, r, c):
         s, ss, tabStyle, statStyle = r + 1, self.getOrdSfx(r + 1), Tabs.CSI + self.styles['TABS'], Tabs.CSI + self.styles['STATUS']
         print('printDefaultStatus({}, {}) tab={}'.format(r, c, tab), file=Tabs.DBG_FILE)
         print(tabStyle + Tabs.CSI + '{};{}H{} '.format(self.lastRow, 1, tab), end='', file=self.outFile)
         print(tabStyle + '{}{}'.format(s, ss) + statStyle + ' string ' + tabStyle + 'muted' + statStyle + ' not played', end='', file=self.outFile)
+        txt = tab + ' '
+        txt += '{}{}'.format(s, ss) + ' string ' + 'muted' + ' not played'
+        print('printDefaultStatus() txt[len={}]={}'.format(len(txt), txt), file=Tabs.DBG_FILE)
+        return len(txt)+1
     
     def printChordStatus(self, r, c, dbg=1):
         if dbg: self.dumpChordInfo(self.chordInfo, reason='printChordStatus() CHECKING IF c={} IN chordInfo'.format(c))
@@ -2148,8 +2219,9 @@ class Tabs(object):
             info.append('{}:{} '.format(k, imap[k]))
             infoLen += len(info[-1])
             if imap[k] == n: hk = k
-#            if dbg: print('printChordInfo({}) infoLen={} info={} imap[{}]={} n={} hk={} chordKey={}'.format(len(info)-1, infoLen, info, k, imap[k], n, hk, chordKey), file=Tabs.DBG_FILE)
+            if dbg: print('printChordInfo({}) infoLen={} info={} imap[{}]={} n={} hk={} chordKey={}'.format(len(info)-1, infoLen, info, k, imap[k], n, hk, chordKey), file=Tabs.DBG_FILE)
         infoCol = self.numTabsPerStringPerLine + self.COL_OFF - infoLen + 1
+        if dbg: print('printChordInfo() infoCol={} ll={} COL_OFF={} infoLen={}'.format(infoCol, self.numTabsPerStringPerLine, self.COL_OFF, infoLen), file=Tabs.DBG_FILE)
         if info: info[-1] = info[-1][:-1]
         if chordKey: chordKey = chordKey[:-1]
         if chordKey in self.chordsObj.chords:
@@ -2158,8 +2230,9 @@ class Tabs(object):
         if self.chordStatusCol is not None:
             if infoCol < self.chordStatusCol: self.chordStatusCol = infoCol
         else: self.chordStatusCol = infoCol
-        print('printChordInfo(r={} c={} m={} tab={}) chordName={}, info={}, icol={}, chordStatusCol={}'.format(r, c, m, tab, chordName, info, infoCol, self.chordStatusCol), file=Tabs.DBG_FILE)
-        Tabs.clearRow(arg=0, row=self.lastRow, col=self.chordStatusCol, file=self.outFile)
+        if dbg: print('printChordInfo() infoCol={} len(chordName)={} len(chordDelim)={} chordStatusCol={}'.format(infoCol, len(chordName), len(chordDelim), self.chordStatusCol), file=Tabs.DBG_FILE)
+        print('printChordInfo(r={} c={} m={} tab={}) chordName={}, info={}, infoCol={}, chordStatusCol={}'.format(r, c, m, tab, chordName, info, infoCol, self.chordStatusCol), file=Tabs.DBG_FILE)
+        self.clearRow(arg=0, row=self.lastRow, col=self.chordStatusCol, file=self.outFile)
         style = Tabs.CSI + self.styles['HLT_STUS']
         if len(chordName) > 0:
             style = Tabs.CSI + self.getEnharmonicStyle(chordName, self.styles['NAT_NOTE'], self.styles['FLT_NOTE'], self.styles['SHP_NOTE'])
@@ -2222,7 +2295,7 @@ class Tabs(object):
         self.errorsIndex = len(self.errors) - 1
         print('ERROR! printe({}, {}) r={} c={} {}'.format(row, col, self.row2Index(row), self.col2Index(col), reason), file=Tabs.DBG_FILE)
         print(Tabs.CSI + style + Tabs.CSI + '{};{}H{}'.format(self.lastRow, 1, reason), end='')
-        Tabs.clearRow(arg=0, file=self.outFile)
+        self.clearRow(arg=0, row=self.lastRow, col=1, file=self.outFile)
         self.resetPos()
         if x: exit()
     
@@ -2233,13 +2306,15 @@ class Tabs(object):
             self.cmds.append(reason)
             self.cmdsIndex = len(self.cmds) - 1
         print('printh(col={}) {}'.format(col, reason), file=Tabs.DBG_FILE)
-        Tabs.clearRow(arg=2, row=self.lastRow, col=1, file=self.outFile)
+        self.clearRow(arg=0, row=self.lastRow, col=1, file=self.outFile)
         if not status:      self.printStatus()
         print(Tabs.CSI + style + Tabs.CSI + '{};{}H{}'.format(self.lastRow, col, reason), end='')
         self.resetPos()
     
     def prints(self, c, row, col, style):
        print(Tabs.CSI + style + Tabs.CSI + '{};{}H{}'.format(row, col, str(c)), end='', file=self.outFile)
+#       print(Tabs.CSI + self.styles['NORMAL'] + style + Tabs.CSI + '{};{}H{}'.format(row, col, str(c)), end='', file=self.outFile)
+#       print(Tabs.CSI + self.styles['BRIGHT'] + style + Tabs.CSI + '{};{}H{}'.format(row, col, str(c)), end='', file=self.outFile)
     
     def getNote(self, str, tab):
         '''Return note object given string number and tab fret number byte'''
@@ -2301,8 +2376,18 @@ class Tabs(object):
         elif m == 3 and n != 13: return 'rd'
         else:                    return 'th'
     
+    def clearRow(self, arg=2, row=None, col=None, file=None, dbg=1):
+        if arg == 0: cBgn = col
+        elif arg == 2: cBgn = 0
+        else: self.printe('clearRow() invalid arg={} - only support 0[col to end] or 2[0 to end]'.format(arg))
+        if row is None or col is None: self.printe('clearRow() invalid row={} or col={}'.format(row, col))
+        else:
+            if dbg: print('clearRow({} {}) arg={} row={}, col={} cBgn={} endCol={}'.format(self.row, self.col, arg, row, col, cBgn, self.endCol()), file=Tabs.DBG_FILE)
+            for c in range(cBgn, self.endCol() + 1):
+                print(Tabs.CSI + self.styles['SHP_NOTE'] + Tabs.CSI + '{};{}H '.format(row, c), end='', file=file)
+    
     @staticmethod
-    def clearRow(arg=2, row=None, col=None, file=None, dbg=1): # arg=0: cursor to end of line, arg=1: begin of line to cursor, arg=2: entire line
+    def clearRow_OLD(arg=2, row=None, col=None, file=None, dbg=1): # arg=0: cursor to end of line, arg=1: begin of line to cursor, arg=2: entire line
         if dbg: print('clearRow() arg={} row={}, col={}'.format(arg, row, col), file=Tabs.DBG_FILE)
         if row is not None and col is not None:
             print(Tabs.CSI + '{};{}H'.format(row, col), end='', file=file)
@@ -2336,6 +2421,7 @@ The command line arg -L moves the cursor to the last tab on the current line of 
 The command line arg -z moves the cursor to the last tab on the last line of the current string  
 The command line arg -Z moves the cursor to the last tab on the last line of all strings  
 The command line arg -h enables display of this help info.  
+The command line arg --help enables display of this help info.  
 The command line arg -? enables display of this help info.  
 
 Tabs are displayed in the tabs section with an optional row to label and highlight the selected tab column.  
