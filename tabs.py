@@ -404,10 +404,10 @@ class Tabs(object):
 #                        'FLT_NOTE':self.WHITE_BLUE,  'FLT_H_NOTE':self.WHITE_CYAN,     'FLT_CHORD':self.WHITE_BLUE,  'MAJ_COL_NUM':self.WHITE_BLACK,  'H_TABS':self.WHITE_GREEN,  'NUT_DN':self.WHITE_CYAN,    'BRIGHT':'1;',
 #                        'SHP_NOTE':self.WHITE_RED,   'SHP_H_NOTE':self.WHITE_MAGENTA,  'SHP_CHORD':self.WHITE_RED,        'STATUS':self.WHITE_MAGENTA, 'MODES':self.WHITE_BLUE,    'ERROR':self.WHITE_RED, 'CONS':self.WHITE_BLACK,
 #                        'HLT_STUS':self.WHITE_GREEN, 'IVAL_LABEL':self.WHITE_YELLOW, 'CHORD_LABEL':self.WHITE_GREEN,     'NO_IVAL':self.WHITE_BLACK }
-#        self.styles = { 'NAT_NOTE':self.GREEN_BLACK, 'NAT_H_NOTE':self.YELLOW_BLACK,   'NAT_CHORD':self.GREEN_BLACK, 'MIN_COL_NUM':self.RED_BLACK,      'TABS':self.WHITE_BLACK,  'NUT_UP':self.MAGENTA_BLACK, 'NORMAL':'22;',
-#                        'FLT_NOTE':self.BLUE_BLACK,  'FLT_H_NOTE':self.CYAN_BLACK,     'FLT_CHORD':self.BLUE_BLACK,  'MAJ_COL_NUM':self.WHITE_BLACK,  'H_TABS':self.GREEN_BLACK,  'NUT_DN':self.CYAN_BLACK,    'BRIGHT':'1;',
-#                        'SHP_NOTE':self.RED_BLACK,   'SHP_H_NOTE':self.MAGENTA_BLACK,  'SHP_CHORD':self.RED_BLACK,        'STATUS':self.MAGENTA_BLACK, 'MODES':self.BLUE_BLACK,    'ERROR':self.RED_BLACK, 'CONS':self.WHITE_BLACK,
-#                        'HLT_STUS':self.GREEN_BLACK, 'IVAL_LABEL':self.YELLOW_BLACK, 'CHORD_LABEL':self.GREEN_BLACK,     'NO_IVAL':self.WHITE_BLACK }
+        self.styles = { 'NAT_NOTE':self.GREEN_BLACK, 'NAT_H_NOTE':self.YELLOW_BLACK,   'NAT_CHORD':self.GREEN_BLACK, 'MIN_COL_NUM':self.RED_BLACK,      'TABS':self.WHITE_BLACK,  'NUT_UP':self.MAGENTA_BLACK, 'NORMAL':'22;',
+                        'FLT_NOTE':self.BLUE_BLACK,  'FLT_H_NOTE':self.CYAN_BLACK,     'FLT_CHORD':self.BLUE_BLACK,  'MAJ_COL_NUM':self.WHITE_BLACK,  'H_TABS':self.GREEN_BLACK,  'NUT_DN':self.CYAN_BLACK,    'BRIGHT':'1;',
+                        'SHP_NOTE':self.RED_BLACK,   'SHP_H_NOTE':self.MAGENTA_BLACK,  'SHP_CHORD':self.RED_BLACK,        'STATUS':self.MAGENTA_BLACK, 'MODES':self.BLUE_BLACK,    'ERROR':self.RED_BLACK, 'CONS':self.WHITE_BLACK,
+                        'HLT_STUS':self.GREEN_BLACK, 'IVAL_LABEL':self.YELLOW_BLACK, 'CHORD_LABEL':self.GREEN_BLACK,     'NO_IVAL':self.WHITE_BLACK }
         self.HARMONIC_FRETS = { 12:12, 7:19, 19:19, 5:24, 24:24, 4:28, 9:28, 16:28, 28:28 }
         self.CURSOR_DIRS = { 'DOWN':0, 'UP':1 }
         self.CURSOR_MODES = { 'MELODY':0, 'CHORD':1, 'ARPEGGIO':2 }
@@ -627,15 +627,20 @@ class Tabs(object):
         self.printh('{}: {}'.format(uicKey, self.removeLine.__doc__))
     
     def quit(self, uicKey=None, reason='Received Quit Cmd, Exiting', code=0):
-        '''Quit with reason and exit code'''
+        '''Quit with exit code and reason'''
         for i in range(18): print('##########', end='', file=Tabs.DBG_FILE)
         print(file=Tabs.DBG_FILE)
         self.dumpLineInfo('    quit(ExitCode={}, reason=\'{}\')'.format(code, reason))
         for i in range(18): print('##########', end='', file=Tabs.DBG_FILE)
         print(file=Tabs.DBG_FILE)
         self.dumpInfo('quit()')
-        print(Tabs.CSI + self.styles['CONS'] + Tabs.CSI + '{};{}HExitCode={}, reason={}'.format(self.lastRow + 1, 1, code, reason), end=' ')
-        print(Tabs.CSI + self.styles['HLT_STUS'] + '{}: {}'.format(uicKey, self.quit.__doc__))
+        txt  = 'ExitCode={}, reason={} '.format(code, reason)
+        txt += '{}: {}'.format(uicKey, self.quit.__doc__)
+        cBgn = len(txt) + 1
+        blank = ''
+        for c in range(cBgn, self.endCol() + 1): blank += ' '
+        print(Tabs.CSI + self.styles['CONS'] + Tabs.CSI + '{};{}HExitCode={}, reason={} '.format(self.lastRow + 1, 1, code, reason), end='')
+        print(Tabs.CSI + self.styles['HLT_STUS'] + '{}: {}{}'.format(uicKey, self.quit.__doc__, blank), end='')
 #        Tabs.DBG_FILE.flush()
 #        os.fsync(Tabs.DBG_FILE)
         Tabs.DBG_FILE.close()
