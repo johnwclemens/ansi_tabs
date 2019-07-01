@@ -396,18 +396,21 @@ class Tabs(object):
         self.CYAN_BLACK = self.initText('CYAN', 'BLACK')
         self.MAGENTA_BLACK = self.initText('MAGENTA', 'BLACK')
         self.RED_GREEN = self.initText('RED', 'GREEN')
-        self.styles = { 'NAT_NOTE':self.GREEN_WHITE, 'NAT_H_NOTE':self.YELLOW_WHITE,   'NAT_CHORD':self.GREEN_WHITE, 'MIN_COL_NUM':self.RED_WHITE,      'TABS':self.BLACK_WHITE,  'NUT_UP':self.WHITE_MAGENTA, 'NORMAL':'22;',
-                        'FLT_NOTE':self.BLUE_WHITE,  'FLT_H_NOTE':self.CYAN_WHITE,     'FLT_CHORD':self.BLUE_WHITE,  'MAJ_COL_NUM':self.BLACK_WHITE,  'H_TABS':self.WHITE_GREEN,  'NUT_DN':self.WHITE_CYAN,    'BRIGHT':'1;',
-                        'SHP_NOTE':self.RED_WHITE,   'SHP_H_NOTE':self.MAGENTA_WHITE,  'SHP_CHORD':self.RED_WHITE,        'STATUS':self.MAGENTA_WHITE, 'MODES':self.BLUE_WHITE,    'ERROR':self.WHITE_RED, 'CONS':self.BLACK_WHITE,
-                        'HLT_STUS':self.GREEN_WHITE, 'IVAL_LABEL':self.YELLOW_WHITE, 'CHORD_LABEL':self.GREEN_WHITE,     'NO_IVAL':self.BLACK_WHITE }
-#        self.styles = { 'NAT_NOTE':self.WHITE_GREEN, 'NAT_H_NOTE':self.WHITE_YELLOW,   'NAT_CHORD':self.WHITE_GREEN, 'MIN_COL_NUM':self.WHITE_RED,      'TABS':self.WHITE_BLACK,  'NUT_UP':self.WHITE_MAGENTA, 'NORMAL':'22;',
-#                        'FLT_NOTE':self.WHITE_BLUE,  'FLT_H_NOTE':self.WHITE_CYAN,     'FLT_CHORD':self.WHITE_BLUE,  'MAJ_COL_NUM':self.WHITE_BLACK,  'H_TABS':self.WHITE_GREEN,  'NUT_DN':self.WHITE_CYAN,    'BRIGHT':'1;',
-#                        'SHP_NOTE':self.WHITE_RED,   'SHP_H_NOTE':self.WHITE_MAGENTA,  'SHP_CHORD':self.WHITE_RED,        'STATUS':self.WHITE_MAGENTA, 'MODES':self.WHITE_BLUE,    'ERROR':self.WHITE_RED, 'CONS':self.WHITE_BLACK,
-#                        'HLT_STUS':self.WHITE_GREEN, 'IVAL_LABEL':self.WHITE_YELLOW, 'CHORD_LABEL':self.WHITE_GREEN,     'NO_IVAL':self.WHITE_BLACK }
-        self.styles = { 'NAT_NOTE':self.GREEN_BLACK, 'NAT_H_NOTE':self.YELLOW_BLACK,   'NAT_CHORD':self.GREEN_BLACK, 'MIN_COL_NUM':self.RED_BLACK,      'TABS':self.WHITE_BLACK,  'NUT_UP':self.MAGENTA_BLACK, 'NORMAL':'22;',
-                        'FLT_NOTE':self.BLUE_BLACK,  'FLT_H_NOTE':self.CYAN_BLACK,     'FLT_CHORD':self.BLUE_BLACK,  'MAJ_COL_NUM':self.WHITE_BLACK,  'H_TABS':self.GREEN_BLACK,  'NUT_DN':self.CYAN_BLACK,    'BRIGHT':'1;',
-                        'SHP_NOTE':self.RED_BLACK,   'SHP_H_NOTE':self.MAGENTA_BLACK,  'SHP_CHORD':self.RED_BLACK,        'STATUS':self.MAGENTA_BLACK, 'MODES':self.BLUE_BLACK,    'ERROR':self.RED_BLACK, 'CONS':self.WHITE_BLACK,
-                        'HLT_STUS':self.GREEN_BLACK, 'IVAL_LABEL':self.YELLOW_BLACK, 'CHORD_LABEL':self.GREEN_BLACK,     'NO_IVAL':self.WHITE_BLACK }
+        self.styles = { 'NAT_NOTE':self.GREEN_WHITE,   'NAT_H_NOTE':self.YELLOW_WHITE,  'NAT_CHORD':self.GREEN_WHITE, 'MIN_COL_NUM':self.RED_WHITE,      'TABS':self.BLACK_WHITE,
+                        'FLT_NOTE':self.BLUE_WHITE,    'FLT_H_NOTE':self.CYAN_WHITE,    'FLT_CHORD':self.BLUE_WHITE,  'MAJ_COL_NUM':self.BLACK_WHITE,  'H_TABS':self.WHITE_GREEN,
+                        'SHP_NOTE':self.RED_WHITE,     'SHP_H_NOTE':self.MAGENTA_WHITE, 'SHP_CHORD':self.RED_WHITE,        'STATUS':self.MAGENTA_WHITE, 'MODES':self.BLUE_WHITE,
+                          'NUT_UP':self.WHITE_MAGENTA, 'IVAL_LABEL':self.YELLOW_WHITE,      'ERROR':self.WHITE_RED,          'CONS':self.BLACK_WHITE,  'BRIGHT':'1;',
+                          'NUT_DN':self.WHITE_CYAN,   'CHORD_LABEL':self.GREEN_WHITE,     'NO_IVAL':self.BLACK_WHITE,    'HLT_STUS':self.GREEN_WHITE,  'NORMAL':'22;' }
+        self.styles = { 'NAT_NOTE':self.WHITE_GREEN,   'NAT_H_NOTE':self.WHITE_YELLOW,  'NAT_CHORD':self.WHITE_GREEN, 'MIN_COL_NUM':self.WHITE_RED,      'TABS':self.WHITE_BLACK,
+                        'FLT_NOTE':self.WHITE_BLUE,    'FLT_H_NOTE':self.WHITE_CYAN,    'FLT_CHORD':self.WHITE_BLUE,  'MAJ_COL_NUM':self.WHITE_BLACK,  'H_TABS':self.WHITE_GREEN,
+                        'SHP_NOTE':self.WHITE_RED,     'SHP_H_NOTE':self.WHITE_MAGENTA, 'SHP_CHORD':self.WHITE_RED,        'STATUS':self.WHITE_MAGENTA, 'MODES':self.WHITE_BLUE,
+                          'NUT_UP':self.WHITE_MAGENTA, 'IVAL_LABEL':self.WHITE_YELLOW,      'ERROR':self.WHITE_RED,          'CONS':self.WHITE_BLACK,  'BRIGHT':'1;',
+                          'NUT_DN':self.WHITE_CYAN,   'CHORD_LABEL':self.WHITE_GREEN,     'NO_IVAL':self.WHITE_BLACK,    'HLT_STUS':self.WHITE_GREEN,  'NORMAL':'22;' }
+        self.styles = { 'NAT_NOTE':self.GREEN_BLACK,   'NAT_H_NOTE':self.YELLOW_BLACK,  'NAT_CHORD':self.GREEN_BLACK, 'MIN_COL_NUM':self.RED_BLACK,      'TABS':self.WHITE_BLACK,
+                        'FLT_NOTE':self.BLUE_BLACK,    'FLT_H_NOTE':self.CYAN_BLACK,    'FLT_CHORD':self.BLUE_BLACK,  'MAJ_COL_NUM':self.WHITE_BLACK,  'H_TABS':self.GREEN_BLACK,
+                        'SHP_NOTE':self.RED_BLACK,     'SHP_H_NOTE':self.MAGENTA_BLACK, 'SHP_CHORD':self.RED_BLACK,        'STATUS':self.MAGENTA_BLACK, 'MODES':self.BLUE_BLACK,
+                          'NUT_UP':self.MAGENTA_BLACK, 'IVAL_LABEL':self.YELLOW_BLACK,      'ERROR':self.RED_BLACK,          'CONS':self.WHITE_BLACK,  'BRIGHT':'1;',
+                          'NUT_DN':self.CYAN_BLACK,   'CHORD_LABEL':self.GREEN_BLACK,     'NO_IVAL':self.WHITE_BLACK,    'HLT_STUS':self.GREEN_BLACK,  'NORMAL':'22;' }
         self.HARMONIC_FRETS = { 12:12, 7:19, 19:19, 5:24, 24:24, 4:28, 9:28, 16:28, 28:28 }
         self.CURSOR_DIRS = { 'DOWN':0, 'UP':1 }
         self.CURSOR_MODES = { 'MELODY':0, 'CHORD':1, 'ARPEGGIO':2 }
@@ -821,7 +824,7 @@ class Tabs(object):
         '''Move to given row and col (optionally hilite row and col num)'''
         if row is not None: self.row = row
         if col is not None: self.col = col
-        print('moveTo({}, {}, {}) row={}, col={}, line={}'.format(row, col, hi, self.row, self.col, self.row2Line(self.row)), file=Tabs.DBG_FILE)
+        print('moveTo({}, {}, {}) row={} col={} line={}'.format(row, col, hi, self.row, self.col, self.row2Line(self.row)), file=Tabs.DBG_FILE)
         self.resetPos()
         self.printStatus()
         if hi == 1 and self.displayLabels == self.DISPLAY_LABELS['ENABLED']:
@@ -909,7 +912,7 @@ class Tabs(object):
     
     def moveCursor(self, uicKey=None, row=None, col=None, back=0):
         '''Move cursor to next row and or col with automatic cursor mode optionally hilite new row and col'''
-        print('moveCursor(row={}, col={}, back={}) old: row={}, col={} bgn'.format(row, col, back, self.row, self.col), file=Tabs.DBG_FILE)
+        print('moveCursor(row={}, col={}, back={}) old: row={} col={} bgn'.format(row, col, back, self.row, self.col), file=Tabs.DBG_FILE)
         if row != None: self.row = row
         if col != None: self.col = col
         if self.cursorMode == self.CURSOR_MODES['MELODY']:
@@ -1174,7 +1177,7 @@ class Tabs(object):
     
     def hiliteRowColNum(self, dbg=0):
         self.hiliteCount += 1
-        if dbg: print('hiliteRowColNum({}, {}) hilitePrevRowPos={}, hiliteRowNum={}, hiliteColNum={}, hiliteCount={}'.format(self.row, self.col, self.hilitePrevRowPos, self.hiliteRowNum, self.hiliteColNum, self.hiliteCount), file=Tabs.DBG_FILE)
+        if dbg: print('hiliteRowColNum({}, {}) hilitePrevRowPos={} hiliteRowNum={} hiliteColNum={} hiliteCount={}'.format(self.row, self.col, self.hilitePrevRowPos, self.hiliteRowNum, self.hiliteColNum, self.hiliteCount), file=Tabs.DBG_FILE)
         for line in range(0, self.numLines):
             row = line * self.lineDelta() + 1
             if self.hiliteColNum != 0:
@@ -1189,7 +1192,7 @@ class Tabs(object):
             self.prints(self.hiliteRowNum, self.hilitePrevRowPos, self.editModeCol, self.styles['NORMAL'] + self.styles['TABS'])
         self.hiliteRowNum = self.row - self.row2Line(self.row) *  self.lineDelta() - 1
         self.hilitePrevRowPos = self.row
-        if dbg: print('hiliteRowColNum({}, {}) hilitePrevRowPos={}, hiliteRowNum={}, hiliteColNum={}, hiliteCount={}'.format(self.row, self.col, self.hilitePrevRowPos, self.hiliteRowNum, self.hiliteColNum, self.hiliteCount), file=Tabs.DBG_FILE)
+        if dbg: print('hiliteRowColNum({}, {}) hilitePrevRowPos={} hiliteRowNum={} hiliteColNum={} hiliteCount={}'.format(self.row, self.col, self.hilitePrevRowPos, self.hiliteRowNum, self.hiliteColNum, self.hiliteCount), file=Tabs.DBG_FILE)
         self.prints(self.hiliteRowNum, self.row, self.editModeCol, self.styles['BRIGHT'] + self.styles['TABS'])
         self.resetPos()
     
@@ -1238,7 +1241,7 @@ class Tabs(object):
         else:  lineBgn, lineEnd = self.row2Line(self.row) + 1, self.row2Line(self.row)
         if cs: rowBgn,  rowEnd = self.row2Index(self.row),     self.row2Index(self.row) + 1
         else:  rowBgn,  rowEnd = 0,                            self.numStrings
-        print('goToLastTab({}, {}) cs={}, ll={}, rowBng={}, rowEnd={}, lineBgn={}, lineEnd={}'.format(self.row, self.col, cs, ll, rowBgn, rowEnd, lineBgn, lineEnd), file=Tabs.DBG_FILE)
+        print('goToLastTab({}, {}) cs={} ll={} rowBng={} rowEnd={} lineBgn={} lineEnd={}'.format(self.row, self.col, cs, ll, rowBgn, rowEnd, lineBgn, lineEnd), file=Tabs.DBG_FILE)
         for line in range(lineBgn, lineEnd, -1):
             for r in range(rowBgn, rowEnd):
                 for c in range(line * self.numTabsPerStringPerLine - 1, (line - 1) * self.numTabsPerStringPerLine - 1, -1):
@@ -1246,7 +1249,7 @@ class Tabs(object):
                     if t != '-' and self.isTab(t):
                         if c > cc:
                             rr, cc, ll = r, c, line
-                            print('goToLastTab(updating col) t={}, line={}, r={}, c={}'.format(t, line, r, c), file=Tabs.DBG_FILE)
+                            print('goToLastTab(updating col) t={} line={} r={} c={}'.format(t, line, r, c), file=Tabs.DBG_FILE)
                         break
         if cc > 0:
             row, col = self.indices2RowCol(rr, cc)
@@ -1311,11 +1314,11 @@ class Tabs(object):
                         if dbg: self.dumpChordInfo(self.chordInfo, reason='setTab(DISPLAY_CHORDS) r={} cc={}'.format(r, cc))
                         noteCount += 1
                         if noteCount > 1:
-                            print('setTab(DISPLAY_CHORDS) r={}, increment noteCount={}'.format(r, noteCount), file=Tabs.DBG_FILE)
+                            print('setTab(DISPLAY_CHORDS) r={} increment noteCount={}'.format(r, noteCount), file=Tabs.DBG_FILE)
                             self.chordsObj.printChord(c=cc)
                             break
                         else: 
-                            print('setTab(DISPLAY_CHORDS) r={}, noteCount={}'.format(r, noteCount), file=Tabs.DBG_FILE)
+                            print('setTab(DISPLAY_CHORDS) r={} noteCount={}'.format(r, noteCount), file=Tabs.DBG_FILE)
             if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
                 irow = self.bgnRow(self.row2Line(row)) + self.numStrings + self.NOTES_LEN
                 for r in range(self.numStrings):
@@ -1441,11 +1444,11 @@ class Tabs(object):
     def selectRow(self, uicKey=None, up=0):
         '''Select row, append to selected rows list, hilite current tab, and go up or down to next tab'''
         row, col, r, c, br, er = self.row, self.col, self.row2Index(self.row), self.col2Index(self.col), self.bgnRow(self.row2Line(self.row)), self.endRow(self.row2Line(self.row))
-        print('selectRow(up={}) ({},{}) bgn r={}, c={}, selectRows={}, selectCols={}, br={}, er={}'.format(up, row, col, r, c, self.selectRows, self.selectCols, br, er), file=Tabs.DBG_FILE)
+        print('selectRow(up={}) ({},{}) bgn r={} c={} selectRows={} selectCols={} br={} er={}'.format(up, row, col, r, c, self.selectRows, self.selectCols, br, er), file=Tabs.DBG_FILE)
         if len(self.selectRows) < self.numStrings:
             self.selectRows.append(r)
             self.selectCols.append(c)
-            print('selectRow(up={}) ({},{}) after appending r={}, c={}, selectRows={}, selectCols={}'.format(up, row, col, r, c, self.selectRows, self.selectCols), file=Tabs.DBG_FILE)
+            print('selectRow(up={}) ({},{}) after appending r={} c={} selectRows={} selectCols={}'.format(up, row, col, r, c, self.selectRows, self.selectCols), file=Tabs.DBG_FILE)
             self.selectStyle(c, self.styles['BRIGHT'], rList=self.selectRows)
         if up == 1 and row == br or up == 0 and row == er:
             if up: dir, pos = 'up', 'bgn'
@@ -1461,35 +1464,35 @@ class Tabs(object):
         r = self.row2Index(self.row)
         c = self.col2Index(self.col)
         if len(self.selectRows):
-            print('unselectRow(up={}) ({},{}) checking if r={}, c={}, in selectRows={}, selectCols={}'.format(up, self.row, self.col, r, c, self.selectRows, self.selectCols), file=Tabs.DBG_FILE)
+            print('unselectRow(up={}) ({},{}) checking if r={} c={} in selectRows={} selectCols={}'.format(up, self.row, self.col, r, c, self.selectRows, self.selectCols), file=Tabs.DBG_FILE)
             if r in self.selectRows:
-                print('unselectRow(up={}) ({},{}) before removing r={}, c={}, from selectRows={}, selectCols={}'.format(up, self.row, self.col, r, c, self.selectRows, self.selectCols), file=Tabs.DBG_FILE)
+                print('unselectRow(up={}) ({},{}) before removing r={} c={} from selectRows={} selectCols={}'.format(up, self.row, self.col, r, c, self.selectRows, self.selectCols), file=Tabs.DBG_FILE)
                 self.selectRows.remove(r)
-                print('unselectRow(up={}) ({},{}) after removing r={}, c={}, from selectRows={}, selectCols={}'.format(up, self.row, self.col, r, c, self.selectRows, self.selectCols), file=Tabs.DBG_FILE)
+                print('unselectRow(up={}) ({},{}) after removing r={} c={} from selectRows={} selectCols={}'.format(up, self.row, self.col, r, c, self.selectRows, self.selectCols), file=Tabs.DBG_FILE)
                 self.selectStyle(c, self.styles['NORMAL'], r=r)
                 if up: self.moveUp()
                 else:  self.moveDown()
-            else: self.printe('unselectRow(up={}) ({},{}) nothing to unselect, r={} not in selectRows={}, selectCols={}'.format(up, self.row, self.col, r, self.selectRows, self.selectCols))
-        else: self.printe('unselectRow(up={}) ({},{}) empty list, nothing to unselect, r={} selectRows={}, selectCols={}'.format(up, self.row, self.col, r, self.selectRows, self.selectCols))
+            else: self.printe('unselectRow(up={}) ({},{}) nothing to unselect r={} not in selectRows={} selectCols={}'.format(up, self.row, self.col, r, self.selectRows, self.selectCols))
+        else: self.printe('unselectRow(up={}) ({},{}) empty list, nothing to unselect r={} selectRows={} selectCols={}'.format(up, self.row, self.col, r, self.selectRows, self.selectCols))
         self.printh('{}: {}'.format(uicKey, self.unselectRow.__doc__))
     
     def selectCol(self, uicKey=None, left=0):
         '''Select col, append to selected cols list, hilite current tab, go left or right to next tab'''
         cc = self.col2Index(self.col)
-        print('selectCol(left={}) ({},{}), cc={} selectFlag={}, selectRows={}, selectCols={}'.format(left, self.row, self.col, cc, self.selectFlag, self.selectRows, self.selectCols), file=Tabs.DBG_FILE)
+        print('selectCol(left={}) ({},{}), cc={} selectFlag={} selectRows={} selectCols={}'.format(left, self.row, self.col, cc, self.selectFlag, self.selectRows, self.selectCols), file=Tabs.DBG_FILE)
         if len(self.selectRows) == 0:
             self.selectFlag = 1
             for r in range(0, self.numStrings):
                 self.selectRows.append(r)
-            print('selectCol(left={}) ({},{}) appended all rows, cc={}, selectFlag={}, selectRows={}, selectCols={}'.format(left, self.row, self.col, cc, self.selectFlag, self.selectRows, self.selectCols), file=Tabs.DBG_FILE)
+            print('selectCol(left={}) ({},{}) appended all rows cc={} selectFlag={} selectRows={} selectCols={}'.format(left, self.row, self.col, cc, self.selectFlag, self.selectRows, self.selectCols), file=Tabs.DBG_FILE)
         elif self.selectFlag == 0:
             self.selectFlag = 1
             for c in range(0, len(self.selectCols)):
                 self.selectStyle(c, self.styles['NORMAL'], rList=self.selectRows)
             self.selectCols = []
-            print('selectCol(left={}) ({},{}) removed all cols, cc={}, selectFlag={}, selectRows={}, selectCols={}'.format(left, self.row, self.col, cc, self.selectFlag, self.selectRows, self.selectCols), file=Tabs.DBG_FILE)
+            print('selectCol(left={}) ({},{}) removed all cols cc={} selectFlag={} selectRows={} selectCols={}'.format(left, self.row, self.col, cc, self.selectFlag, self.selectRows, self.selectCols), file=Tabs.DBG_FILE)
         self.selectCols.append(cc)
-        print('selectCol(left={}) ({},{}) appended cc={}, selectFlag={}, selectRows={}, selectCols={}'.format(left, self.row, self.col, cc, self.selectFlag, self.selectRows, self.selectCols), file=Tabs.DBG_FILE)
+        print('selectCol(left={}) ({},{}) appended cc={} selectFlag={} selectRows={} selectCols={}'.format(left, self.row, self.col, cc, self.selectFlag, self.selectRows, self.selectCols), file=Tabs.DBG_FILE)
         self.selectStyle(cc, self.styles['BRIGHT'], rList=self.selectRows)
         if left: self.moveLeft()
         else:    self.moveRight()
@@ -1514,11 +1517,11 @@ class Tabs(object):
     
     def unselectAll(self, uicKey=None):
         '''Unselect all rows and columns.'''
-        print('unselectAll({},{}) bgn selectFlag={}, selectRows={}, selectCols={}, selectTabs={}'.format(self.row, self.col, self.selectFlag, self.selectRows, self.selectCols, self.selectTabs), file=Tabs.DBG_FILE)
+        print('unselectAll({},{}) bgn selectFlag={} selectRows={} selectCols={} selectTabs={}'.format(self.row, self.col, self.selectFlag, self.selectRows, self.selectCols, self.selectTabs), file=Tabs.DBG_FILE)
         for c in range(0, len(self.selectCols)):
             self.selectStyle(self.selectCols[c], self.styles['NORMAL'], rList=self.selectRows)
         self.selectRows, self.selectCols, self.selectTabs, self.selectHTabs, self.selectFlag = [], [], [], [], 0
-        print('unselectAll({},{}) end selectFlag={}, selectRows={}, selectCols={}, selectTabs={}'.format(self.row, self.col, self.selectFlag, self.selectRows, self.selectCols, self.selectTabs), file=Tabs.DBG_FILE)
+        print('unselectAll({},{}) end selectFlag={} selectRows={} selectCols={} selectTabs={}'.format(self.row, self.col, self.selectFlag, self.selectRows, self.selectCols, self.selectTabs), file=Tabs.DBG_FILE)
         self.printh('{}: {}'.format(uicKey, self.unselectAll.__doc__))
     
     def selectStyle(self, c, style, rList=None, r=None):
@@ -1533,7 +1536,7 @@ class Tabs(object):
     def selectRowStyle(self, r, c, style):
         tab = self.tabs[r][c]
         row, col = self.indices2RowCol(r, c)
-        print('selectRowStyle({}) r={}, c={}, row={}, col={}, tabc={}'.format(style, r, c, row, col, chr(tab)), file=Tabs.DBG_FILE)
+        print('selectRowStyle({}) r={} c={} row={} col={} tabc={}'.format(style, r, c, row, col, chr(tab)), file=Tabs.DBG_FILE)
         if self.htabs[r][c] == ord('1'):
             self.prints(chr(tab), row, col, style + self.styles['H_TABS'])
         else:
@@ -1584,7 +1587,7 @@ class Tabs(object):
         '''Copy selected tabs, arpg=1 xform a chord to an arpeggio, arpg=0 xform an arpeggio to a chord'''
         self.arpeggiate, ns, nt, nsr, nsc = arpg, self.numStrings, len(self.tabs[0]), len(self.selectRows), len(self.selectCols)
         if nsr == 0 or nsc == 0:
-            self.printe('copySelectTabs() no tabs selected, nsr={}, nsc={}, use the CTRL ARROW keys to select rows and or columns'.format(nsr, nsc))
+            self.printe('copySelectTabs() no tabs selected nsr={} nsc={} use the CTRL ARROW keys to select rows and or columns'.format(nsr, nsc))
             return
         if arpg is None: size, nc = nsc,           nsc
         elif  arpg == 1: size, nc = nsc * nsr,     nsc
@@ -1594,7 +1597,7 @@ class Tabs(object):
             self.selectTabs.append(bytearray([ord(' ')] * size))
             self.selectHTabs.append(bytearray([ord('0')] * size))
         nst = len(self.selectTabs[0])
-        print('copySelectTabs({},{}) row={}, col={}, ns={}, nsr={}, nsc={}, nt={}, nst={}, nc={}'.format(arpg, self.cursorDir, self.row, self.col, ns, nsr, nsc, nt, nst, nc), file=Tabs.DBG_FILE)
+        print('copySelectTabs({},{}) row={} col={} ns={} nsr={} nsc={} nt={} nst={} nc={}'.format(arpg, self.cursorDir, self.row, self.col, ns, nsr, nsc, nt, nst, nc), file=Tabs.DBG_FILE)
         for c in range(0, nc):
             cc = self.selectCols[c]
             for r in range(0, nsr):
@@ -1606,10 +1609,10 @@ class Tabs(object):
                 elif arpg == 1:
                     if   self.cursorDir == self.CURSOR_DIRS['DOWN']: cst, ct = c * nsr + r, cc
                     elif self.cursorDir == self.CURSOR_DIRS['UP']:   cst, ct = (c + 1) * nsr - r - 1, cc
-                print('copySelectTabs({},{}) r={}, rr={}, c={}, cc={}, cst={}, ct={}, '.format(arpg, self.cursorDir, r, rr, c, cc, cst, ct), end='', file=Tabs.DBG_FILE)
+                print('copySelectTabs({},{}) r={} rr={} c={} cc={} cst={} ct={} '.format(arpg, self.cursorDir, r, rr, c, cc, cst, ct), end='', file=Tabs.DBG_FILE)
                 self.selectTabs[r][cst]  = self.tabs[rr][ct]
                 self.selectHTabs[r][cst] = self.htabs[rr][ct]
-                print('copySelectTabs() selectTabs[{}][{}]={}, tabs[{}][{}]={}'.format(r, cst, chr(self.selectTabs[r][cst]), rr, ct, chr(self.tabs[rr][ct])), file=Tabs.DBG_FILE)
+                print('copySelectTabs() selectTabs[{}][{}]={} tabs[{}][{}]={}'.format(r, cst, chr(self.selectTabs[r][cst]), rr, ct, chr(self.tabs[rr][ct])), file=Tabs.DBG_FILE)
             self.copyColInfo(ct)
             self.dumpSelectTabs(reason='copySelectTabs()')
         self.printh('{}: {}'.format(uicKey, self.copySelectTabs.__doc__))
@@ -1650,7 +1653,7 @@ class Tabs(object):
         self.printh('{}: {}'.format(uicKey, self.cutSelectTabs.__doc__))
     
     def dumpSelectTabs(self, reason='', cols=0):
-        print('dumpSelectTabs(cols={}, reason={}) len(selectCols)={}, len(selectTabs)={}'.format(cols, reason, len(self.selectCols), len(self.selectTabs)), file=Tabs.DBG_FILE)
+        print('dumpSelectTabs(cols={}, reason={}) len(selectCols)={} len(selectTabs)={}'.format(cols, reason, len(self.selectCols), len(self.selectTabs)), file=Tabs.DBG_FILE)
         if cols:
             for c in range(0, len(self.selectCols)):
                 print('    selectCols[{}]={}'.format(c, self.selectCols[c]), file=Tabs.DBG_FILE)
@@ -1660,7 +1663,7 @@ class Tabs(object):
     def deleteTabsCol(self, cc, rmv=1, dbg=0):
         row, col = self.indices2RowCol(0, cc)
         print('deleteTabsCol({}) rmv={} row={} col={}'.format(cc, rmv, row, col), file=Tabs.DBG_FILE)
-        if dbg: self.dumpTabs('deleteTabsCol({}, {}) (row,col)=({},{}), cc={} bgn: '.format(self.row, self.col, row, col, cc))
+        if dbg: self.dumpTabs('deleteTabsCol({}, {}) row={} col={} cc={} bgn: '.format(self.row, self.col, row, col, cc))
         if self.editMode == self.EDIT_MODES['INSERT']:
             print('deleteTabsCol(INSERT)'.format(cc, row, col), file=Tabs.DBG_FILE)
             if cc in self.chordInfo:
@@ -1686,10 +1689,10 @@ class Tabs(object):
         nc, rangeError, row, col, rr, cc = 0, 0, self.row, self.col, 0, 0
         line, ns, nt, nsr, nsc, nst = self.row2Line(self.row), self.numStrings, len(self.tabs[0]), len(self.selectRows), len(self.selectCols), len(self.selectTabs)
         if nst == 0:
-            self.printe('_initPasteInfo() no tabs to paste, nsr={}, nsc={}, nst={}, use CTRL/SHIFT C or X to copy or cut selected tabs'.format(nsr, nsc, nst))
+            self.printe('_initPasteInfo() no tabs to paste nsr={} nsc={} nst={} use CTRL/SHIFT C or X to copy or cut selected tabs'.format(nsr, nsc, nst))
             return rangeError, nc, row, col, self.row2Index(row), cc, line, ns, nt, nsr, nsc, nst
         nst, br, er = len(self.selectTabs[0]), self.bgnRow(line), self.endRow(line)
-        print('_initPasteInfo({},{}) ({},{}) bgn ns={}, nt={}, nsr={}, nsc={}, nst={}, line={}, br={}, er={}'.format(self.arpeggiate, self.cursorDir, row, col, ns, nt, nsr, nsc, nst, line, br, er), file=Tabs.DBG_FILE)
+        print('_initPasteInfo({},{}) ({},{}) bgn ns={} nt={} nsr={} nsc={} nst={} line={} br={} er={}'.format(self.arpeggiate, self.cursorDir, row, col, ns, nt, nsr, nsc, nst, line, br, er), file=Tabs.DBG_FILE)
         while row + nsr - 1 > er:
             row -= 1
             if row < br: self.printe('_initPasteInfo() tried to adjust row={} < br={}, nsr={}'.format(row, br, nsr))
@@ -1697,7 +1700,7 @@ class Tabs(object):
         rr, cc = self.rowCol2Indices(row, col)
         if self.arpeggiate is None: nc = nsc
         else:                       nc = nst
-        print('_initPasteInfo({},{}) row={}, col={}, rr={}, cc={}, nc={}'.format(self.arpeggiate, self.cursorDir, row, col, rr, cc, nc), file=Tabs.DBG_FILE)
+        print('_initPasteInfo({},{}) row={} col={} rr={} cc={} nc={}'.format(self.arpeggiate, self.cursorDir, row, col, rr, cc, nc), file=Tabs.DBG_FILE)
         if self.editMode == self.EDIT_MODES['INSERT']:
             for c in range(nt - 1, cc - 1, -1):
                 for r in range(0, nsr):
@@ -1722,7 +1725,7 @@ class Tabs(object):
                     if   self.cursorDir == self.CURSOR_DIRS['DOWN']: ccc = c * nsr + r
                     elif self.cursorDir == self.CURSOR_DIRS['UP']:   ccc = (c + 1) * nsr - r - 1
                 else: ccc = c
-                print('_initPasteInfo(check) r={}, rr={}, c={}, cc={}, ccc={}, nt={}, nst={}'.format(r, rr, c, cc, ccc, nt, nst), end='', file=Tabs.DBG_FILE)
+                print('_initPasteInfo(check) r={} rr={} c={} cc={} ccc={} nt={} nst={}'.format(r, rr, c, cc, ccc, nt, nst), end='', file=Tabs.DBG_FILE)
                 if c < nst:
                     if ccc + cc < nt:
                         self.tabs[r + rr][ccc + cc] = self.selectTabs[r][ccc]
@@ -1766,11 +1769,11 @@ class Tabs(object):
                 col = self.index2Col(c)
                 if c % self.numTabsPerStringPerLine == 0:
                     row += self.lineDelta()
-                    if dbg: print('pasteSelectTabs(wrap) row={}, col={}, c={}'.format(row, col, c), file=Tabs.DBG_FILE)
+                    if dbg: print('pasteSelectTabs(wrap) row={} col={} c={}'.format(row, col, c), file=Tabs.DBG_FILE)
                 for r in range(rr, rr + nsr):
                     row = self.indices2Row(r, c)
                     tab = self.tabs[r][c]
-                    if dbg: print('pasteSelectTabs(loop2) row={}, col={}, r={}, c={}, tabc[{}][{}]={}'.format(row, col, r, c, r, c, chr(tab)), file=Tabs.DBG_FILE)
+                    if dbg: print('pasteSelectTabs(loop2) row={} col={} r={} c={} tabc[{}][{}]={}'.format(row, col, r, c, r, c, chr(tab)), file=Tabs.DBG_FILE)
                     if self.htabs[r][c] == ord('1'):
                         self.prints(chr(tab), row, col, self.styles['H_TABS'])
                     else:
@@ -1794,7 +1797,7 @@ class Tabs(object):
         if not rangeError:
             self.selectTabs, self.selectHTabs, self.selectCols, self.selectRows = [], [], [], []
         self.arpeggiate, self.selectFlag = 0, 0
-        self.dumpTabs('pasteSelectTabs({},{}) end row={}, col={}'.format(self.arpeggiate, self.cursorDir, row, col))
+        self.dumpTabs('pasteSelectTabs({},{}) end row={} col={}'.format(self.arpeggiate, self.cursorDir, row, col))
         self.getMaxFretInfo()
         self.printh('{}: {}'.format(uicKey, self.pasteSelectTabs.__doc__))
     
@@ -1900,7 +1903,7 @@ class Tabs(object):
                         self.prints(chr(self.capo), row, self.cursorModeCol, self.cursorDirStyle)
                     if Tabs.isFret(chr(capTab)):
                         if chr(self.htabs[r][cc]) == '1':
-                            print('printNotes() r={} tab={}({}) captab={}({}), tabFN={}, capFN={}'.format(r, tab, chr(tab), capTab, chr(capTab), self.getFretNum(tab), self.getFretNum(capTab)), file=Tabs.DBG_FILE)
+                            print('printNotes() r={} tab={}({}) captab={}({}) tabFN={} capFN={}'.format(r, tab, chr(tab), capTab, chr(capTab), self.getFretNum(tab), self.getFretNum(capTab)), file=Tabs.DBG_FILE)
                             n = self.getHarmonicNote(r + 1, capTab)
                             self.printNote(row, c + self.COL_OFF, n, hn=1)
                         else:
@@ -2237,7 +2240,7 @@ class Tabs(object):
             if infoCol < self.chordStatusCol: self.chordStatusCol = infoCol
         else: self.chordStatusCol = infoCol
         if dbg: print('printChordInfo() infoCol={} len(chordName)={} len(chordDelim)={} chordStatusCol={}'.format(infoCol, len(chordName), len(chordDelim), self.chordStatusCol), file=Tabs.DBG_FILE)
-        print('printChordInfo(r={} c={} m={} tab={}) chordName={}, info={}, infoCol={}, chordStatusCol={}'.format(r, c, m, tab, chordName, info, infoCol, self.chordStatusCol), file=Tabs.DBG_FILE)
+        print('printChordInfo(r={} c={} m={} tab={}) chordName={} info={} infoCol={} chordStatusCol={}'.format(r, c, m, tab, chordName, info, infoCol, self.chordStatusCol), file=Tabs.DBG_FILE)
         style = Tabs.CSI + self.styles['HLT_STUS']
         if len(chordName) > 0:
             style = Tabs.CSI + self.getEnharmonicStyle(chordName, self.styles['NAT_NOTE'], self.styles['FLT_NOTE'], self.styles['SHP_NOTE'])
@@ -2332,7 +2335,7 @@ class Tabs(object):
         chfret = self.HARMONIC_FRETS[fret]
 #        chfret = hfret + self.getFretNum(self.capo)
         n = notes.Note(self.getNoteIndex(str, chfret), self.enharmonic)
-        print('getHarmonicNote({}, {}) f={}, hf={}, chf={}, n.i={}, n.n={}, n.o={})'.format(str, tab, fret, hfret, chfret, n.index, n.name, n.getOctaveNum()), file=Tabs.DBG_FILE)
+        print('getHarmonicNote({}, {}) f={} hf={} chf={} n.i={} n.n={} n.o={})'.format(str, tab, fret, hfret, chfret, n.index, n.name, n.getOctaveNum()), file=Tabs.DBG_FILE)
         return n
     
     def getNoteIndex(self, str, f):
@@ -2386,13 +2389,13 @@ class Tabs(object):
         else: self.printe('clearRow() invalid arg={} - only support 0[col to end] or 2[0 to end]'.format(arg))
         if row is None or col is None: self.printe('clearRow() invalid row={} or col={}'.format(row, col))
         else:
-            if dbg: print('clearRow({} {}) arg={} row={}, col={} cBgn={} endCol={}'.format(self.row, self.col, arg, row, col, cBgn, self.endCol()), file=Tabs.DBG_FILE)
+            if dbg: print('clearRow({} {}) arg={} row={} col={} cBgn={} endCol={}'.format(self.row, self.col, arg, row, col, cBgn, self.endCol()), file=Tabs.DBG_FILE)
             for c in range(cBgn, self.endCol() + 1):
                 print(Tabs.CSI + self.styles['SHP_NOTE'] + Tabs.CSI + '{};{}H '.format(row, c), end='', file=file)
     
     @staticmethod
     def clearRow_OLD(arg=2, row=None, col=None, file=None, dbg=1): # arg=0: cursor to end of line, arg=1: begin of line to cursor, arg=2: entire line
-        if dbg: print('clearRow() arg={} row={}, col={}'.format(arg, row, col), file=Tabs.DBG_FILE)
+        if dbg: print('clearRow() arg={} row={} col={}'.format(arg, row, col), file=Tabs.DBG_FILE)
         if row is not None and col is not None:
             print(Tabs.CSI + '{};{}H'.format(row, col), end='', file=file)
         print(Tabs.CSI + '{}K'.format(arg), end='', file=file)
