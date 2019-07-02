@@ -401,16 +401,16 @@ class Tabs(object):
                         'SHP_NOTE':self.RED_WHITE,     'SHP_H_NOTE':self.MAGENTA_WHITE, 'SHP_CHORD':self.RED_WHITE,        'STATUS':self.MAGENTA_WHITE, 'MODES':self.BLUE_WHITE,
                           'NUT_UP':self.WHITE_MAGENTA, 'IVAL_LABEL':self.YELLOW_WHITE,      'ERROR':self.WHITE_RED,          'CONS':self.BLACK_WHITE,  'BRIGHT':'1;',
                           'NUT_DN':self.WHITE_CYAN,   'CHORD_LABEL':self.GREEN_WHITE,     'NO_IVAL':self.BLACK_WHITE,    'HLT_STUS':self.GREEN_WHITE,  'NORMAL':'22;' }
-        self.styles = { 'NAT_NOTE':self.WHITE_GREEN,   'NAT_H_NOTE':self.WHITE_YELLOW,  'NAT_CHORD':self.WHITE_GREEN, 'MIN_COL_NUM':self.WHITE_RED,      'TABS':self.WHITE_BLACK,
-                        'FLT_NOTE':self.WHITE_BLUE,    'FLT_H_NOTE':self.WHITE_CYAN,    'FLT_CHORD':self.WHITE_BLUE,  'MAJ_COL_NUM':self.WHITE_BLACK,  'H_TABS':self.WHITE_GREEN,
-                        'SHP_NOTE':self.WHITE_RED,     'SHP_H_NOTE':self.WHITE_MAGENTA, 'SHP_CHORD':self.WHITE_RED,        'STATUS':self.WHITE_MAGENTA, 'MODES':self.WHITE_BLUE,
-                          'NUT_UP':self.WHITE_MAGENTA, 'IVAL_LABEL':self.WHITE_YELLOW,      'ERROR':self.WHITE_RED,          'CONS':self.WHITE_BLACK,  'BRIGHT':'1;',
-                          'NUT_DN':self.WHITE_CYAN,   'CHORD_LABEL':self.WHITE_GREEN,     'NO_IVAL':self.WHITE_BLACK,    'HLT_STUS':self.WHITE_GREEN,  'NORMAL':'22;' }
-        self.styles = { 'NAT_NOTE':self.GREEN_BLACK,   'NAT_H_NOTE':self.YELLOW_BLACK,  'NAT_CHORD':self.GREEN_BLACK, 'MIN_COL_NUM':self.RED_BLACK,      'TABS':self.WHITE_BLACK,
-                        'FLT_NOTE':self.BLUE_BLACK,    'FLT_H_NOTE':self.CYAN_BLACK,    'FLT_CHORD':self.BLUE_BLACK,  'MAJ_COL_NUM':self.WHITE_BLACK,  'H_TABS':self.GREEN_BLACK,
-                        'SHP_NOTE':self.RED_BLACK,     'SHP_H_NOTE':self.MAGENTA_BLACK, 'SHP_CHORD':self.RED_BLACK,        'STATUS':self.MAGENTA_BLACK, 'MODES':self.BLUE_BLACK,
-                          'NUT_UP':self.MAGENTA_BLACK, 'IVAL_LABEL':self.YELLOW_BLACK,      'ERROR':self.RED_BLACK,          'CONS':self.WHITE_BLACK,  'BRIGHT':'1;',
-                          'NUT_DN':self.CYAN_BLACK,   'CHORD_LABEL':self.GREEN_BLACK,     'NO_IVAL':self.WHITE_BLACK,    'HLT_STUS':self.GREEN_BLACK,  'NORMAL':'22;' }
+#        self.styles = { 'NAT_NOTE':self.WHITE_GREEN,   'NAT_H_NOTE':self.WHITE_YELLOW,  'NAT_CHORD':self.WHITE_GREEN, 'MIN_COL_NUM':self.WHITE_RED,      'TABS':self.WHITE_BLACK,
+#                        'FLT_NOTE':self.WHITE_BLUE,    'FLT_H_NOTE':self.WHITE_CYAN,    'FLT_CHORD':self.WHITE_BLUE,  'MAJ_COL_NUM':self.WHITE_BLACK,  'H_TABS':self.WHITE_GREEN,
+#                        'SHP_NOTE':self.WHITE_RED,     'SHP_H_NOTE':self.WHITE_MAGENTA, 'SHP_CHORD':self.WHITE_RED,        'STATUS':self.WHITE_MAGENTA, 'MODES':self.WHITE_BLUE,
+#                          'NUT_UP':self.WHITE_MAGENTA, 'IVAL_LABEL':self.WHITE_YELLOW,      'ERROR':self.WHITE_RED,          'CONS':self.WHITE_BLACK,  'BRIGHT':'1;',
+#                          'NUT_DN':self.WHITE_CYAN,   'CHORD_LABEL':self.WHITE_GREEN,     'NO_IVAL':self.WHITE_BLACK,    'HLT_STUS':self.WHITE_GREEN,  'NORMAL':'22;' }
+#        self.styles = { 'NAT_NOTE':self.GREEN_BLACK,   'NAT_H_NOTE':self.YELLOW_BLACK,  'NAT_CHORD':self.GREEN_BLACK, 'MIN_COL_NUM':self.RED_BLACK,      'TABS':self.WHITE_BLACK,
+#                        'FLT_NOTE':self.BLUE_BLACK,    'FLT_H_NOTE':self.CYAN_BLACK,    'FLT_CHORD':self.BLUE_BLACK,  'MAJ_COL_NUM':self.WHITE_BLACK,  'H_TABS':self.GREEN_BLACK,
+#                        'SHP_NOTE':self.RED_BLACK,     'SHP_H_NOTE':self.MAGENTA_BLACK, 'SHP_CHORD':self.RED_BLACK,        'STATUS':self.MAGENTA_BLACK, 'MODES':self.BLUE_BLACK,
+#                          'NUT_UP':self.MAGENTA_BLACK, 'IVAL_LABEL':self.YELLOW_BLACK,      'ERROR':self.RED_BLACK,          'CONS':self.WHITE_BLACK,  'BRIGHT':'1;',
+#                          'NUT_DN':self.CYAN_BLACK,   'CHORD_LABEL':self.GREEN_BLACK,     'NO_IVAL':self.WHITE_BLACK,    'HLT_STUS':self.GREEN_BLACK,  'NORMAL':'22;' }
         self.HARMONIC_FRETS = { 12:12, 7:19, 19:19, 5:24, 24:24, 4:28, 9:28, 16:28, 28:28 }
         self.CURSOR_DIRS = { 'DOWN':0, 'UP':1 }
         self.CURSOR_MODES = { 'MELODY':0, 'CHORD':1, 'ARPEGGIO':2 }
@@ -2070,7 +2070,7 @@ class Tabs(object):
         if   Tabs.isFret(tab): cnt = self.printFretStatus(tab, r, c)
         elif tab in self.mods: cnt = self.printModStatus(tab, r, c)
         else:                  cnt = self.printDefaultStatus(tab, r, c)
-        self.clearRow(arg=0, row=self.lastRow, col=cnt, file=self.outFile)
+        self.clearRow(self.lastRow, arg=0, col=cnt, file=self.outFile)
         self.printChordStatus(r, c)
         print('printStatus() row={} col={} r={} c={} cnt={} end'.format(self.row, self.col, r, c, cnt), file=Tabs.DBG_FILE)
         if hinfo: self.printh('{}: {}'.format(uicKey, self.printStatus.__doc__), status=1)
@@ -2312,9 +2312,11 @@ class Tabs(object):
         if hist == 0:
             self.cmds.append(reason)
             self.cmdsIndex = len(self.cmds) - 1
-        print('printh(col={}) {}'.format(col, reason), file=Tabs.DBG_FILE)
-        self.clearRow(arg=0, row=self.lastRow, col=1, file=self.outFile)
-        if not status:      self.printStatus()
+        clear = self.clearRow(self.lastRow, file=self.outFile)
+        print('printh(col={}) clear={} status={} hist={} reason={}'.format(col, clear, status, hist, reason), file=Tabs.DBG_FILE)
+        if clear and not status and not hist:
+            print('printh() status={} hist={} calling printStatus()'.format(status, hist), file=Tabs.DBG_FILE)
+            self.printStatus()
         print(Tabs.CSI + style + Tabs.CSI + '{};{}H{}'.format(self.lastRow, col, reason), end='')
         self.resetPos()
     
@@ -2383,15 +2385,20 @@ class Tabs(object):
         elif m == 3 and n != 13: return 'rd'
         else:                    return 'th'
     
-    def clearRow(self, arg=2, row=None, col=None, file=None, dbg=1):
-        if arg == 0: cBgn = col
-        elif arg == 2: cBgn = 0
-        else: self.printe('clearRow() invalid arg={} - only support 0[col to end] or 2[0 to end]'.format(arg))
-        if row is None or col is None: self.printe('clearRow() invalid row={} or col={}'.format(row, col))
+    def clearRow(self, row, col=1, arg=2, file=None, dbg=1): # arg=0: col to end of line, arg=1: begin of line to col, arg=2: entire line
+        cBgn = 1
+        cEnd = self.endCol() + 1
+        if   arg == 0: cBgn = col
+        elif arg == 1: cEnd = col + 1
+        elif arg == 2: pass
+        if row is None:
+            self.printe('clearRow() arg={} col={} invalid row={}'.format(arg, col, row))
+            return 0
         else:
-            if dbg: print('clearRow({} {}) arg={} row={} col={} cBgn={} endCol={}'.format(self.row, self.col, arg, row, col, cBgn, self.endCol()), file=Tabs.DBG_FILE)
-            for c in range(cBgn, self.endCol() + 1):
+            if dbg: print('clearRow({} {}) arg={} row={} col={} cBgn={} cEnd={}'.format(self.row, self.col, arg, row, col, cBgn, cEnd), file=Tabs.DBG_FILE)
+            for c in range(cBgn, cEnd):
                 print(Tabs.CSI + self.styles['SHP_NOTE'] + Tabs.CSI + '{};{}H '.format(row, c), end='', file=file)
+            return 1
     
     @staticmethod
     def clearRow_OLD(arg=2, row=None, col=None, file=None, dbg=1): # arg=0: cursor to end of line, arg=1: begin of line to cursor, arg=2: entire line
