@@ -62,7 +62,7 @@ class Chords(object):
         self.tabsObj.printFileMark('<END_CHORDS_SECTION>')
         return self.chordNames
     
-    def printChord(self, c, dbg=3):
+    def printChord(self, c, bStyle='', dbg=3):
         '''Analyze notes in given column index and if a valid chord is discovered then print it in the appropriate chords section.'''
         self.c = c
         if self.c is None:
@@ -91,13 +91,13 @@ class Chords(object):
                         selectedChord = self.tabsObj.imap2String(self.tabsObj.selectChords[chordName])
                         print('printChord({}) FOUND SELECTED chordName={} in selectChords[{}]={}'.format(self.c, chordName, chordName, selectedChord), file=self.tabsObj.DBG_FILE)
                         self.tabsObj.chordInfo[self.c] = {'INDEX': i, 'CHORDS': lchords, 'LIMAP': limap}
-                        self.printChordName(row, col, chordName, imap)
+                        self.printChordName(row, col, chordName, imap, bStyle)
                         self.chordNames[self.c] = chordName
                         print('printChord({}) ADDING chordName[{}]={} to chordNames={}'.format(self.c, self.c, self.chordNames[self.c], self.chordNames), file=self.tabsObj.DBG_FILE)
         if selected == 0 and len(limap):
             imap = limap[0]
             print('printChord({}) currentName={} chordName={} imap={}'.format(self.c, currentName, chordName, imap), file=self.tabsObj.DBG_FILE)
-            self.printChordName(row, col, chordName, imap)
+            self.printChordName(row, col, chordName, imap, bStyle)
             self.tabsObj.chordInfo[self.c] = {'INDEX': i, 'CHORDS': lchords, 'LIMAP': limap}
             if len(chordName) > 0:
                 self.chordNames[self.c] = chordName
@@ -258,7 +258,7 @@ class Chords(object):
         print('] to', end=' ', file=self.tabsObj.DBG_FILE)
         self.tabsObj.dumpLimap(limap, reason='dumpLimaps()')
     
-    def printChordName(self, row, col, chordName, imap, imapKeys=None, dbg=0):
+    def printChordName(self, row, col, chordName, imap, bStyle='', dbg=0):
         print('printChordName() {:<7}, imap={}'.format(chordName, self.tabsObj.imap2String(imap)), file=self.tabsObj.DBG_FILE)
         if len(chordName) > 1 and ( chordName[1] == '#' or chordName[1] == 'b' ):
             chordName = chordName[0] + chordName[2:]
@@ -289,7 +289,7 @@ class Chords(object):
             elif ddn: style = self.tabsObj.styles['NO_IVAL']
             elif ddf: style = self.tabsObj.styles['FLT_CHORD']
             elif dds: style = self.tabsObj.styles['SHP_CHORD']
-            self.tabsObj.prints(chordName[i], i + row, col, style)
+            self.tabsObj.prints(chordName[i], i + row, col, bStyle + style)
             i += 1
             if i == self.tabsObj.CHORDS_LEN: break
         for i in range(i, self.tabsObj.CHORDS_LEN):

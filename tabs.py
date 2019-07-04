@@ -1525,39 +1525,42 @@ class Tabs(object):
         print('unselectAll({},{}) end selectFlag={} selectRows={} selectCols={} selectTabs={}'.format(self.row, self.col, self.selectFlag, self.selectRows, self.selectCols, self.selectTabs), file=Tabs.DBG_FILE)
         self.printh('{}: {}'.format(uicKey, self.unselectAll.__doc__))
     
-    def selectStyle(self, c, style, rList=None, r=None):
-        print('selectStyle({}) c={}, rList={}, r={}'.format(style, c, rList, r), file=Tabs.DBG_FILE)
+    def selectStyle(self, c, bStyle, rList=None, r=None):
+        print('selectStyle({}) c={}, rList={}, r={}'.format(bStyle, c, rList, r), file=Tabs.DBG_FILE)
         if rList is not None and r is None:
             for rr in range(0, len(rList)):
                 r = rList[rr]
-                self.selectRowStyle(r, c, style)
+                self.selectRowStyle(r, c, bStyle)
         elif rList is None and r is not None:
-            self.selectRowStyle(r, c, style)
+            self.selectRowStyle(r, c, bStyle)
     
-    def selectRowStyle(self, r, c, style):
+    def selectRowStyle(self, r, c, bStyle):
         tab = self.tabs[r][c]
         row, col = self.indices2RowCol(r, c)
-        print('selectRowStyle({}) r={} c={} row={} col={} tabc={}'.format(style, r, c, row, col, chr(tab)), file=Tabs.DBG_FILE)
+        print('selectRowStyle({}) r={} c={} row={} col={} tabc={}'.format(bStyle, r, c, row, col, chr(tab)), file=Tabs.DBG_FILE)
         if self.htabs[r][c] == ord('1'):
-            self.prints(chr(tab), row, col, style + self.styles['H_TABS'])
+            self.prints(chr(tab), row, col, bStyle + self.styles['H_TABS'])
         else:
-            self.prints(chr(tab), row, col, style + self.styles['TABS'])
+            self.prints(chr(tab), row, col, bStyle + self.styles['TABS'])
         if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
-            print('selectRowStyle(DISPLAY_NOTES) style={}'.format(style), file=Tabs.DBG_FILE)
+            print('selectRowStyle(DISPLAY_NOTES) bStyle={}'.format(bStyle), file=Tabs.DBG_FILE)
             if Tabs.isFret(chr(tab)):
                 if self.htabs[r][c] == ord('1'):
                     n = self.getHarmonicNote(r + 1, tab)
-                    self.printNote(row + self.numStrings, col, n, style, hn=1)
+                    self.printNote(row + self.numStrings, col, n, bStyle, hn=1)
                 else:
                     n = self.getNote(r + 1, tab)
-                    self.printNote(row + self.numStrings, col, n, style)
+                    self.printNote(row + self.numStrings, col, n, bStyle)
             else:
-                self.prints(chr(tab), row + self.numStrings, col, style + self.styles['NAT_NOTE'])
+                self.prints(chr(tab), row + self.numStrings, col, bStyle + self.styles['NAT_NOTE'])
         if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
-            print('selectRowStyle(DISPLAY_INTERVALS) style={}'.format(style), file=Tabs.DBG_FILE)
-            self.printInterval(row + self.numStrings + self.NOTES_LEN, col, '-', style, dbg=1)
+            print('selectRowStyle(DISPLAY_INTERVALS) bStyle={}'.format(bStyle), file=Tabs.DBG_FILE)
+            self.printInterval(row + self.numStrings + self.NOTES_LEN, col, '-', bStyle, dbg=1)
             if c in self.chordInfo:
-                self.wrapPrintInterval(r, c, style, dbg=1)
+                self.wrapPrintInterval(r, c, bStyle, dbg=1)
+        if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
+            self.chordsObj.eraseChord(c)
+            self.chordsObj.printChord(c, bStyle=bStyle)
     
     def shiftSelectTabs(self, uicKey=None):
         '''Shift selected tabs up or down # frets,  user input of up to 2 digits terminated by space [-10 ]'''
@@ -1900,20 +1903,20 @@ class Tabs(object):
             print()
         self.printFileMark('<END_NOTES_SECTION>')
     
-    def printNote(self, row, col, n, style='', hn=None, dbg=1):
+    def printNote(self, row, col, n, bStyle='', hn=None, dbg=1):
         if dbg: print('printNote() row={},col={}, nn={}'.format(row, col, n.name), file=Tabs.DBG_FILE)
-        style = self.getNoteStyle(n, style, hn)
+        style = self.getNoteStyle(n, bStyle, hn)
         self.prints(n.name[0], row, col, style)
     
-    def getNoteStyle(self, n, style, hn=None):
+    def getNoteStyle(self, n, bStyle, hn=None):
         if hn is None:
-            natStyle = style + self.styles['NAT_NOTE']
-            fltStyle = style + self.styles['FLT_NOTE']
-            shpStyle = style + self.styles['SHP_NOTE']
+            natStyle = bStyle + self.styles['NAT_NOTE']
+            fltStyle = bStyle + self.styles['FLT_NOTE']
+            shpStyle = bStyle + self.styles['SHP_NOTE']
         else:
-            natStyle = style + self.styles['NAT_H_NOTE']
-            fltStyle = style + self.styles['FLT_H_NOTE']
-            shpStyle = style + self.styles['SHP_H_NOTE']
+            natStyle = bStyle + self.styles['NAT_H_NOTE']
+            fltStyle = bStyle + self.styles['FLT_H_NOTE']
+            shpStyle = bStyle + self.styles['SHP_H_NOTE']
         return self.getEnharmonicStyle(n.name, natStyle, fltStyle, shpStyle)
     
     def getEnharmonicStyle(self, name, defStyle, flatStyle, sharpStyle):
@@ -1953,7 +1956,7 @@ class Tabs(object):
             if c in self.chordInfo: 
                 self.wrapPrintInterval(r, c, dbg=dbg)
     
-    def wrapPrintInterval(self, r, c, style='', dbg=1):
+    def wrapPrintInterval(self, r, c, bStyle='', dbg=1):
         if c in self.analyzeIndices: index = self.analyzeIndices[c]
         else:                        index = 0
         print('wrapPrintInterval({:>3} {}) bgn'.format(c, index), file=Tabs.DBG_FILE)
@@ -1980,14 +1983,14 @@ class Tabs(object):
                 nn = n.name
                 if dbg: print('wrapPrintInterval({:>3} {}) imap={} capTab={} note={}'.format(c, index, imap, chr(capTab), nn), file=Tabs.DBG_FILE)
                 if nn in im:
-                    self.printInterval(row + self.numStrings + self.NOTES_LEN, col, im[nn], style, dbg=dbg)
+                    self.printInterval(row + self.numStrings + self.NOTES_LEN, col, im[nn], bStyle, dbg=dbg)
     
-    def printInterval(self, row, col, ival, style='', dbg=1):
-        cStyle = style + self.styles['NAT_IVAL']
-        if dbg: print('printInterval(c={}) row={} col={} ival={} style={} cStyle={}'.format(col - self.COL_OFF, row, col, ival, style, cStyle), file=Tabs.DBG_FILE)
+    def printInterval(self, row, col, ival, bStyle='', dbg=1):
+        cStyle = bStyle + self.styles['NAT_IVAL']
+        if dbg: print('printInterval(c={}) row={} col={} ival={} bStyle={} cStyle={}'.format(col - self.COL_OFF, row, col, ival, bStyle, cStyle), file=Tabs.DBG_FILE)
         if len(ival) > 1:
-            if ival == 'm2' or ival == 'm3' or ival == 'b5' or ival == 'b7': cStyle = style + self.styles['FLT_IVAL']
-            elif ival == 'a5':                                               cStyle = style + self.styles['SHP_IVAL']
+            if ival == 'm2' or ival == 'm3' or ival == 'b5' or ival == 'b7': cStyle = bStyle + self.styles['FLT_IVAL']
+            elif ival == 'a5':                                               cStyle = bStyle + self.styles['SHP_IVAL']
             ival = ival[1]
         self.prints(ival, row, col, cStyle)
     
