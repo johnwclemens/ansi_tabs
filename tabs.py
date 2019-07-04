@@ -396,21 +396,22 @@ class Tabs(object):
         self.CYAN_BLACK = self.initText('CYAN', 'BLACK')
         self.MAGENTA_BLACK = self.initText('MAGENTA', 'BLACK')
         self.RED_GREEN = self.initText('RED', 'GREEN')
-        self.styles = { 'NAT_NOTE':self.GREEN_WHITE,   'NAT_H_NOTE':self.YELLOW_WHITE,  'NAT_CHORD':self.GREEN_WHITE, 'MIN_COL_NUM':self.RED_WHITE,      'TABS':self.BLACK_WHITE,
-                        'FLT_NOTE':self.BLUE_WHITE,    'FLT_H_NOTE':self.CYAN_WHITE,    'FLT_CHORD':self.BLUE_WHITE,  'MAJ_COL_NUM':self.BLACK_WHITE,  'H_TABS':self.WHITE_GREEN,
-                        'SHP_NOTE':self.RED_WHITE,     'SHP_H_NOTE':self.MAGENTA_WHITE, 'SHP_CHORD':self.RED_WHITE,        'STATUS':self.MAGENTA_WHITE, 'MODES':self.BLUE_WHITE,
-                          'NUT_UP':self.WHITE_MAGENTA, 'IVAL_LABEL':self.YELLOW_WHITE,      'ERROR':self.WHITE_RED,          'CONS':self.BLACK_WHITE,  'BRIGHT':'1;',
-                          'NUT_DN':self.WHITE_CYAN,   'CHORD_LABEL':self.GREEN_WHITE,     'NO_IVAL':self.BLACK_WHITE,    'HLT_STUS':self.GREEN_WHITE,  'NORMAL':'22;' }
+        self.styles = { 'NAT_NOTE':self.GREEN_WHITE,   'NAT_H_NOTE':self.YELLOW_WHITE,    'NAT_IVAL':self.MAGENTA_WHITE, 'NAT_CHORD':self.GREEN_WHITE,    'TABS':self.BLUE_WHITE,
+                        'FLT_NOTE':self.BLUE_WHITE,    'FLT_H_NOTE':self.CYAN_WHITE,      'FLT_IVAL':self.CYAN_WHITE,    'FLT_CHORD':self.BLUE_WHITE,   'H_TABS':self.WHITE_GREEN,
+                        'SHP_NOTE':self.RED_WHITE,     'SHP_H_NOTE':self.MAGENTA_WHITE,   'SHP_IVAL':self.RED_WHITE,     'SHP_CHORD':self.RED_WHITE,     'MODES':self.BLUE_WHITE,
+                          'NUT_UP':self.WHITE_MAGENTA, 'IVAL_LABEL':self.YELLOW_WHITE, 'MIN_COL_NUM':self.RED_WHITE,        'STATUS':self.MAGENTA_WHITE, 'ERROR':self.WHITE_RED,
+                          'NUT_DN':self.WHITE_CYAN,   'CHORD_LABEL':self.GREEN_WHITE,  'MAJ_COL_NUM':self.BLACK_WHITE,    'HLT_STUS':self.GREEN_WHITE,    'CONS':self.BLACK_WHITE,
+                         'NO_IVAL':self.BLACK_WHITE,       'NORMAL':'22;',                  'BRIGHT':'1;' }
 #        self.styles = { 'NAT_NOTE':self.WHITE_GREEN,   'NAT_H_NOTE':self.WHITE_YELLOW,  'NAT_CHORD':self.WHITE_GREEN, 'MIN_COL_NUM':self.WHITE_RED,      'TABS':self.WHITE_BLACK,
 #                        'FLT_NOTE':self.WHITE_BLUE,    'FLT_H_NOTE':self.WHITE_CYAN,    'FLT_CHORD':self.WHITE_BLUE,  'MAJ_COL_NUM':self.WHITE_BLACK,  'H_TABS':self.WHITE_GREEN,
 #                        'SHP_NOTE':self.WHITE_RED,     'SHP_H_NOTE':self.WHITE_MAGENTA, 'SHP_CHORD':self.WHITE_RED,        'STATUS':self.WHITE_MAGENTA, 'MODES':self.WHITE_BLUE,
 #                          'NUT_UP':self.WHITE_MAGENTA, 'IVAL_LABEL':self.WHITE_YELLOW,      'ERROR':self.WHITE_RED,          'CONS':self.WHITE_BLACK,  'BRIGHT':'1;',
 #                          'NUT_DN':self.WHITE_CYAN,   'CHORD_LABEL':self.WHITE_GREEN,     'NO_IVAL':self.WHITE_BLACK,    'HLT_STUS':self.WHITE_GREEN,  'NORMAL':'22;' }
-#        self.styles = { 'NAT_NOTE':self.GREEN_BLACK,   'NAT_H_NOTE':self.YELLOW_BLACK,  'NAT_CHORD':self.GREEN_BLACK, 'MIN_COL_NUM':self.RED_BLACK,      'TABS':self.WHITE_BLACK,
-#                        'FLT_NOTE':self.BLUE_BLACK,    'FLT_H_NOTE':self.CYAN_BLACK,    'FLT_CHORD':self.BLUE_BLACK,  'MAJ_COL_NUM':self.WHITE_BLACK,  'H_TABS':self.GREEN_BLACK,
-#                        'SHP_NOTE':self.RED_BLACK,     'SHP_H_NOTE':self.MAGENTA_BLACK, 'SHP_CHORD':self.RED_BLACK,        'STATUS':self.MAGENTA_BLACK, 'MODES':self.BLUE_BLACK,
+#        self.styles = { 'NAT_NOTE':self.GREEN_BLACK,   'NAT_H_NOTE':self.YELLOW_BLACK,  'NAT_CHORD':self.GREEN_BLACK, 'MIN_COL_NUM':self.RED_BLACK,      'TABS':self.CYAN_BLACK,
+#                        'FLT_NOTE':self.BLUE_BLACK,    'FLT_H_NOTE':self.CYAN_BLACK,    'FLT_CHORD':self.BLUE_BLACK,  'MAJ_COL_NUM':self.YELLOW_BLACK, 'H_TABS':self.GREEN_BLACK,
+#                        'SHP_NOTE':self.RED_BLACK,     'SHP_H_NOTE':self.MAGENTA_BLACK, 'SHP_CHORD':self.RED_BLACK,        'STATUS':self.MAGENTA_BLACK, 'MODES':self.CYAN_BLACK,
 #                          'NUT_UP':self.MAGENTA_BLACK, 'IVAL_LABEL':self.YELLOW_BLACK,      'ERROR':self.RED_BLACK,          'CONS':self.WHITE_BLACK,  'BRIGHT':'1;',
-#                          'NUT_DN':self.CYAN_BLACK,   'CHORD_LABEL':self.GREEN_BLACK,     'NO_IVAL':self.WHITE_BLACK,    'HLT_STUS':self.GREEN_BLACK,  'NORMAL':'22;' }
+#                          'NUT_DN':self.WHITE_BLACK,  'CHORD_LABEL':self.GREEN_BLACK,     'NO_IVAL':self.WHITE_BLACK,    'HLT_STUS':self.GREEN_BLACK,  'NORMAL':'22;' }
         self.HARMONIC_FRETS = { 12:12, 7:19, 19:19, 5:24, 24:24, 4:28, 9:28, 16:28, 28:28 }
         self.CURSOR_DIRS = { 'DOWN':0, 'UP':1 }
         self.CURSOR_MODES = { 'MELODY':0, 'CHORD':1, 'ARPEGGIO':2 }
@@ -1171,7 +1172,7 @@ class Tabs(object):
     
     @staticmethod
     def getColMod(c):
-        if c % 10:    return c % 10
+        if   c % 10:  return c % 10
         elif c < 100: return c // 10
         else:         return ((c - 100) // 10)
     
@@ -1282,7 +1283,7 @@ class Tabs(object):
         s, ss = rr + 1, self.getOrdSfx(rr + 1)
         print('setTab({}, {}, {}, {}) tab={}({}), {}({}{}) string, bgn'.format(rr, cc, self.row, self.col, tab, chr(tab), self.getNote(s, 0).name, s, ss), file=Tabs.DBG_FILE)
         if self.bgnCol() > self.col > self.endCol() or self.ROW_OFF > self.row > self.ROW_OFF + self.numLines * self.lineDelta():
-            return self.printe('row/col out of range setTab({},{},{}, {}) tab={}({})'.format(rr, cc, self.row, self.col, tab, chr(tab)), x=1)
+            return self.printe('row/col out of range setTab({} {}) row={} col={} tab={}({})'.format(rr, cc, self.row, self.col, tab, chr(tab)), x=1)
         if self.editMode == self.EDIT_MODES['INSERT']:
             print('setTab(INSERT) len={}'.format(len(self.tabs[rr])), file=Tabs.DBG_FILE)
             for c in range(len(self.tabs[rr]) - 1, cc, - 1):
@@ -1542,6 +1543,7 @@ class Tabs(object):
         else:
             self.prints(chr(tab), row, col, style + self.styles['TABS'])
         if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
+            print('selectRowStyle(DISPLAY_NOTES) style={}'.format(style), file=Tabs.DBG_FILE)
             if Tabs.isFret(chr(tab)):
                 if self.htabs[r][c] == ord('1'):
                     n = self.getHarmonicNote(r + 1, tab)
@@ -1551,6 +1553,11 @@ class Tabs(object):
                     self.printNote(row + self.numStrings, col, n, style)
             else:
                 self.prints(chr(tab), row + self.numStrings, col, style + self.styles['NAT_NOTE'])
+        if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
+            print('selectRowStyle(DISPLAY_INTERVALS) style={}'.format(style), file=Tabs.DBG_FILE)
+            self.printInterval(row + self.numStrings + self.NOTES_LEN, col, '-', style, dbg=1)
+            if c in self.chordInfo:
+                self.wrapPrintInterval(r, c, style, dbg=1)
     
     def shiftSelectTabs(self, uicKey=None):
         '''Shift selected tabs up or down # frets,  user input of up to 2 digits terminated by space [-10 ]'''
@@ -1865,27 +1872,6 @@ class Tabs(object):
             else:
                 print(Tabs.CSI + self.styles['NORMAL'] + self.styles['CONS'] + Tabs.CSI + '{};{}H{}'.format(1, 1, mark), file=self.outFile)
     
-    def getNoteStyle(self, n, style, hn=None):
-        if hn is None:
-            natStyle = style + self.styles['NAT_NOTE']
-            fltStyle = style + self.styles['FLT_NOTE']
-            shpStyle = style + self.styles['SHP_NOTE']
-        else:
-            natStyle = style + self.styles['NAT_H_NOTE']
-            fltStyle = style + self.styles['FLT_H_NOTE']
-            shpStyle = style + self.styles['SHP_H_NOTE']
-        return self.getEnharmonicStyle(n.name, natStyle, fltStyle, shpStyle)
-    
-    def getEnharmonicStyle(self, name, defStyle, flatStyle, sharpStyle):
-        if len(name) > 1:
-            if name[1] == 'b':
-                if self.enharmonic == self.ENHARMONICS['FLAT']:  return flatStyle
-                else:                                            return sharpStyle
-            elif name[1] == '#':
-                if self.enharmonic == self.ENHARMONICS['SHARP']: return sharpStyle
-                else:                                            return flatStyle
-        return defStyle
-    
     def printNotes(self, dbg=1):
         self.printFileMark('<BGN_NOTES_SECTION>')
         for line in range(0, self.numLines):
@@ -1914,10 +1900,31 @@ class Tabs(object):
             print()
         self.printFileMark('<END_NOTES_SECTION>')
     
-    def printNote(self, row, col, n, style='', hn=None, dbg=0):
+    def printNote(self, row, col, n, style='', hn=None, dbg=1):
         if dbg: print('printNote() row={},col={}, nn={}'.format(row, col, n.name), file=Tabs.DBG_FILE)
         style = self.getNoteStyle(n, style, hn)
         self.prints(n.name[0], row, col, style)
+    
+    def getNoteStyle(self, n, style, hn=None):
+        if hn is None:
+            natStyle = style + self.styles['NAT_NOTE']
+            fltStyle = style + self.styles['FLT_NOTE']
+            shpStyle = style + self.styles['SHP_NOTE']
+        else:
+            natStyle = style + self.styles['NAT_H_NOTE']
+            fltStyle = style + self.styles['FLT_H_NOTE']
+            shpStyle = style + self.styles['SHP_H_NOTE']
+        return self.getEnharmonicStyle(n.name, natStyle, fltStyle, shpStyle)
+    
+    def getEnharmonicStyle(self, name, defStyle, flatStyle, sharpStyle):
+        if len(name) > 1:
+            if name[1] == 'b':
+                if self.enharmonic == self.ENHARMONICS['FLAT']:  return flatStyle
+                else:                                            return sharpStyle
+            elif name[1] == '#':
+                if self.enharmonic == self.ENHARMONICS['SHARP']: return sharpStyle
+                else:                                            return flatStyle
+        return defStyle
     
     def printIntervals(self, dbg=1):
         self.printFileMark('<BGN_INTERVALS_SECTION>')
@@ -1939,14 +1946,14 @@ class Tabs(object):
         for r in range(0, self.numStrings):
             row = r + self.bgnRow(line) + self.numStrings + self.NOTES_LEN
             cc = c % self.numTabsPerStringPerLine
-            self.prints('-', row, cc + self.COL_OFF, self.styles['NAT_H_NOTE'])
+            self.prints('-', row, cc + self.COL_OFF, self.styles['NAT_IVAL'])
             if r == 0 and c == 0:
                 if dbg: self.dumpChordInfo(self.chordInfo, reason='printColumnIvals({} {}) line={} r={} row={}'.format(c, cc, line, r, row))
                 elif c in self.chordInfo: self.dumpLimap(self.chordInfo[c]['LIMAP'], reason='printColumnIvals() c={}'.format(c))
             if c in self.chordInfo: 
                 self.wrapPrintInterval(r, c, dbg=dbg)
     
-    def wrapPrintInterval(self, r, c, dbg=1):
+    def wrapPrintInterval(self, r, c, style='', dbg=1):
         if c in self.analyzeIndices: index = self.analyzeIndices[c]
         else:                        index = 0
         print('wrapPrintInterval({:>3} {}) bgn'.format(c, index), file=Tabs.DBG_FILE)
@@ -1973,16 +1980,16 @@ class Tabs(object):
                 nn = n.name
                 if dbg: print('wrapPrintInterval({:>3} {}) imap={} capTab={} note={}'.format(c, index, imap, chr(capTab), nn), file=Tabs.DBG_FILE)
                 if nn in im:
-                    self.printInterval(row + self.numStrings + self.NOTES_LEN, col, im[nn], dbg=dbg)
+                    self.printInterval(row + self.numStrings + self.NOTES_LEN, col, im[nn], style, dbg=dbg)
     
-    def printInterval(self, row, col, ival, dbg=1):
-        style = self.styles['NAT_H_NOTE']
-        if dbg: print('printInterval(c={}) row={} col={} ival={}'.format(col - self.COL_OFF, row, col, ival), file=Tabs.DBG_FILE)
+    def printInterval(self, row, col, ival, style='', dbg=1):
+        cStyle = style + self.styles['NAT_IVAL']
+        if dbg: print('printInterval(c={}) row={} col={} ival={} style={} cStyle={}'.format(col - self.COL_OFF, row, col, ival, style, cStyle), file=Tabs.DBG_FILE)
         if len(ival) > 1:
-            if ival == 'm2' or ival == 'm3' or ival == 'b5' or ival == 'b7': style = self.styles['FLT_H_NOTE']
-            elif ival == 'a5': style = self.styles['SHP_H_NOTE']
+            if ival == 'm2' or ival == 'm3' or ival == 'b5' or ival == 'b7': cStyle = style + self.styles['FLT_IVAL']
+            elif ival == 'a5':                                               cStyle = style + self.styles['SHP_IVAL']
             ival = ival[1]
-        self.prints(ival, row, col, style)
+        self.prints(ival, row, col, cStyle)
     
     def printLabels(self):
         self.printFileMark('<BGN_LABELS_SECTION>')
@@ -2126,7 +2133,7 @@ class Tabs(object):
         if prevFN is not None and nextFN is not None:
             if   prevFN < nextFN: dir1, dir2 = 'up',   'on'
             elif prevFN > nextFN: dir1, dir2 = 'down', 'off'
-        print('printModStatus({}, {}) tab={}, pfn={}, nfn={}'.format(r, c, tab, prevFN, nextFN), file=Tabs.DBG_FILE)
+        print('printModStatus({}, {}) tab={} pfn={} nfn={}'.format(r, c, tab, prevFN, nextFN), file=Tabs.DBG_FILE)
         self.modsObj.setMods(dir1=dir1, dir2=dir2, prevFN=prevFN, nextFN=nextFN, prevNote=prevNote, nextNote=nextNote, ph=ph, nh=nh)
         print(Tabs.CSI + self.styles['TABS'] + Tabs.CSI + '{};{}H{} '.format(self.lastRow, 1, tab), end='', file=self.outFile)
         print(Tabs.CSI + self.styles['TABS'] + '{}{}'.format(s, ss) + Tabs.CSI + self.styles['STATUS'] + ' string {}'.format(self.mods[tab]), end='', file=self.outFile)

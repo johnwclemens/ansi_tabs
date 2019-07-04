@@ -10,8 +10,8 @@ class Mods(object):
     '''Model playing techniques and expression using a dictionary of tab modifier keys with contextually descriptive values.'''
     def __init__(self, tabsObj):
         self.to = tabsObj
-        self.txts = {}
-        self.mods = {}
+        self.txts = {}                       # dictionary of tab modifiers without ANSI characters
+        self.mods = {}                       # dictionary of tab modifiers with    ANSI characters
         self.setMods()
     
     def _setMods(self, pn, nn, ph, nh):
