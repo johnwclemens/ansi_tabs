@@ -9,7 +9,7 @@ overriding defined alphabetic characters as keys.'''
 class Mods(object):
     '''Model playing techniques and expression using a dictionary of tab modifier keys with contextually descriptive values.'''
     def __init__(self, tabsObj):
-        self.to = tabsObj
+        self.tobj = tabsObj
         self.txts = {}                       # dictionary of tab modifiers without ANSI characters
         self.mods = {}                       # dictionary of tab modifiers with    ANSI characters
         self.setMods()
@@ -41,22 +41,22 @@ class Mods(object):
     
     def _frmt1(self, modText, pn, nn, ph, nh, shrt=0):
         '''Internal method to format the tab modifiers dictionary string values.'''
-        CSI, pnt, nnt = self.to.CSI, '', ''
-        stStyle, ntStyle         = CSI + self.to.styles['TABS'],     CSI + self.to.styles['IVAL_LABEL']
-        fStyle, pnStyle, nnStyle = CSI + self.to.styles['NAT_NOTE'], CSI + self.to.styles['NAT_NOTE'], CSI + self.to.styles['NAT_NOTE']
+        CSI, pnt, nnt = self.tobj.CSI, '', ''
+        stStyle, ntStyle         = CSI + self.tobj.styles['TABS'],     CSI + self.tobj.styles['IVAL_LABEL']
+        fStyle, pnStyle, nnStyle = CSI + self.tobj.styles['NAT_NOTE'], CSI + self.tobj.styles['NAT_NOTE'], CSI + self.tobj.styles['NAT_NOTE']
         if ph: pnt = ' Harmonic'
         if nh: nnt = ' Harmonic'
         pfs, pnn, pno, nfs, nnn, nno = '', '', '', '', '', ''
         if isinstance(self.prevFN, int) and pn:
-            pfs, pnn, pno = self.to.getOrdSfx(self.prevFN), ' ' + pn.name, pn.getOctaveNum()
+            pfs, pnn, pno = self.tobj.getOrdSfx(self.prevFN), ' ' + pn.name, pn.getOctaveNum()
             if len(pn.name) > 1:
-                if pn.name[1] == '#': pnStyle = CSI + self.to.styles['SHP_NOTE']
-                else:                 pnStyle = CSI + self.to.styles['FLT_NOTE']
+                if pn.name[1] == '#': pnStyle = CSI + self.tobj.styles['SHP_NOTE']
+                else:                 pnStyle = CSI + self.tobj.styles['FLT_NOTE']
         if isinstance(self.nextFN, int) and nn:
-            nfs, nnn, nno = self.to.getOrdSfx(self.nextFN), ' ' + nn.name, nn.getOctaveNum()
+            nfs, nnn, nno = self.tobj.getOrdSfx(self.nextFN), ' ' + nn.name, nn.getOctaveNum()
             if len(nn.name) > 1:
-                if nn.name[1] == '#': nnStyle = CSI + self.to.styles['SHP_NOTE']
-                else:                 nnStyle = CSI + self.to.styles['FLT_NOTE']
+                if nn.name[1] == '#': nnStyle = CSI + self.tobj.styles['SHP_NOTE']
+                else:                 nnStyle = CSI + self.tobj.styles['FLT_NOTE']
         if self.prevFN != 0: pfn = '{}{}'.format(self.prevFN, pfs)
         else:                pfn = 'open'
         if self.nextFN != 0: nfn = '{}{}'.format(self.nextFN, nfs)
@@ -74,9 +74,9 @@ class Mods(object):
         if nh: nnt = ' Harmonic'
         pfs, pnn, pno, nfs, nnn, nno = '', '', '', '', '', ''
         if isinstance(self.prevFN, int) and pn:
-            pfs, pnn, pno = self.to.getOrdSfx(self.prevFN), ' ' + pn.name, pn.getOctaveNum()
+            pfs, pnn, pno = self.tobj.getOrdSfx(self.prevFN), ' ' + pn.name, pn.getOctaveNum()
         if isinstance(self.nextFN, int) and nn:
-            nfs, nnn, nno = self.to.getOrdSfx(self.nextFN), ' ' + nn.name, nn.getOctaveNum()
+            nfs, nnn, nno = self.tobj.getOrdSfx(self.nextFN), ' ' + nn.name, nn.getOctaveNum()
         if self.prevFN != 0: pfn = '{}{}'.format(self.prevFN, pfs)
         else:                pfn = 'open'
         if self.nextFN != 0: nfn = '{}{}'.format(self.nextFN, nfs)

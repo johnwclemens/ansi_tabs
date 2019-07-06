@@ -13,9 +13,9 @@ class Chords(object):
         self.indent = '    '
         self.INTERVALS =     { 0:'R', 1:'b2', 2:'2', 3:'m3', 4:'M3', 5:'4', 6:'b5', 7:'5', 8:'a5', 9:'6', 10:'b7', 11:'7' }
         self.INTERVAL_RANK = { 'R':0, 'b2':1, '2':2, 'm3':3, 'M3':4, '4':5, 'b5':6, '5':7, 'a5':8, '6':9, 'b7':10, '7':11, }
-        self.tabsObj = tabsObj
+        self.tobj = tabsObj
         self.chords = collections.OrderedDict()                 # dict of chord spelling -> chord name; cache of discovered chords to avoid calculation
-        print('Chords() tabsObj={}, chords={}'.format(tabsObj, self.chords), file=tabsObj.DBG_FILE)
+        print('Chords() tobj={}, chords={}'.format(self.tobj, self.chords), file=self.tobj.DBG_FILE)
     
     def imapKeyFunc(self, inKey):
         return self.INTERVAL_RANK[inKey]
@@ -24,60 +24,60 @@ class Chords(object):
         return ' '.join(keys)
     
     def eraseChord(self, c, rmv=1, dbg=1):
-        row, col = self.tabsObj.indices2RowCol(self.tabsObj.numStrings + self.tabsObj.NOTES_LEN + self.tabsObj.INTERVALS_LEN, c)
-        if dbg and c == 0: print('eraseChord(rmv={} c={}) row={} col={} bgn'.format(rmv, c, row, col), file=self.tabsObj.DBG_FILE)
-        if c in self.tabsObj.chordInfo:
-            print('eraseChord(rmv={} c={}) deleting chordInfo'.format(rmv, c), file=self.tabsObj.DBG_FILE)
-            self.tabsObj.dumpChordInfoCol(self.tabsObj.chordInfo[c])
-            del self.tabsObj.chordInfo[c]
-            self.tabsObj.dumpChordInfo(self.tabsObj.chordInfo)
+        row, col = self.tobj.indices2RowCol(self.tobj.numStrings + self.tobj.NOTES_LEN + self.tobj.INTERVALS_LEN, c)
+        if dbg and c == 0: print('eraseChord(rmv={} c={}) row={} col={} bgn'.format(rmv, c, row, col), file=self.tobj.DBG_FILE)
+        if c in self.tobj.chordInfo:
+            print('eraseChord(rmv={} c={}) deleting chordInfo'.format(rmv, c), file=self.tobj.DBG_FILE)
+            self.tobj.dumpChordInfoCol(self.tobj.chordInfo[c])
+            del self.tobj.chordInfo[c]
+            self.tobj.dumpChordInfo(self.tobj.chordInfo)
         if rmv == 1:
-            if c in self.tabsObj.chordAliases:
-                print('eraseChord(rmv={}) deleting chordAliases[{}]={}'.format(rmv, c, self.tabsObj.chordAliases[c]), file=self.tabsObj.DBG_FILE)
-                del self.tabsObj.chordAliases[c]
-            if c in self.tabsObj.analyzeIndices:
-                print('eraseChord(rmv={}) deleting analyzeIndices[{}]={}'.format(rmv, c, self.tabsObj.analyzeIndices[c]), file=self.tabsObj.DBG_FILE)
-                del self.tabsObj.analyzeIndices[c]
-        for r in range(self.tabsObj.CHORDS_LEN):
-            self.tabsObj.prints(' ', r + row, col, self.tabsObj.styles['NAT_CHORD'])
+            if c in self.tobj.chordAliases:
+                print('eraseChord(rmv={}) deleting chordAliases[{}]={}'.format(rmv, c, self.tobj.chordAliases[c]), file=self.tobj.DBG_FILE)
+                del self.tobj.chordAliases[c]
+            if c in self.tobj.analyzeIndices:
+                print('eraseChord(rmv={}) deleting analyzeIndices[{}]={}'.format(rmv, c, self.tobj.analyzeIndices[c]), file=self.tobj.DBG_FILE)
+                del self.tobj.analyzeIndices[c]
+        for r in range(self.tobj.CHORDS_LEN):
+            self.tobj.prints(' ', r + row, col, self.tobj.styles['NAT_CHORD'])
     
     def printChords(self):
-        self.tabsObj.printFileMark('<BGN_CHORDS_SECTION>')
-        print('printChords({} {}) {} =?= {} * {}'.format(self.tabsObj.row, self.tabsObj.col, self.tabsObj.numTabsPerString, self.tabsObj.numLines, self.tabsObj.numTabsPerStringPerLine), file=self.tabsObj.DBG_FILE)
-        for line in range(self.tabsObj.numLines):
-            row = self.tabsObj.ROW_OFF + line * self.tabsObj.lineDelta() + self.tabsObj.numStrings + self.tabsObj.NOTES_LEN + self.tabsObj.INTERVALS_LEN
-            for r in range(self.tabsObj.CHORDS_LEN):
-                self.tabsObj.prints(self.CHORD_LABEL[r], r + row, 1, self.tabsObj.styles['NAT_CHORD'])
-                self.tabsObj.prints(chr(self.tabsObj.capo), r + row, self.tabsObj.cursorModeCol, self.tabsObj.cursorDirStyle)
-        for c in range(self.tabsObj.numTabsPerString):
+        self.tobj.printFileMark('<BGN_CHORDS_SECTION>')
+        print('printChords({} {}) {} =?= {} * {}'.format(self.tobj.row, self.tobj.col, self.tobj.numTabsPerString, self.tobj.numLines, self.tobj.numTabsPerStringPerLine), file=self.tobj.DBG_FILE)
+        for line in range(self.tobj.numLines):
+            row = self.tobj.ROW_OFF + line * self.tobj.lineDelta() + self.tobj.numStrings + self.tobj.NOTES_LEN + self.tobj.INTERVALS_LEN
+            for r in range(self.tobj.CHORDS_LEN):
+                self.tobj.prints(self.CHORD_LABEL[r], r + row, 1, self.tobj.styles['NAT_CHORD'])
+                self.tobj.prints(chr(self.tobj.capo), r + row, self.tobj.cursorModeCol, self.tobj.cursorDirStyle)
+        for c in range(self.tobj.numTabsPerString):
             self.eraseChord(c, rmv=0)
             noteCount = 0
-            for r in range(self.tabsObj.numStrings):
-                if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][c])):
+            for r in range(self.tobj.numStrings):
+                if self.tobj.isFret(chr(self.tobj.tabs[r][c])):
                     noteCount += 1
                     if noteCount > 1:
                         self.printChord(c=c)
                         break
-            print(file=self.tabsObj.outFile)
-        self.tabsObj.printFileMark('<END_CHORDS_SECTION>')
+            print(file=self.tobj.outFile)
+        self.tobj.printFileMark('<END_CHORDS_SECTION>')
         return self.chordNames
     
     def printChord(self, c, bStyle='', dbg=3):
         '''Analyze notes in given column index and if a valid chord is discovered then print it in the appropriate chords section.'''
         self.c = c
         if self.c is None:
-            self.c = self.tabsObj.col - self.tabsObj.COL_OFF
+            self.c = self.tobj.col - self.tobj.COL_OFF
         self.eraseChord(self.c, rmv=0)
-        row, col = self.tabsObj.indices2RowCol(self.tabsObj.numStrings + self.tabsObj.NOTES_LEN + self.tabsObj.INTERVALS_LEN, self.c)
+        row, col = self.tobj.indices2RowCol(self.tobj.numStrings + self.tobj.NOTES_LEN + self.tobj.INTERVALS_LEN, self.c)
         if dbg:
-            print('printChord(c={}) row={} col={} len(chords)={} dbg={} BGN'.format(self.c, row, col, len(self.chords), dbg), file=self.tabsObj.DBG_FILE)
+            print('printChord(c={}) row={} col={} len(chords)={} dbg={} BGN'.format(self.c, row, col, len(self.chords), dbg), file=self.tobj.DBG_FILE)
             self.printStrings()
             self.printTabs()
         if dbg >= 3: self.printTabs(capoed=1)
         (_notes, indices) = self.getNotesAndIndices(dbg=dbg)
         aliases, limap, lchords, count, selected, chordName = [], [], [], 0, 0, ''
         for i in range(len(indices)-1, -1, -1):
-            if dbg: print('{}printChord({}) index={}'.format(self.indent, self.c, i), file=self.tabsObj.DBG_FILE)
+            if dbg: print('{}printChord({}) index={}'.format(self.indent, self.c, i), file=self.tobj.DBG_FILE)
             intervals = self.getIntervals(i, indices, dbg=dbg)
             (imap, imapKeys, imapNotes, chordKey) = self.getImapAndKeys(intervals, _notes, dbg=dbg)
             currentName = self.updateChords(i, chordKey, imap, count, dbg=dbg)
@@ -85,71 +85,71 @@ class Chords(object):
             limap = self.add2Limap(imap, limap, currentName, dbg=dbg)
             if len(currentName) > 0:
                 chordName = currentName
-                if chordName in self.tabsObj.selectChords:
+                if chordName in self.tobj.selectChords:
                     selected += 1
                     if selected == 1:
-                        selectedChord = self.tabsObj.imap2String(self.tabsObj.selectChords[chordName])
-                        print('printChord({}) FOUND SELECTED chordName={} in selectChords[{}]={}'.format(self.c, chordName, chordName, selectedChord), file=self.tabsObj.DBG_FILE)
-                        self.tabsObj.chordInfo[self.c] = {'INDEX': i, 'CHORDS': lchords, 'LIMAP': limap}
+                        selectedChord = self.tobj.imap2String(self.tobj.selectChords[chordName])
+                        print('printChord({}) FOUND SELECTED chordName={} in selectChords[{}]={}'.format(self.c, chordName, chordName, selectedChord), file=self.tobj.DBG_FILE)
+                        self.tobj.chordInfo[self.c] = {'INDEX': i, 'CHORDS': lchords, 'LIMAP': limap}
                         self.printChordName(row, col, chordName, imap, bStyle)
                         self.chordNames[self.c] = chordName
-                        print('printChord({}) ADDING chordName[{}]={} to chordNames={}'.format(self.c, self.c, self.chordNames[self.c], self.chordNames), file=self.tabsObj.DBG_FILE)
+                        print('printChord({}) ADDING chordName[{}]={} to chordNames={}'.format(self.c, self.c, self.chordNames[self.c], self.chordNames), file=self.tobj.DBG_FILE)
         if selected == 0 and len(limap):
             imap = limap[0]
-            print('printChord({}) currentName={} chordName={} imap={}'.format(self.c, currentName, chordName, imap), file=self.tabsObj.DBG_FILE)
+            print('printChord({}) currentName={} chordName={} imap={}'.format(self.c, currentName, chordName, imap), file=self.tobj.DBG_FILE)
             self.printChordName(row, col, chordName, imap, bStyle)
-            self.tabsObj.chordInfo[self.c] = {'INDEX': i, 'CHORDS': lchords, 'LIMAP': limap}
+            self.tobj.chordInfo[self.c] = {'INDEX': i, 'CHORDS': lchords, 'LIMAP': limap}
             if len(chordName) > 0:
                 self.chordNames[self.c] = chordName
-                print('printChord({}) ADDING chordName[{}]={} to chordNames={}'.format(self.c, self.c, self.chordNames[self.c], self.chordNames), file=self.tabsObj.DBG_FILE)
-        if self.c in self.tabsObj.chordInfo:
-            self.tabsObj.dumpChordInfoCol(self.tabsObj.chordInfo[self.c], reason='printChord({})'.format(self.c))
+                print('printChord({}) ADDING chordName[{}]={} to chordNames={}'.format(self.c, self.c, self.chordNames[self.c], self.chordNames), file=self.tobj.DBG_FILE)
+        if self.c in self.tobj.chordInfo:
+            self.tobj.dumpChordInfoCol(self.tobj.chordInfo[self.c], reason='printChord({})'.format(self.c))
         return chordName
     
     def printStrings(self):
-        print('{}Strings     ['.format(self.indent), end='', file=self.tabsObj.DBG_FILE)
-        for r in range(self.tabsObj.numStrings - 1, -1, -1):
-            if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][self.c])):
-                note = self.tabsObj.getNote(r + 1, 0)
-                print('{:>2}/{:<2}'.format(r + 1, note.name), end=' ', file=self.tabsObj.DBG_FILE)
+        print('{}Strings     ['.format(self.indent), end='', file=self.tobj.DBG_FILE)
+        for r in range(self.tobj.numStrings - 1, -1, -1):
+            if self.tobj.isFret(chr(self.tobj.tabs[r][self.c])):
+                note = self.tobj.getNote(r + 1, 0)
+                print('{:>2}/{:<2}'.format(r + 1, note.name), end=' ', file=self.tobj.DBG_FILE)
     
     def printTabs(self, capoed=0):
         tbs = []
         if capoed: label = ']\n{}capoed tabs ['.format(self.indent)
         else:      label = ']\n{}tabs        ['.format(self.indent)
-        for r in range(self.tabsObj.numStrings):
-            if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][self.c])):
-                if capoed: tab = chr(self.tabsObj.getFretByte(self.tabsObj.getFretNum(self.tabsObj.tabs[r][self.c]) + self.tabsObj.getFretNum(self.tabsObj.capo)))
-                else:      tab = chr(self.tabsObj.tabs[r][self.c])
+        for r in range(self.tobj.numStrings):
+            if self.tobj.isFret(chr(self.tobj.tabs[r][self.c])):
+                if capoed: tab = chr(self.tobj.getFretByte(self.tobj.getFretNum(self.tobj.tabs[r][self.c]) + self.tobj.getFretNum(self.tobj.capo)))
+                else:      tab = chr(self.tobj.tabs[r][self.c])
                 tbs.insert(0, tab)
-        print('{}'.format(label), end='', file=self.tabsObj.DBG_FILE)
+        print('{}'.format(label), end='', file=self.tobj.DBG_FILE)
         for t in range(len(tbs)):
-            print('{:>5}'.format(tbs[t]), end=' ', file=self.tabsObj.DBG_FILE)
+            print('{:>5}'.format(tbs[t]), end=' ', file=self.tobj.DBG_FILE)
     
     def getNotesAndIndices(self, dbg=0):
         _notes = []
-        for r in range(self.tabsObj.numStrings):
-            if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][self.c])):
-                tab = self.tabsObj.getFretByte(self.tabsObj.getFretNum(self.tabsObj.tabs[r][self.c]) + self.tabsObj.getFretNum(self.tabsObj.capo))
-                if self.tabsObj.isFret(chr(tab)):
-                    note = self.tabsObj.getNote(r + 1, tab)
+        for r in range(self.tobj.numStrings):
+            if self.tobj.isFret(chr(self.tobj.tabs[r][self.c])):
+                tab = self.tobj.getFretByte(self.tobj.getFretNum(self.tobj.tabs[r][self.c]) + self.tobj.getFretNum(self.tobj.capo))
+                if self.tobj.isFret(chr(tab)):
+                    note = self.tobj.getNote(r + 1, tab)
                     _notes.insert(0, note.name)
         if dbg:
-            print(']\n{}notes       ['.format(self.indent), end='', file=self.tabsObj.DBG_FILE)
+            print(']\n{}notes       ['.format(self.indent), end='', file=self.tobj.DBG_FILE)
             for t in range(len(_notes)):
-                print('{:>5}'.format(_notes[t]), end=' ', file=self.tabsObj.DBG_FILE)
+                print('{:>5}'.format(_notes[t]), end=' ', file=self.tobj.DBG_FILE)
         indices = []
-        for r in range(self.tabsObj.numStrings):
-            if self.tabsObj.isFret(chr(self.tabsObj.tabs[r][self.c])):
-                tab = self.tabsObj.getFretByte(self.tabsObj.getFretNum(self.tabsObj.tabs[r][self.c]) + self.tabsObj.getFretNum(self.tabsObj.capo))
-                if self.tabsObj.isFret(chr(tab)):
-                    note = self.tabsObj.getNote(r + 1, tab)
+        for r in range(self.tobj.numStrings):
+            if self.tobj.isFret(chr(self.tobj.tabs[r][self.c])):
+                tab = self.tobj.getFretByte(self.tobj.getFretNum(self.tobj.tabs[r][self.c]) + self.tobj.getFretNum(self.tobj.capo))
+                if self.tobj.isFret(chr(tab)):
+                    note = self.tobj.getNote(r + 1, tab)
                     indices.insert(0, note.index)
         if dbg:
-            print(']\n{}indices     ['.format(self.indent), end='', file=self.tabsObj.DBG_FILE)
+            print(']\n{}indices     ['.format(self.indent), end='', file=self.tobj.DBG_FILE)
             for t in range(len(indices)):
-                print('{:>5}'.format(indices[t]), end=' ', file=self.tabsObj.DBG_FILE)
-            print(']', file=self.tabsObj.DBG_FILE)
+                print('{:>5}'.format(indices[t]), end=' ', file=self.tobj.DBG_FILE)
+            print(']', file=self.tobj.DBG_FILE)
         return (_notes, indices)
     
     def getIntervals(self, j, indices, dbg=0):
@@ -163,16 +163,16 @@ class Chords(object):
                 if delta == notes.Note.NUM_SEMI_TONES: delta = 0
                 deltas.append(delta)
         if dbg:
-            print('{}deltas      ['.format(self.indent), end='', file=self.tabsObj.DBG_FILE)
+            print('{}deltas      ['.format(self.indent), end='', file=self.tobj.DBG_FILE)
             for t in range(len(deltas)):
-                print('{:>5}'.format(deltas[t]), end=' ', file=self.tabsObj.DBG_FILE)
+                print('{:>5}'.format(deltas[t]), end=' ', file=self.tobj.DBG_FILE)
         intervals = []
         for i in range(len(deltas)):
             intervals.append(self.INTERVALS[deltas[i]])
         if dbg:
-            print(']\n{}intervals   ['.format(self.indent), end='', file=self.tabsObj.DBG_FILE)
+            print(']\n{}intervals   ['.format(self.indent), end='', file=self.tobj.DBG_FILE)
             for t in range(len(deltas)):
-                print('{:>5}'.format(intervals[t]), end=' ', file=self.tabsObj.DBG_FILE)
+                print('{:>5}'.format(intervals[t]), end=' ', file=self.tobj.DBG_FILE)
         return intervals
     
     def getImapAndKeys(self, intervals, _notes, dbg=0):
@@ -187,29 +187,29 @@ class Chords(object):
             rdeltas.append(sdeltas[i] - sdeltas[i-1])
             relimapKeys.append(self.INTERVALS[rdeltas[i]])
         if dbg >= 2:
-            print(']\n{}sdeltas     ['.format(self.indent), end='', file=self.tabsObj.DBG_FILE)
+            print(']\n{}sdeltas     ['.format(self.indent), end='', file=self.tobj.DBG_FILE)
             for sd in sdeltas:
-                print('{:>5}'.format(sd), end=' ', file=self.tabsObj.DBG_FILE)
-            print(']\n{}rdeltas     ['.format(self.indent), end='', file=self.tabsObj.DBG_FILE)
+                print('{:>5}'.format(sd), end=' ', file=self.tobj.DBG_FILE)
+            print(']\n{}rdeltas     ['.format(self.indent), end='', file=self.tobj.DBG_FILE)
             for rd in rdeltas:
-                print('{:>5}'.format(rd), end=' ', file=self.tabsObj.DBG_FILE)
-            print(']\n{}relimapKeys ['.format(self.indent), end='', file=self.tabsObj.DBG_FILE)
+                print('{:>5}'.format(rd), end=' ', file=self.tobj.DBG_FILE)
+            print(']\n{}relimapKeys ['.format(self.indent), end='', file=self.tobj.DBG_FILE)
             for rk in relimapKeys:
-                print('{:>5}'.format(rk), end=' ', file=self.tabsObj.DBG_FILE)
-            print(']\n{}imap        ['.format(self.indent), end='', file=self.tabsObj.DBG_FILE)
+                print('{:>5}'.format(rk), end=' ', file=self.tobj.DBG_FILE)
+            print(']\n{}imap        ['.format(self.indent), end='', file=self.tobj.DBG_FILE)
             for k in imap:
-                print('{:>2}:{:<2}'.format(k, imap[k]), end=' ', file=self.tabsObj.DBG_FILE)
+                print('{:>2}:{:<2}'.format(k, imap[k]), end=' ', file=self.tobj.DBG_FILE)
         if dbg:
-            print(']\n{}imapKeys    ['.format(self.indent), end='', file=self.tabsObj.DBG_FILE)
+            print(']\n{}imapKeys    ['.format(self.indent), end='', file=self.tobj.DBG_FILE)
             for k in imapKeys:
-                print('{:>5}'.format(k), end=' ', file=self.tabsObj.DBG_FILE)
-            print(']\n{}imapNotes   ['.format(self.indent), end='', file=self.tabsObj.DBG_FILE)
+                print('{:>5}'.format(k), end=' ', file=self.tobj.DBG_FILE)
+            print(']\n{}imapNotes   ['.format(self.indent), end='', file=self.tobj.DBG_FILE)
             for k in imapNotes:
-                print('{:>5}'.format(k), end=' ', file=self.tabsObj.DBG_FILE)
-            print(']\n{}chords      ['.format(self.indent), end=' ', file=self.tabsObj.DBG_FILE)
+                print('{:>5}'.format(k), end=' ', file=self.tobj.DBG_FILE)
+            print(']\n{}chords      ['.format(self.indent), end=' ', file=self.tobj.DBG_FILE)
             for k in self.chords:
-                print('({}):{}'.format(k, self.chords[k]), end=', ', file=self.tabsObj.DBG_FILE)
-            print(']', file=self.tabsObj.DBG_FILE)
+                print('({}):{}'.format(k, self.chords[k]), end=', ', file=self.tobj.DBG_FILE)
+            print(']', file=self.tobj.DBG_FILE)
         return (imap, imapKeys, imapNotes, chordKey)
     
     def updateChords(self, j, chordKey, imap, count, dbg=0):
@@ -217,20 +217,20 @@ class Chords(object):
         if chordKey in self.chords:
             chordName = self.chords[chordKey]
             count += 1
-            if dbg: print('{}updateChords({}) index={} count={} FOUND key={} value={} in chords'.format(self.indent, self.c, j, count, chordKey, self.chords[chordKey]), file=self.tabsObj.DBG_FILE)
+            if dbg: print('{}updateChords({}) index={} count={} FOUND key={} value={} in chords'.format(self.indent, self.c, j, count, chordKey, self.chords[chordKey]), file=self.tobj.DBG_FILE)
         else:
-            if dbg: print('{}updateChords({}) index={} Key={} not in chords - calculating value'.format(self.indent, self.c, j, chordKey), file=self.tabsObj.DBG_FILE)
+            if dbg: print('{}updateChords({}) index={} Key={} not in chords - calculating value'.format(self.indent, self.c, j, chordKey), file=self.tobj.DBG_FILE)
             chordName = self.getChordName(imap)
             if len(chordName) > 0:
                 self.chords[chordKey] = chordName
                 count += 1
                 if dbg:
-                    print('{}updateChords({}) index={} count={} ADDING Key={} value={} to chords'.format(self.indent, self.c, j, count, chordKey, self.chords[chordKey]), file=self.tabsObj.DBG_FILE)
-                    print('{}chords      ['.format(self.indent), end=' ', file=self.tabsObj.DBG_FILE)
+                    print('{}updateChords({}) index={} count={} ADDING Key={} value={} to chords'.format(self.indent, self.c, j, count, chordKey, self.chords[chordKey]), file=self.tobj.DBG_FILE)
+                    print('{}chords      ['.format(self.indent), end=' ', file=self.tobj.DBG_FILE)
                     for k in self.chords:
-                        print('({}):{}'.format(k, self.chords[k]), end=', ', file=self.tabsObj.DBG_FILE)
-                    print(']', file=self.tabsObj.DBG_FILE)
-            elif dbg: print('{}updateChords({}) index={} Key={} not a chord'.format(self.indent, self.c, j, chordKey), file=self.tabsObj.DBG_FILE)
+                        print('({}):{}'.format(k, self.chords[k]), end=', ', file=self.tobj.DBG_FILE)
+                    print(']', file=self.tobj.DBG_FILE)
+            elif dbg: print('{}updateChords({}) index={} Key={} not a chord'.format(self.indent, self.c, j, chordKey), file=self.tobj.DBG_FILE)
         return chordName
     
     def add2Limap(self, imap, limap, chordName, dbg=1):
@@ -248,53 +248,53 @@ class Chords(object):
         else:
             if dbg: self.dumpLimaps(imap, limap, chordName, 'printChord(add2Limap({})) append '.format(self.c))
             limap.append(imap)
-        if dbg: self.tabsObj.dumpLimap(limap, reason='add2Limap({})'.format(self.c))
+        if dbg: self.tobj.dumpLimap(limap, reason='add2Limap({})'.format(self.c))
         return limap
     
     def dumpLimaps(self, imap, limap, chordName, reason):
-        if chordName: print('{} chordName={} imap=['.format(reason, chordName), end=' ', file=self.tabsObj.DBG_FILE)
-        else: print('{} imap=['.format(reason), end=' ', file=self.tabsObj.DBG_FILE)
-        for k in imap: print('{}:{}'.format(k, imap[k]), end=' ', file=self.tabsObj.DBG_FILE)
-        print('] to', end=' ', file=self.tabsObj.DBG_FILE)
-        self.tabsObj.dumpLimap(limap, reason='dumpLimaps()')
+        if chordName: print('{} chordName={} imap=['.format(reason, chordName), end=' ', file=self.tobj.DBG_FILE)
+        else: print('{} imap=['.format(reason), end=' ', file=self.tobj.DBG_FILE)
+        for k in imap: print('{}:{}'.format(k, imap[k]), end=' ', file=self.tobj.DBG_FILE)
+        print('] to', end=' ', file=self.tobj.DBG_FILE)
+        self.tobj.dumpLimap(limap, reason='dumpLimaps()')
     
     def printChordName(self, row, col, chordName, imap, bStyle='', dbg=0):
-        print('printChordName() {:<7}, imap={}'.format(chordName, self.tabsObj.imap2String(imap)), file=self.tabsObj.DBG_FILE)
+        print('printChordName() {:<7}, imap={}'.format(chordName, self.tobj.imap2String(imap)), file=self.tobj.DBG_FILE)
         if len(chordName) > 1 and ( chordName[1] == '#' or chordName[1] == 'b' ):
             chordName = chordName[0] + chordName[2:]
-            if dbg: print('printChordName() strip # or b, name={}'.format(chordName), file=self.tabsObj.DBG_FILE)
+            if dbg: print('printChordName() strip # or b, name={}'.format(chordName), file=self.tobj.DBG_FILE)
         i, ddn, ddf, dds = 0, 0, 0, 0
         while i < len(chordName):
-            style = self.tabsObj.styles['NAT_CHORD']
+            style = self.tobj.styles['NAT_CHORD']
             if i == 0:
-                style = self.tabsObj.getEnharmonicStyle(imap['R'], style, self.tabsObj.styles['FLT_CHORD'], self.tabsObj.styles['SHP_CHORD'])
-                if dbg: print('printChordName() style={}'.format(style), file=self.tabsObj.DBG_FILE)
+                style = self.tobj.getEnharmonicStyle(imap['R'], style, self.tobj.styles['FLT_CHORD'], self.tobj.styles['SHP_CHORD'])
+                if dbg: print('printChordName() style={}'.format(style), file=self.tobj.DBG_FILE)
             elif chordName[i] == 'm':
                 if i + 1 < len(chordName) and chordName[i+1] == 'M':
                     chordName = chordName[:i+1] + chordName[i+2:]
-                    style = self.tabsObj.styles['SHP_CHORD']
-                else: style = self.tabsObj.styles['FLT_CHORD']
+                    style = self.tobj.styles['SHP_CHORD']
+                else: style = self.tobj.styles['FLT_CHORD']
             elif chordName[i] == 'n':
                 chordName = chordName[:i] + chordName[i+1:]
-                style = self.tabsObj.styles['NO_IVAL']
+                style = self.tobj.styles['NO_IVAL']
                 if chordName[i] == '1': ddn = 1
             elif chordName[i] == 'b':
                 chordName = chordName[:i] + chordName[i+1:]
-                style = self.tabsObj.styles['FLT_CHORD']
+                style = self.tobj.styles['FLT_CHORD']
                 if chordName[i] == '1': ddf = 1
             elif chordName[i] == 'a' or chordName[i] == '#':
                 chordName = chordName[:i] + chordName[i+1:]
-                style = self.tabsObj.styles['SHP_CHORD']
+                style = self.tobj.styles['SHP_CHORD']
                 if chordName[i] == '1': dds = 1
-            elif ddn: style = self.tabsObj.styles['NO_IVAL']
-            elif ddf: style = self.tabsObj.styles['FLT_CHORD']
-            elif dds: style = self.tabsObj.styles['SHP_CHORD']
-            self.tabsObj.prints(chordName[i], i + row, col, bStyle + style)
+            elif ddn: style = self.tobj.styles['NO_IVAL']
+            elif ddf: style = self.tobj.styles['FLT_CHORD']
+            elif dds: style = self.tobj.styles['SHP_CHORD']
+            self.tobj.prints(chordName[i], i + row, col, bStyle + style)
             i += 1
-            if i == self.tabsObj.CHORDS_LEN: break
-        for i in range(i, self.tabsObj.CHORDS_LEN):
-            self.tabsObj.prints(' ', i + row, col, self.tabsObj.styles['NAT_CHORD'])
-        if dbg: print('printChordName({}) name={}'.format(self.c, chordName), file=self.tabsObj.DBG_FILE)
+            if i == self.tobj.CHORDS_LEN: break
+        for i in range(i, self.tobj.CHORDS_LEN):
+            self.tobj.prints(' ', i + row, col, self.tobj.styles['NAT_CHORD'])
+        if dbg: print('printChordName({}) name={}'.format(self.c, chordName), file=self.tobj.DBG_FILE)
     
     def getChordName(self, imap):
         '''Calculate chord name.'''

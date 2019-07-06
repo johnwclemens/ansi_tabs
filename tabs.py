@@ -169,6 +169,7 @@ class Tabs(object):
         self.setLastRow()                                          # calculate last row, depends on numStrings which is supposed to be set in initStrings()
         self.numTabs = self.numStrings * self.numTabsPerString     # total number of tab characters
         self.tests()
+        self.testText()
         
         try:
             with open(self.inName, 'rb') as self.inFile:
@@ -362,7 +363,11 @@ class Tabs(object):
         print('testStruct() index={} chord={} imap={}'.format(index, chord, imap), file=Tabs.DBG_FILE)
         self.dumpLimap(s[0]['LIMAP'], reason='testStruct()')
         self.dumpChordInfo(s, reason='testStruct()')
-        
+    
+    def testText(self):
+        mi = ''
+        print('testText() john {} clemens'.format(mi), file=Tabs.DBG_FILE)
+    
     def initFiles(self, inName, outName):
         self.inName = inName
         self.inFile = None
@@ -378,16 +383,13 @@ class Tabs(object):
         self.GREEN_WHITE = self.initText('GREEN', 'WHITE')
         self.YELLOW_WHITE = self.initText('YELLOW', 'WHITE')
         self.MAGENTA_WHITE = self.initText('MAGENTA', 'WHITE')
+        self.WHITE_YELLOW = self.initText('WHITE', 'YELLOW')
         self.BLACK_YELLOW = self.initText('BLACK', 'YELLOW')
         self.GREEN_YELLOW = self.initText('GREEN', 'YELLOW')
         self.BLUE_YELLOW = self.initText('BLUE', 'YELLOW')
+        self.CYAN_YELLOW = self.initText('CYAN', 'YELLOW')
         self.RED_YELLOW = self.initText('RED', 'YELLOW')
-        self.WHITE_MAGENTA = self.initText('WHITE', 'MAGENTA')
-        self.WHITE_CYAN = self.initText('WHITE', 'CYAN')
-        self.WHITE_RED = self.initText('WHITE', 'RED')
-        self.WHITE_GREEN = self.initText('WHITE', 'GREEN')
         self.WHITE_BLUE = self.initText('WHITE', 'BLUE')
-        self.WHITE_YELLOW = self.initText('WHITE', 'YELLOW')
         self.WHITE_BLACK = self.initText('WHITE', 'BLACK')
         self.YELLOW_BLACK = self.initText('YELLOW', 'BLACK')
         self.RED_BLACK = self.initText('RED', 'BLACK')
@@ -395,23 +397,38 @@ class Tabs(object):
         self.GREEN_BLACK = self.initText('GREEN', 'BLACK')
         self.CYAN_BLACK = self.initText('CYAN', 'BLACK')
         self.MAGENTA_BLACK = self.initText('MAGENTA', 'BLACK')
+        self.MAGENTA_GREEN = self.initText('MAGENTA', 'GREEN')
+        self.WHITE_GREEN = self.initText('WHITE', 'GREEN')
         self.RED_GREEN = self.initText('RED', 'GREEN')
-        self.styles = { 'NAT_NOTE':self.GREEN_WHITE,   'NAT_H_NOTE':self.YELLOW_WHITE,    'NAT_IVAL':self.MAGENTA_WHITE, 'NAT_CHORD':self.GREEN_WHITE,    'TABS':self.BLUE_WHITE,
-                        'FLT_NOTE':self.BLUE_WHITE,    'FLT_H_NOTE':self.CYAN_WHITE,      'FLT_IVAL':self.CYAN_WHITE,    'FLT_CHORD':self.BLUE_WHITE,   'H_TABS':self.WHITE_GREEN,
-                        'SHP_NOTE':self.RED_WHITE,     'SHP_H_NOTE':self.MAGENTA_WHITE,   'SHP_IVAL':self.RED_WHITE,     'SHP_CHORD':self.RED_WHITE,     'MODES':self.BLUE_WHITE,
-                          'NUT_UP':self.WHITE_MAGENTA, 'IVAL_LABEL':self.YELLOW_WHITE, 'MIN_COL_NUM':self.RED_WHITE,        'STATUS':self.MAGENTA_WHITE, 'ERROR':self.WHITE_RED,
-                          'NUT_DN':self.WHITE_CYAN,   'CHORD_LABEL':self.GREEN_WHITE,  'MAJ_COL_NUM':self.BLACK_WHITE,    'HLT_STUS':self.GREEN_WHITE,    'CONS':self.BLACK_WHITE,
-                         'NO_IVAL':self.BLACK_WHITE,       'NORMAL':'22;',                  'BRIGHT':'1;' }
-#        self.styles = { 'NAT_NOTE':self.WHITE_GREEN,   'NAT_H_NOTE':self.WHITE_YELLOW,  'NAT_CHORD':self.WHITE_GREEN, 'MIN_COL_NUM':self.WHITE_RED,      'TABS':self.WHITE_BLACK,
-#                        'FLT_NOTE':self.WHITE_BLUE,    'FLT_H_NOTE':self.WHITE_CYAN,    'FLT_CHORD':self.WHITE_BLUE,  'MAJ_COL_NUM':self.WHITE_BLACK,  'H_TABS':self.WHITE_GREEN,
-#                        'SHP_NOTE':self.WHITE_RED,     'SHP_H_NOTE':self.WHITE_MAGENTA, 'SHP_CHORD':self.WHITE_RED,        'STATUS':self.WHITE_MAGENTA, 'MODES':self.WHITE_BLUE,
-#                          'NUT_UP':self.WHITE_MAGENTA, 'IVAL_LABEL':self.WHITE_YELLOW,      'ERROR':self.WHITE_RED,          'CONS':self.WHITE_BLACK,  'BRIGHT':'1;',
-#                          'NUT_DN':self.WHITE_CYAN,   'CHORD_LABEL':self.WHITE_GREEN,     'NO_IVAL':self.WHITE_BLACK,    'HLT_STUS':self.WHITE_GREEN,  'NORMAL':'22;' }
-#        self.styles = { 'NAT_NOTE':self.GREEN_BLACK,   'NAT_H_NOTE':self.YELLOW_BLACK,  'NAT_CHORD':self.GREEN_BLACK, 'MIN_COL_NUM':self.RED_BLACK,      'TABS':self.CYAN_BLACK,
-#                        'FLT_NOTE':self.BLUE_BLACK,    'FLT_H_NOTE':self.CYAN_BLACK,    'FLT_CHORD':self.BLUE_BLACK,  'MAJ_COL_NUM':self.YELLOW_BLACK, 'H_TABS':self.GREEN_BLACK,
-#                        'SHP_NOTE':self.RED_BLACK,     'SHP_H_NOTE':self.MAGENTA_BLACK, 'SHP_CHORD':self.RED_BLACK,        'STATUS':self.MAGENTA_BLACK, 'MODES':self.CYAN_BLACK,
-#                          'NUT_UP':self.MAGENTA_BLACK, 'IVAL_LABEL':self.YELLOW_BLACK,      'ERROR':self.RED_BLACK,          'CONS':self.WHITE_BLACK,  'BRIGHT':'1;',
-#                          'NUT_DN':self.WHITE_BLACK,  'CHORD_LABEL':self.GREEN_BLACK,     'NO_IVAL':self.WHITE_BLACK,    'HLT_STUS':self.GREEN_BLACK,  'NORMAL':'22;' }
+        self.BLUE_GREEN = self.initText('BLUE', 'GREEN')
+        self.BLACK_GREEN = self.initText('BLACK', 'GREEN')
+        self.WHITE_MAGENTA = self.initText('WHITE', 'MAGENTA')
+        self.BLACK_MAGENTA = self.initText('BLACK', 'MAGENTA')
+        self.BLACK_RED = self.initText('BLACK', 'RED')
+        self.WHITE_RED = self.initText('WHITE', 'RED')
+        self.CYAN_RED = self.initText('CYAN', 'RED')
+        self.BLACK_CYAN = self.initText('BLACK', 'CYAN')
+        self.BLUE_CYAN = self.initText('BLUE', 'CYAN')
+        self.WHITE_CYAN = self.initText('WHITE', 'CYAN')
+        self.RED_CYAN = self.initText('RED', 'CYAN')
+        self.styles = { 'NAT_NOTE':self.GREEN_WHITE, 'NAT_H_NOTE':self.YELLOW_WHITE,  'NAT_IVAL':self.YELLOW_WHITE,  'NAT_CHORD':self.BLACK_WHITE,    'TABS':self.RED_WHITE,
+                        'FLT_NOTE':self.BLUE_WHITE,  'FLT_H_NOTE':self.CYAN_WHITE,    'FLT_IVAL':self.CYAN_WHITE,    'FLT_CHORD':self.CYAN_WHITE,   'H_TABS':self.CYAN_WHITE,
+                        'SHP_NOTE':self.RED_WHITE,   'SHP_H_NOTE':self.MAGENTA_WHITE, 'SHP_IVAL':self.RED_WHITE,     'SHP_CHORD':self.MAGENTA_WHITE, 'MODES':self.BLUE_WHITE,
+                          'NUT_UP':self.WHITE_RED,  'MIN_COL_NUM':self.RED_WHITE,   'IVAL_LABEL':self.MAGENTA_WHITE,    'STATUS':self.MAGENTA_WHITE, 'ERROR':self.WHITE_RED,
+                          'NUT_DN':self.WHITE_BLUE, 'MAJ_COL_NUM':self.BLUE_WHITE, 'CHORD_LABEL':self.GREEN_WHITE,    'HLT_STUS':self.GREEN_WHITE,    'CONS':self.BLACK_WHITE,
+                         'NO_IVAL':self.BLACK_WHITE,     'NORMAL':'22;',                'BRIGHT':'1;' }
+#        self.styles = { 'NAT_NOTE':self.BLACK_GREEN,   'NAT_H_NOTE':self.WHITE_YELLOW,  'NAT_IVAL':self.BLACK_YELLOW, 'NAT_CHORD':self.BLACK_CYAN,     'TABS':self.GREEN_WHITE,
+#                        'FLT_NOTE':self.BLUE_GREEN,    'FLT_H_NOTE':self.WHITE_CYAN,    'FLT_IVAL':self.BLUE_YELLOW,  'FLT_CHORD':self.BLUE_CYAN,    'H_TABS':self.WHITE_GREEN,
+#                        'SHP_NOTE':self.MAGENTA_GREEN, 'SHP_H_NOTE':self.WHITE_MAGENTA, 'SHP_IVAL':self.RED_YELLOW,   'SHP_CHORD':self.RED_CYAN,      'MODES':self.WHITE_BLUE,
+#                          'NUT_UP':self.WHITE_RED,    'MIN_COL_NUM':self.BLACK_CYAN,  'IVAL_LABEL':self.BLACK_YELLOW,    'STATUS':self.BLACK_YELLOW, 'ERROR':self.WHITE_RED,
+#                          'NUT_DN':self.WHITE_BLUE,   'MAJ_COL_NUM':self.RED_CYAN,   'CHORD_LABEL':self.BLACK_CYAN,    'HLT_STUS':self.BLACK_GREEN,    'CONS':self.BLACK_WHITE,
+#                         'NO_IVAL':self.WHITE_CYAN,       'NORMAL':'22;',                'BRIGHT':'1;' }
+#        self.styles = { 'NAT_NOTE':self.GREEN_BLACK,    'NAT_H_NOTE':self.YELLOW_BLACK,    'NAT_IVAL':self.YELLOW_BLACK, 'NAT_CHORD':self.GREEN_BLACK,    'TABS':self.CYAN_BLACK,
+#                        'FLT_NOTE':self.BLUE_BLACK,     'FLT_H_NOTE':self.CYAN_BLACK,      'FLT_IVAL':self.CYAN_BLACK,    'FLT_CHORD':self.BLUE_BLACK,   'H_TABS':self.GREEN_BLACK,
+#                        'SHP_NOTE':self.RED_BLACK,      'SHP_H_NOTE':self.MAGENTA_BLACK,   'SHP_IVAL':self.RED_BLACK,     'SHP_CHORD':self.RED_BLACK,     'MODES':self.CYAN_BLACK,
+#                          'NUT_UP':self.MAGENTA_BLACK, 'MIN_COL_NUM':self.RED_BLACK,     'IVAL_LABEL':self.YELLOW_BLACK,     'STATUS':self.MAGENTA_BLACK, 'ERROR':self.RED_BLACK,
+#                          'NUT_DN':self.WHITE_BLACK,   'MAJ_COL_NUM':self.YELLOW_BLACK, 'CHORD_LABEL':self.GREEN_BLACK,    'HLT_STUS':self.GREEN_BLACK,    'CONS':self.WHITE_BLACK,
+#                         'NO_IVAL':self.WHITE_BLACK,        'NORMAL':'22;',                  'BRIGHT':'1;' }
         self.HARMONIC_FRETS = { 12:12, 7:19, 19:19, 5:24, 24:24, 4:28, 9:28, 16:28, 28:28 }
         self.CURSOR_DIRS = { 'DOWN':0, 'UP':1 }
         self.CURSOR_MODES = { 'MELODY':0, 'CHORD':1, 'ARPEGGIO':2 }
@@ -1559,7 +1576,6 @@ class Tabs(object):
             if c in self.chordInfo:
                 self.wrapPrintInterval(r, c, bStyle, dbg=1)
         if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
-            self.chordsObj.eraseChord(c)
             self.chordsObj.printChord(c, bStyle=bStyle)
     
     def shiftSelectTabs(self, uicKey=None):
