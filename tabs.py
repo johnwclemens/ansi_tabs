@@ -412,6 +412,18 @@ class Tabs(object):
         self.WHITE_CYAN = self.initText('WHITE', 'CYAN')
         self.RED_CYAN = self.initText('RED', 'CYAN')
         self.reverseBrightness = 0
+        self.initBrightness()
+        self.HARMONIC_FRETS = { 12:12, 7:19, 19:19, 5:24, 24:24, 4:28, 9:28, 16:28, 28:28 }
+        self.CURSOR_DIRS = { 'DOWN':0, 'UP':1 }
+        self.CURSOR_MODES = { 'MELODY':0, 'CHORD':1, 'ARPEGGIO':2 }
+        self.EDIT_MODES = { 'REPLACE':0, 'INSERT':1 }
+        self.ENHARMONICS = { 'FLAT':0, 'SHARP':1 }
+        self.DISPLAY_LABELS = { 'DISABLED':0, 'ENABLED':1 }
+        self.DISPLAY_NOTES = { 'DISABLED':0, 'ENABLED':1 }
+        self.DISPLAY_INTERVALS = { 'DISABLED':0, 'ENABLED':1 }
+        self.DISPLAY_CHORDS = { 'DISABLED':0, 'ENABLED':1 }
+    
+    def initBrightness(self):
         if self.reverseBrightness:
             self.styles = { 'NAT_NOTE':self.GREEN_BLACK,    'NAT_H_NOTE':self.YELLOW_BLACK,    'NAT_IVAL':self.YELLOW_BLACK, 'NAT_CHORD':self.GREEN_BLACK,    'TABS':self.CYAN_BLACK,
                             'FLT_NOTE':self.BLUE_BLACK,     'FLT_H_NOTE':self.CYAN_BLACK,      'FLT_IVAL':self.CYAN_BLACK,    'FLT_CHORD':self.BLUE_BLACK,   'H_TABS':self.GREEN_BLACK,
@@ -434,15 +446,6 @@ class Tabs(object):
 #                          'NUT_UP':self.WHITE_RED,    'MIN_COL_NUM':self.BLACK_CYAN,  'IVAL_LABEL':self.BLACK_YELLOW,    'STATUS':self.BLACK_YELLOW, 'ERROR':self.WHITE_RED,
 #                          'NUT_DN':self.WHITE_BLUE,   'MAJ_COL_NUM':self.RED_CYAN,   'CHORD_LABEL':self.BLACK_CYAN,    'HLT_STUS':self.BLACK_GREEN,    'CONS':self.BLACK_WHITE,
 #                         'NO_IVAL':self.WHITE_CYAN,       'NORMAL':'22;',                'BRIGHT':'1;' }
-        self.HARMONIC_FRETS = { 12:12, 7:19, 19:19, 5:24, 24:24, 4:28, 9:28, 16:28, 28:28 }
-        self.CURSOR_DIRS = { 'DOWN':0, 'UP':1 }
-        self.CURSOR_MODES = { 'MELODY':0, 'CHORD':1, 'ARPEGGIO':2 }
-        self.EDIT_MODES = { 'REPLACE':0, 'INSERT':1 }
-        self.ENHARMONICS = { 'FLAT':0, 'SHARP':1 }
-        self.DISPLAY_LABELS = { 'DISABLED':0, 'ENABLED':1 }
-        self.DISPLAY_NOTES = { 'DISABLED':0, 'ENABLED':1 }
-        self.DISPLAY_INTERVALS = { 'DISABLED':0, 'ENABLED':1 }
-        self.DISPLAY_CHORDS = { 'DISABLED':0, 'ENABLED':1 }
     
     def initText(self, FG, BG):
         return '3' + self.COLORS[FG] + ';4' + self.COLORS[BG] + 'm'
@@ -734,6 +737,7 @@ class Tabs(object):
         self.registerUiCmd('Shift A',             self.analyzeChord)
         self.registerUiCmd('Shift B',             self.copySelectTabs)
         self.registerUiCmd('Shift C',             self.copySelectTabs)
+        self.registerUiCmd('Shift D',             self.toggleBrightness)
         self.registerUiCmd('Shift E',             self.printErrorHistory)
         self.registerUiCmd('Shift F',             self.printMaxFretInfo)
         self.registerUiCmd('Shift H',             self.toggleHarmonicNote)
@@ -806,6 +810,7 @@ class Tabs(object):
             elif b == 65:  self.uiCmds['Shift A']         (uicKey='Shift A')            # analyzeChord()           # N/A
             elif b == 66:  self.uiCmds['Shift B']         (uicKey='Shift B', arpg=0)    # copySelectTabs()         # N/A
             elif b == 67:  self.uiCmds['Shift C']         (uicKey='Shift C', arpg=1)    # copySelectTabs()         # N/A
+            elif b == 68:  self.uiCmds['Shift D']         (uicKey='Shift D')            # toggleBrightness()       # N/A
             elif b == 69:  self.uiCmds['Shift E']         (uicKey='Shift E')            # printErrorHistory()      # N/A
             elif b == 70:  self.uiCmds['Shift F']         (uicKey='Shift F')            # printMaxFretInfo()       # N/A
             elif b == 72:  self.uiCmds['Shift H']         (uicKey='Shift H')            # toggleHarmonicNote()     # N/A
@@ -1187,6 +1192,13 @@ class Tabs(object):
             self.chordsObj.printChord(c=c)
         self.printStatus()
         self.printh('{}: {}'.format(uicKey, self.toggleHarmonicNote.__doc__))
+    
+    def toggleBrightness(self, uicKey=None):
+        '''Toggle between display with normal and bright colors'''
+        self.reverseBrightness = (self.reverseBrightness + 1) % 2
+        self.initBrightness()
+        self.printTabs()
+        self.printh('{}: {}'.format(uicKey, self.toggleBrightness.__doc__))
     
     def printColNums(self, row):
         print('printColNums(row={})'.format(row), file=Tabs.DBG_FILE)
@@ -1626,7 +1638,7 @@ class Tabs(object):
         '''Copy selected tabs, arpg=1 xform a chord to an arpeggio, arpg=0 xform an arpeggio to a chord'''
         self.arpeggiate, ns, nt, nsr, nsc = arpg, self.numStrings, len(self.tabs[0]), len(self.selectRows), len(self.selectCols)
         if nsr == 0 or nsc == 0:
-            self.printe('copySelectTabs() no tabs selected nsr={} nsc={} use the CTRL ARROW keys to select rows and or columns'.format(nsr, nsc))
+            self.printe('copySelectTabs(arpg={}) no tabs selected nsr={} nsc={} use the CTRL ARROW keys to select rows and or columns'.format(arpg, nsr, nsc))
             return
         if arpg is None: size, nc = nsc,           nsc
         elif  arpg == 1: size, nc = nsc * nsr,     nsc
@@ -2357,34 +2369,11 @@ class Tabs(object):
         if clear and not status and not hist:
             print('printh() status={} hist={} calling printStatus()'.format(status, hist), file=Tabs.DBG_FILE)
             self.printStatus()
-#        print(Tabs.CSI + style + Tabs.CSI + '{};{}H{}'.format(self.lastRow, col, reason), end='')
         self.prints(reason, self.lastRow, col, style)
         self.resetPos()
     
     def prints(self, s, row, col, style):
         print(Tabs.CSI + self.bStyle + style + Tabs.CSI + '{};{}H{}'.format(row, col, str(s)), end='', file=self.outFile)
-    
-    '''
-    def prints(self, s, row, col, style0):
-        p1 = style0.find('[1;')
-        p2 = style0.find('[22;')
-        style = style0
-        print('prints(s={}) row={} col={} p1={} p2={} style0={}'.format(s, row, col, p1, p2, style0), file=Tabs.DBG_FILE)
-        if p1 >= 0:
-            style = style1 = style0[p1:]
-            p = p2 = style1.find('[22;')
-            if p2 >= 0:
-                style = style2 = style1[p2:]
-                print('prints(s={}) row={} col={} p1={} p2={} p={} style0={} style1={} style2={} style={}'.format(s, row, col, p1, p2, p, style0, style1, style2, style), file=Tabs.DBG_FILE)
-            else:
-                p = p1
-                print('prints(s={}) row={} col={} p1={} p={} style0={} style1={} style={}'.format(s, row, col, p1, p, style0, style1, style), file=Tabs.DBG_FILE)
-        elif p2 >= 0:
-            p = p2
-            style = style2 = style0[p2:]
-            print('prints(s={}) row={} col={} p2={} p={} style0={} style2={} style={}'.format(s, row, col, p2, p, style0, style2, style), file=Tabs.DBG_FILE)
-        print(Tabs.CSI + self.bStyle + style + Tabs.CSI + '{};{}H{}'.format(row, col, str(s)), end='', file=self.outFile)
-    '''
     
     def getNote(self, str, tab):
         '''Return note object given string number and tab fret number byte'''
