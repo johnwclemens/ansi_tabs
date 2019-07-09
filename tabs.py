@@ -411,7 +411,9 @@ class Tabs(object):
         self.BLUE_CYAN = self.initText('BLUE', 'CYAN')
         self.WHITE_CYAN = self.initText('WHITE', 'CYAN')
         self.RED_CYAN = self.initText('RED', 'CYAN')
-        self.reverseBrightness = 0
+        self.colorsIndex = 0
+        self.brightness = 0
+        self.initColors()
         self.initBrightness()
         self.HARMONIC_FRETS = { 12:12, 7:19, 19:19, 5:24, 24:24, 4:28, 9:28, 16:28, 28:28 }
         self.CURSOR_DIRS = { 'DOWN':0, 'UP':1 }
@@ -424,28 +426,33 @@ class Tabs(object):
         self.DISPLAY_CHORDS = { 'DISABLED':0, 'ENABLED':1 }
     
     def initBrightness(self):
-        if self.reverseBrightness:
+        if   self.brightness == 0:
+            self.brightnessA, self.brightnessB, self.bStyle = self.styles['NORMAL'], self.styles['BRIGHT'], self.styles['NORMAL']
+        elif self.brightness == 1:
+            self.brightnessA, self.brightnessB, self.bStyle = self.styles['BRIGHT'], self.styles['NORMAL'], self.styles['BRIGHT']
+    
+    def initColors(self):
+        if   self.colorsIndex == 0:
+            self.styles = { 'NAT_NOTE':self.GREEN_WHITE, 'NAT_H_NOTE':self.YELLOW_WHITE,  'NAT_IVAL':self.YELLOW_WHITE,  'NAT_CHORD':self.BLACK_WHITE,    'TABS':self.RED_WHITE,
+                            'FLT_NOTE':self.BLUE_WHITE,  'FLT_H_NOTE':self.CYAN_WHITE,    'FLT_IVAL':self.CYAN_WHITE,    'FLT_CHORD':self.CYAN_WHITE,   'H_TABS':self.CYAN_WHITE,
+                            'SHP_NOTE':self.RED_WHITE,   'SHP_H_NOTE':self.MAGENTA_WHITE, 'SHP_IVAL':self.RED_WHITE,     'SHP_CHORD':self.MAGENTA_WHITE, 'MODES':self.BLUE_WHITE,
+                              'NUT_UP':self.WHITE_MAGENTA, 'MIN_COL_NUM':self.RED_WHITE,   'IVAL_LABEL':self.MAGENTA_WHITE,    'STATUS':self.MAGENTA_WHITE, 'ERROR':self.WHITE_RED,
+                              'NUT_DN':self.WHITE_CYAN, 'MAJ_COL_NUM':self.BLUE_WHITE, 'CHORD_LABEL':self.GREEN_WHITE,    'HLT_STUS':self.GREEN_WHITE,    'CONS':self.BLACK_WHITE,
+                             'NO_IVAL':self.BLACK_WHITE,     'NORMAL':'22;',                'BRIGHT':'1;' }
+        elif self.colorsIndex == 1:
+            self.styles = { 'NAT_NOTE':self.BLACK_GREEN,   'NAT_H_NOTE':self.WHITE_YELLOW,  'NAT_IVAL':self.BLACK_YELLOW, 'NAT_CHORD':self.BLACK_CYAN,     'TABS':self.GREEN_WHITE,
+                            'FLT_NOTE':self.BLUE_GREEN,    'FLT_H_NOTE':self.WHITE_CYAN,    'FLT_IVAL':self.BLUE_YELLOW,  'FLT_CHORD':self.BLUE_CYAN,    'H_TABS':self.WHITE_GREEN,
+                            'SHP_NOTE':self.MAGENTA_GREEN, 'SHP_H_NOTE':self.WHITE_MAGENTA, 'SHP_IVAL':self.RED_YELLOW,   'SHP_CHORD':self.RED_CYAN,      'MODES':self.WHITE_BLUE,
+                              'NUT_UP':self.WHITE_RED,    'MIN_COL_NUM':self.BLACK_CYAN,  'IVAL_LABEL':self.BLACK_YELLOW,    'STATUS':self.BLACK_YELLOW, 'ERROR':self.WHITE_RED,
+                              'NUT_DN':self.WHITE_BLUE,   'MAJ_COL_NUM':self.RED_CYAN,   'CHORD_LABEL':self.BLACK_CYAN,    'HLT_STUS':self.BLACK_GREEN,    'CONS':self.BLACK_WHITE,
+                             'NO_IVAL':self.WHITE_CYAN,       'NORMAL':'22;',                'BRIGHT':'1;' }
+        elif self.colorsIndex == 2:
             self.styles = { 'NAT_NOTE':self.GREEN_BLACK,    'NAT_H_NOTE':self.YELLOW_BLACK,    'NAT_IVAL':self.YELLOW_BLACK, 'NAT_CHORD':self.GREEN_BLACK,    'TABS':self.CYAN_BLACK,
                             'FLT_NOTE':self.BLUE_BLACK,     'FLT_H_NOTE':self.CYAN_BLACK,      'FLT_IVAL':self.CYAN_BLACK,    'FLT_CHORD':self.BLUE_BLACK,   'H_TABS':self.GREEN_BLACK,
                             'SHP_NOTE':self.RED_BLACK,      'SHP_H_NOTE':self.MAGENTA_BLACK,   'SHP_IVAL':self.RED_BLACK,     'SHP_CHORD':self.RED_BLACK,     'MODES':self.CYAN_BLACK,
                               'NUT_UP':self.MAGENTA_BLACK, 'MIN_COL_NUM':self.RED_BLACK,     'IVAL_LABEL':self.YELLOW_BLACK,     'STATUS':self.MAGENTA_BLACK, 'ERROR':self.RED_BLACK,
                               'NUT_DN':self.WHITE_BLACK,   'MAJ_COL_NUM':self.YELLOW_BLACK, 'CHORD_LABEL':self.GREEN_BLACK,    'HLT_STUS':self.GREEN_BLACK,    'CONS':self.WHITE_BLACK,
                              'NO_IVAL':self.WHITE_BLACK,        'NORMAL':'22;',                  'BRIGHT':'1;' }
-            self.brightnessA, self.brightnessB, self.bStyle = self.styles['BRIGHT'], self.styles['NORMAL'], self.styles['BRIGHT']
-        else:
-            self.styles = { 'NAT_NOTE':self.GREEN_WHITE, 'NAT_H_NOTE':self.YELLOW_WHITE,  'NAT_IVAL':self.YELLOW_WHITE,  'NAT_CHORD':self.BLACK_WHITE,    'TABS':self.RED_WHITE,
-                            'FLT_NOTE':self.BLUE_WHITE,  'FLT_H_NOTE':self.CYAN_WHITE,    'FLT_IVAL':self.CYAN_WHITE,    'FLT_CHORD':self.CYAN_WHITE,   'H_TABS':self.CYAN_WHITE,
-                            'SHP_NOTE':self.RED_WHITE,   'SHP_H_NOTE':self.MAGENTA_WHITE, 'SHP_IVAL':self.RED_WHITE,     'SHP_CHORD':self.MAGENTA_WHITE, 'MODES':self.BLUE_WHITE,
-                              'NUT_UP':self.WHITE_RED,  'MIN_COL_NUM':self.RED_WHITE,   'IVAL_LABEL':self.MAGENTA_WHITE,    'STATUS':self.MAGENTA_WHITE, 'ERROR':self.WHITE_RED,
-                              'NUT_DN':self.WHITE_BLUE, 'MAJ_COL_NUM':self.BLUE_WHITE, 'CHORD_LABEL':self.GREEN_WHITE,    'HLT_STUS':self.GREEN_WHITE,    'CONS':self.BLACK_WHITE,
-                             'NO_IVAL':self.BLACK_WHITE,     'NORMAL':'22;',                'BRIGHT':'1;' }
-            self.brightnessA, self.brightnessB, self.bStyle = self.styles['NORMAL'], self.styles['BRIGHT'], self.styles['NORMAL']
-#        self.styles = { 'NAT_NOTE':self.BLACK_GREEN,   'NAT_H_NOTE':self.WHITE_YELLOW,  'NAT_IVAL':self.BLACK_YELLOW, 'NAT_CHORD':self.BLACK_CYAN,     'TABS':self.GREEN_WHITE,
-#                        'FLT_NOTE':self.BLUE_GREEN,    'FLT_H_NOTE':self.WHITE_CYAN,    'FLT_IVAL':self.BLUE_YELLOW,  'FLT_CHORD':self.BLUE_CYAN,    'H_TABS':self.WHITE_GREEN,
-#                        'SHP_NOTE':self.MAGENTA_GREEN, 'SHP_H_NOTE':self.WHITE_MAGENTA, 'SHP_IVAL':self.RED_YELLOW,   'SHP_CHORD':self.RED_CYAN,      'MODES':self.WHITE_BLUE,
-#                          'NUT_UP':self.WHITE_RED,    'MIN_COL_NUM':self.BLACK_CYAN,  'IVAL_LABEL':self.BLACK_YELLOW,    'STATUS':self.BLACK_YELLOW, 'ERROR':self.WHITE_RED,
-#                          'NUT_DN':self.WHITE_BLUE,   'MAJ_COL_NUM':self.RED_CYAN,   'CHORD_LABEL':self.BLACK_CYAN,    'HLT_STUS':self.BLACK_GREEN,    'CONS':self.BLACK_WHITE,
-#                         'NO_IVAL':self.WHITE_CYAN,       'NORMAL':'22;',                'BRIGHT':'1;' }
     
     def initText(self, FG, BG):
         return '3' + self.COLORS[FG] + ';4' + self.COLORS[BG] + 'm'
@@ -747,6 +754,7 @@ class Tabs(object):
         self.registerUiCmd('Shift R',             self.printCmdHistory)
         self.registerUiCmd('Shift S',             self.printCmdHistory)
         self.registerUiCmd('Shift T',             self.removeLine)
+        self.registerUiCmd('Shift U',             self.toggleColors)
         self.registerUiCmd('Shift W',             self.printErrorHistory)
         self.registerUiCmd('Shift X',             self.cutSelectTabs)
         self.registerUiCmd('Shift Z',             self.goToLastTab)
@@ -820,6 +828,7 @@ class Tabs(object):
             elif b == 82:  self.uiCmds['Shift R']         (uicKey='Shift R')            # printCmdHistory()        # N/A
             elif b == 83:  self.uiCmds['Shift S']         (uicKey='Shift S', back=0)    # printCmdHistory()        # N/A
             elif b == 84:  self.uiCmds['Shift T']         (uicKey='Shift T')            # removeLine()             # DBG?
+            elif b == 85:  self.uiCmds['Shift U']         (uicKey='Shift U')            # toggleColors()           # DBG?
             elif b == 87:  self.uiCmds['Shift W']         (uicKey='Shift W', back=0)    # printErrorHistory()      # N/A
             elif b == 88:  self.uiCmds['Shift X']         (uicKey='Shift X', arpg=1)    # cutSelectTabs()          # N/A
             elif b == 90:  self.uiCmds['Shift Z']         (uicKey='Shift Z', ll=1)      # goToLastTab()            # cmd line opt -Z
@@ -1047,6 +1056,23 @@ class Tabs(object):
     def setLastRow(self):
         self.lastRow = self.ROW_OFF + self.numLines * self.lineDelta() - 1
     
+    def _toggleCursorDir(self, dbg=1):
+        for line in range(0, self.numLines):
+            for r in range(0, self.numStrings):
+                if self.cursorDir == self.CURSOR_DIRS['DOWN']: self.cursorDirStyle = self.styles['NUT_DN']
+                elif self.cursorDir == self.CURSOR_DIRS['UP']: self.cursorDirStyle = self.styles['NUT_UP']
+                self.prints(chr(self.capo), r + self.bgnRow(line)                                                        , self.cursorModeCol, self.cursorDirStyle)
+                self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings                                      , self.cursorModeCol, self.cursorDirStyle)
+                self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings + self.NOTES_LEN                     , self.cursorModeCol, self.cursorDirStyle)
+                self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings + self.NOTES_LEN + self.INTERVALS_LEN, self.cursorModeCol, self.cursorDirStyle)
+        if dbg: self.dumpLineInfo('toggleCursorDir({}) line={} row={} col={}'.format(self.cursorDir, line, self.row, self.col))
+    
+    def toggleCursorDir(self, uicKey=None, dbg=1):
+        '''Toggle direction (up or down) of cursor vertical movement [cmd line opt -i]'''
+        self.cursorDir = (self.cursorDir + 1) % len(self.CURSOR_DIRS)
+        self._toggleCursorDir()
+        self.printh('{}: {}'.format(uicKey, self.toggleCursorDir.__doc__))
+    
     def toggleEditMode(self, uicKey=None, dbg=1):
         '''Toggle between editing modes (insert or replace)'''
         self.editMode = (self.editMode + 1) % len(self.EDIT_MODES)
@@ -1074,20 +1100,6 @@ class Tabs(object):
                     self.prints('A', r, self.cursorModeCol, self.styles['MODES'])
             if dbg: self.dumpLineInfo('toggleCursorMode({}, {})'.format(self.row, self.col))
         self.printh('{}: {}'.format(uicKey, self.toggleCursorMode.__doc__))
-    
-    def toggleCursorDir(self, uicKey=None, dbg=1):
-        '''Toggle direction (up or down) of cursor vertical movement [cmd line opt -i]'''
-        self.cursorDir = (self.cursorDir + 1) % len(self.CURSOR_DIRS)
-        for line in range(0, self.numLines):
-            for r in range(0, self.numStrings):
-                if self.cursorDir == self.CURSOR_DIRS['DOWN']: self.cursorDirStyle = self.styles['NUT_DN']
-                elif self.cursorDir == self.CURSOR_DIRS['UP']: self.cursorDirStyle = self.styles['NUT_UP']
-                self.prints(chr(self.capo), r + self.bgnRow(line)                                                        , self.cursorModeCol, self.cursorDirStyle)
-                self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings                                      , self.cursorModeCol, self.cursorDirStyle)
-                self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings + self.NOTES_LEN                     , self.cursorModeCol, self.cursorDirStyle)
-                self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings + self.NOTES_LEN + self.INTERVALS_LEN, self.cursorModeCol, self.cursorDirStyle)
-        if dbg: self.dumpLineInfo('toggleCursorDir({}) line={} row={} col={}'.format(self.cursorDir, line, self.row, self.col))
-        self.printh('{}: {}'.format(uicKey, self.toggleCursorDir.__doc__))
     
     def toggleEnharmonic(self, uicKey=None):
         '''Toggle display of enharmonic between sharp and flat notes [cmd line opt -F]'''
@@ -1194,11 +1206,18 @@ class Tabs(object):
         self.printh('{}: {}'.format(uicKey, self.toggleHarmonicNote.__doc__))
     
     def toggleBrightness(self, uicKey=None):
-        '''Toggle between display with normal and bright colors'''
-        self.reverseBrightness = (self.reverseBrightness + 1) % 2
+        '''Toggle display between normal and bright colors'''
+        self.brightness = (self.brightness + 1) % 2
         self.initBrightness()
         self.printTabs()
         self.printh('{}: {}'.format(uicKey, self.toggleBrightness.__doc__))
+    
+    def toggleColors(self, uicKey=None):
+        self.colorsIndex = (self.colorsIndex + 1) % 3
+        self.initColors()
+        self._toggleCursorDir()
+        self.printTabs()
+        self.printh('{}: {}'.format(uicKey, self.toggleColors.__doc__))
     
     def printColNums(self, row):
         print('printColNums(row={})'.format(row), file=Tabs.DBG_FILE)
