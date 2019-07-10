@@ -174,7 +174,7 @@ class Tabs(object):
         try:
             with open(self.inName, 'rb') as self.inFile:
                 self.readTabs(readSize=500)
-        except Exception as e: # FileNotFoundError as e:
+        except FileNotFoundError as e: #Exception as e:
             print('init() Exception: {} - {}'.format(e, sys.exc_info()[0]), file=Tabs.DBG_FILE)
             mult = 1
             tabs = '0123456789abcdefghijklmno'
@@ -433,26 +433,26 @@ class Tabs(object):
     
     def initColors(self):
         if   self.colorsIndex == 0:
-            self.styles = { 'NAT_NOTE':self.GREEN_WHITE, 'NAT_H_NOTE':self.YELLOW_WHITE,  'NAT_IVAL':self.YELLOW_WHITE,  'NAT_CHORD':self.BLACK_WHITE,    'TABS':self.RED_WHITE,
-                            'FLT_NOTE':self.BLUE_WHITE,  'FLT_H_NOTE':self.CYAN_WHITE,    'FLT_IVAL':self.CYAN_WHITE,    'FLT_CHORD':self.CYAN_WHITE,   'H_TABS':self.CYAN_WHITE,
-                            'SHP_NOTE':self.RED_WHITE,   'SHP_H_NOTE':self.MAGENTA_WHITE, 'SHP_IVAL':self.RED_WHITE,     'SHP_CHORD':self.MAGENTA_WHITE, 'MODES':self.BLUE_WHITE,
+            self.styles = { 'NAT_NOTE':self.GREEN_WHITE,    'NAT_H_NOTE':self.YELLOW_WHITE,  'NAT_IVAL':self.YELLOW_WHITE,  'NAT_CHORD':self.BLACK_WHITE,    'TABS':self.RED_WHITE,
+                            'FLT_NOTE':self.BLUE_WHITE,     'FLT_H_NOTE':self.CYAN_WHITE,    'FLT_IVAL':self.CYAN_WHITE,    'FLT_CHORD':self.CYAN_WHITE,   'H_TABS':self.CYAN_WHITE,
+                            'SHP_NOTE':self.RED_WHITE,      'SHP_H_NOTE':self.MAGENTA_WHITE, 'SHP_IVAL':self.RED_WHITE,     'SHP_CHORD':self.MAGENTA_WHITE, 'MODES':self.BLUE_WHITE,
                               'NUT_UP':self.WHITE_MAGENTA, 'MIN_COL_NUM':self.RED_WHITE,   'IVAL_LABEL':self.MAGENTA_WHITE,    'STATUS':self.MAGENTA_WHITE, 'ERROR':self.WHITE_RED,
-                              'NUT_DN':self.WHITE_CYAN, 'MAJ_COL_NUM':self.BLUE_WHITE, 'CHORD_LABEL':self.GREEN_WHITE,    'HLT_STUS':self.GREEN_WHITE,    'CONS':self.BLACK_WHITE,
-                             'NO_IVAL':self.BLACK_WHITE,     'NORMAL':'22;',                'BRIGHT':'1;' }
+                              'NUT_DN':self.WHITE_CYAN,    'MAJ_COL_NUM':self.BLUE_WHITE, 'CHORD_LABEL':self.GREEN_WHITE,    'HLT_STUS':self.GREEN_WHITE,    'CONS':self.BLACK_WHITE,
+                             'NO_IVAL':self.BLACK_WHITE,     'MOD_DELIM':self.YELLOW_WHITE,    'NORMAL':'22;',                 'BRIGHT':'1;' }
         elif self.colorsIndex == 1:
-            self.styles = { 'NAT_NOTE':self.BLACK_GREEN,   'NAT_H_NOTE':self.WHITE_YELLOW,  'NAT_IVAL':self.BLACK_YELLOW, 'NAT_CHORD':self.BLACK_CYAN,     'TABS':self.GREEN_WHITE,
-                            'FLT_NOTE':self.BLUE_GREEN,    'FLT_H_NOTE':self.WHITE_CYAN,    'FLT_IVAL':self.BLUE_YELLOW,  'FLT_CHORD':self.BLUE_CYAN,    'H_TABS':self.WHITE_GREEN,
-                            'SHP_NOTE':self.MAGENTA_GREEN, 'SHP_H_NOTE':self.WHITE_MAGENTA, 'SHP_IVAL':self.RED_YELLOW,   'SHP_CHORD':self.RED_CYAN,      'MODES':self.WHITE_BLUE,
-                              'NUT_UP':self.WHITE_RED,    'MIN_COL_NUM':self.BLACK_CYAN,  'IVAL_LABEL':self.BLACK_YELLOW,    'STATUS':self.BLACK_YELLOW, 'ERROR':self.WHITE_RED,
-                              'NUT_DN':self.WHITE_BLUE,   'MAJ_COL_NUM':self.RED_CYAN,   'CHORD_LABEL':self.BLACK_CYAN,    'HLT_STUS':self.BLACK_GREEN,    'CONS':self.BLACK_WHITE,
-                             'NO_IVAL':self.WHITE_CYAN,       'NORMAL':'22;',                'BRIGHT':'1;' }
+            self.styles = { 'NAT_NOTE':self.BLACK_GREEN,    'NAT_H_NOTE':self.WHITE_YELLOW,  'NAT_IVAL':self.BLACK_YELLOW,  'NAT_CHORD':self.BLACK_CYAN,     'TABS':self.GREEN_WHITE,
+                            'FLT_NOTE':self.BLUE_GREEN,     'FLT_H_NOTE':self.WHITE_CYAN,    'FLT_IVAL':self.BLUE_YELLOW,   'FLT_CHORD':self.BLUE_CYAN,    'H_TABS':self.WHITE_GREEN,
+                            'SHP_NOTE':self.MAGENTA_GREEN,  'SHP_H_NOTE':self.WHITE_MAGENTA, 'SHP_IVAL':self.RED_YELLOW,    'SHP_CHORD':self.RED_CYAN,      'MODES':self.WHITE_BLUE,
+                              'NUT_UP':self.WHITE_RED,     'MIN_COL_NUM':self.BLACK_CYAN,  'IVAL_LABEL':self.BLACK_YELLOW,     'STATUS':self.BLACK_YELLOW,  'ERROR':self.WHITE_RED,
+                              'NUT_DN':self.WHITE_BLUE,    'MAJ_COL_NUM':self.RED_CYAN,   'CHORD_LABEL':self.BLACK_CYAN,     'HLT_STUS':self.BLACK_GREEN,    'CONS':self.BLACK_WHITE,
+                             'NO_IVAL':self.WHITE_CYAN,      'MOD_DELIM':self.BLACK_CYAN,      'NORMAL':'22;',                 'BRIGHT':'1;' }
         elif self.colorsIndex == 2:
-            self.styles = { 'NAT_NOTE':self.GREEN_BLACK,    'NAT_H_NOTE':self.YELLOW_BLACK,    'NAT_IVAL':self.YELLOW_BLACK, 'NAT_CHORD':self.GREEN_BLACK,    'TABS':self.CYAN_BLACK,
+            self.styles = { 'NAT_NOTE':self.GREEN_BLACK,    'NAT_H_NOTE':self.YELLOW_BLACK,    'NAT_IVAL':self.YELLOW_BLACK,  'NAT_CHORD':self.GREEN_BLACK,    'TABS':self.CYAN_BLACK,
                             'FLT_NOTE':self.BLUE_BLACK,     'FLT_H_NOTE':self.CYAN_BLACK,      'FLT_IVAL':self.CYAN_BLACK,    'FLT_CHORD':self.BLUE_BLACK,   'H_TABS':self.GREEN_BLACK,
                             'SHP_NOTE':self.RED_BLACK,      'SHP_H_NOTE':self.MAGENTA_BLACK,   'SHP_IVAL':self.RED_BLACK,     'SHP_CHORD':self.RED_BLACK,     'MODES':self.CYAN_BLACK,
                               'NUT_UP':self.MAGENTA_BLACK, 'MIN_COL_NUM':self.RED_BLACK,     'IVAL_LABEL':self.YELLOW_BLACK,     'STATUS':self.MAGENTA_BLACK, 'ERROR':self.RED_BLACK,
                               'NUT_DN':self.WHITE_BLACK,   'MAJ_COL_NUM':self.YELLOW_BLACK, 'CHORD_LABEL':self.GREEN_BLACK,    'HLT_STUS':self.GREEN_BLACK,    'CONS':self.WHITE_BLACK,
-                             'NO_IVAL':self.WHITE_BLACK,        'NORMAL':'22;',                  'BRIGHT':'1;' }
+                             'NO_IVAL':self.WHITE_BLACK,     'MOD_DELIM':self.BLUE_BLACK,        'NORMAL':'22;',                 'BRIGHT':'1;' }
     
     def initText(self, FG, BG):
         return '3' + self.COLORS[FG] + ';4' + self.COLORS[BG] + 'm'
@@ -509,7 +509,7 @@ class Tabs(object):
         print('readTabs({}) fileSize {:,} bytes, reading first {:,} bytes:\'\n{}\''.format(rowStr, fileSize, readSize, ''.join([chr(data[p]) for p in range(0, readSize)])), file=Tabs.DBG_FILE)
         while len(data) != 0:
             bytesRead += len(data)
-            i, bgn, fragment, end = 0, 0, b'', len(data)
+            p1, p2, i, bgn, fragment, end = -1, -1, 0, 0, b'', len(data)
             while i != -1:
                 ii = i
                 cnt += 1
@@ -617,7 +617,7 @@ class Tabs(object):
         tmp, htmp = [], []
         return [tmp, htmp, rowStr]
     
-    def appendLine(self, uicKey=None, pt=1):
+    def appendLine(self, uicKey=None, pt=1, dbg=0):
         '''Append another line of tabs to the display'''
         tabs, htabs = [], []
         print('appendLine(old) numTabsPerString:{} = numLines:{} * numTabsPerStringPerLine:{}, numTabs:{} = numStrings:{} * len(tabs[0]):{}'.format(self.numTabsPerString, self.numLines, self.numTabsPerStringPerLine, self.numTabs, self.numStrings, len(self.tabs[0])), file=Tabs.DBG_FILE)
@@ -630,9 +630,10 @@ class Tabs(object):
             tabs.append(bytearray([ord('-')] * self.numTabsPerString))
             htabs.append(bytearray([0] * self.numTabsPerString))
             for c in range(0, len(self.tabs[r])):
-                print('appendLine() r={} c={}'.format(r, c), file=Tabs.DBG_FILE)
-                print('appendLine() tabs[{}][{}]={}'.format(r, c, chr(self.tabs[r][c])), file=Tabs.DBG_FILE)
-                print('appendLine() htabs[{}][{}]={}'.format(r, c, chr(self.htabs[r][c])), file=Tabs.DBG_FILE)
+                if dbg:
+                    print('appendLine() r={} c={}'.format(r, c), file=Tabs.DBG_FILE)
+                    print('appendLine() tabs[{}][{}]={}'.format(r, c, chr(self.tabs[r][c])), file=Tabs.DBG_FILE)
+                    print('appendLine() htabs[{}][{}]={}'.format(r, c, chr(self.htabs[r][c])), file=Tabs.DBG_FILE)
                 tabs[r][c] = self.tabs[r][c]
                 htabs[r][c] = self.htabs[r][c]
         self.htabs = htabs
@@ -787,7 +788,7 @@ class Tabs(object):
         while True:
             b = ord(getwch())                                                           # get wide char -> int
             if self.isTab(chr(b)): self.uiCmds['Tablature'](b)                          # setTab()                 # N/A
-            elif b == 0:   continue
+            elif b == 0:   self.printe('loop() b=0') #continue
             elif b == 1:   self.uiCmds['Ctrl A']          (uicKey='Ctrl A')             # toggleDisplayLabels()    # cmd line opt -a
             elif b == 2:   self.uiCmds['Ctrl B']          (uicKey='Ctrl B')             # toggleDisplayChords()    # cmd line opt -b
             elif b == 3:   self.uiCmds['Ctrl C']          (uicKey='Ctrl C')             # copySelectTabs()         # N/A
@@ -1963,7 +1964,7 @@ class Tabs(object):
             print()
         self.printFileMark('<END_NOTES_SECTION>')
     
-    def printNote(self, row, col, n, bStyle='', hn=None, dbg=1):
+    def printNote(self, row, col, n, bStyle='', hn=None, dbg=0):
         if dbg: print('printNote() row={},col={}, nn={}'.format(row, col, n.name), file=Tabs.DBG_FILE)
         style = self.getNoteStyle(n, bStyle, hn)
         self.prints(n.name[0], row, col, style)
@@ -2014,9 +2015,9 @@ class Tabs(object):
                 if dbg: self.dumpChordInfo(self.chordInfo, reason='printColumnIvals({} {}) line={} r={} row={}'.format(c, cc, line, r, row))
                 elif c in self.chordInfo: self.dumpLimap(self.chordInfo[c]['LIMAP'], reason='printColumnIvals() c={}'.format(c))
             if c in self.chordInfo: 
-                self.wrapPrintInterval(r, c, dbg=dbg)
+                self.wrapPrintInterval(r, c, dbg=0)
     
-    def wrapPrintInterval(self, r, c, bStyle='', dbg=1):
+    def wrapPrintInterval(self, r, c, bStyle='', dbg=0):
         if c in self.analyzeIndices: index = self.analyzeIndices[c]
         else:                        index = 0
         print('wrapPrintInterval({:>3} {}) bgn'.format(c, index), file=Tabs.DBG_FILE)
@@ -2316,7 +2317,7 @@ class Tabs(object):
         if len(chordName) > 0:
             style = Tabs.CSI + self.bStyle + self.getEnharmonicStyle(chordName, self.styles['NAT_NOTE'], self.styles['FLT_NOTE'], self.styles['SHP_NOTE'])
         print(style + Tabs.CSI + '{};{}H{}'.format(self.lastRow, infoCol, chordName), end='', file=self.outFile)
-        print(Tabs.CSI + self.bStyle + self.styles['STATUS'] + '{}'.format(chordDelim), end='', file=self.outFile)
+        print(Tabs.CSI + self.bStyle + self.styles['MOD_DELIM'] + '{}'.format(chordDelim), end='', file=self.outFile)
         for k in imapKeys:
             if k == hk: style = Tabs.CSI + self.bStyle + self.styles['HLT_STUS']
             else:       style = Tabs.CSI + self.bStyle + self.styles['STATUS']
