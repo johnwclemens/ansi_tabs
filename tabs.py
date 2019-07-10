@@ -212,7 +212,7 @@ class Tabs(object):
             if 'k' in self.argMap and len(self.argMap['k'])  > 0: self.setCapo(c=self.argMap['k'][0]) # set capo at desired fret
             if 'a' in self.argMap and len(self.argMap['a']) == 0: self.toggleDisplayLabels(pt=0)      # display edit mode, cursor mode, and column number labels in first row for each line
             if 'b' in self.argMap and len(self.argMap['b']) == 0: self.toggleDisplayChords(pt=0)      # chords display section
-            if 'o' in self.argMap and len(self.argMap['o']) == 0: self.toggleDisplayIntervals(pt=0)   # intervals display section
+            if 'I' in self.argMap and len(self.argMap['I']) == 0: self.toggleDisplayIntervals(pt=0)   # intervals display section
             if 'n' in self.argMap and len(self.argMap['n']) == 0: self.toggleDisplayNotes(pt=0)       # notes display section
             if 'l' in self.argMap and len(self.argMap['l']) == 0: self.goToLastTab(cs=1)              # go to last tab on current line of current string
             if 'L' in self.argMap and len(self.argMap['L']) == 0: self.goToLastTab()                  # go to last tab on current line of all strings
@@ -729,7 +729,6 @@ class Tabs(object):
         self.registerUiCmd('Ctrl L',              self.goToLastTab)
         self.registerUiCmd('Ctrl M Enter',        self.toggleCursorMode)
         self.registerUiCmd('Ctrl N',              self.toggleDisplayNotes)
-        self.registerUiCmd('Ctrl O',              self.toggleDisplayIntervals)
         self.registerUiCmd('Ctrl P',              self.printTabs)
         self.registerUiCmd('Ctrl Q',              self.quit)
         self.registerUiCmd('Ctrl R',              self.resetTabs)
@@ -749,6 +748,7 @@ class Tabs(object):
         self.registerUiCmd('Shift E',             self.printErrorHistory)
         self.registerUiCmd('Shift F',             self.printMaxFretInfo)
         self.registerUiCmd('Shift H',             self.toggleHarmonicNote)
+        self.registerUiCmd('Shift I',             self.toggleDisplayIntervals)
         self.registerUiCmd('Shift K',             self.setCapo)
         self.registerUiCmd('Shift L',             self.goToLastTab)
         self.registerUiCmd('Shift Q',             self.selectChord)
@@ -803,7 +803,6 @@ class Tabs(object):
             elif b == 12:  self.uiCmds['Ctrl L']          (uicKey='Ctrl L', cs=1)       # goToLastTab()            # cmd line opt -l
             elif b == 13:  self.uiCmds['Ctrl M Enter']    (uicKey='Ctrl M or Enter')    # toggleCursorMode()       # cmd line opt -m
             elif b == 14:  self.uiCmds['Ctrl N']          (uicKey='Ctrl N')             # toggleDisplayNotes()     # cmd line opt -n
-            elif b == 15:  self.uiCmds['Ctrl O']          (uicKey='Ctrl O')             # toggleDisplayIntervals() # cmd line opt -o
             elif b == 16:  self.uiCmds['Ctrl P']          (uicKey='Ctrl P')             # printTabs()              # DBG?
             elif b == 17:  self.uiCmds['Ctrl Q']          (uicKey='Ctrl Q')             # quit()                   # DBG?
             elif b == 18:  self.uiCmds['Ctrl R']          (uicKey='Ctrl R')             # resetTabs()              # DBG?
@@ -823,6 +822,7 @@ class Tabs(object):
             elif b == 69:  self.uiCmds['Shift E']         (uicKey='Shift E')            # printErrorHistory()      # N/A
             elif b == 70:  self.uiCmds['Shift F']         (uicKey='Shift F')            # printMaxFretInfo()       # N/A
             elif b == 72:  self.uiCmds['Shift H']         (uicKey='Shift H')            # toggleHarmonicNote()     # N/A
+            elif b == 73:  self.uiCmds['Shift I']         (uicKey='Shift I')            # toggleDisplayIntervals() # cmd line opt -I
             elif b == 75:  self.uiCmds['Shift K']         (uicKey='Shift K')            # setCapo()                # cmd line opt -k?
             elif b == 76:  self.uiCmds['Shift L']         (uicKey='Shift L')            # goToLastTab()            # cmd line opt -L
             elif b == 81:  self.uiCmds['Shift Q']         (uicKey='Shift Q')            # selectChord()            # N/A
@@ -1141,7 +1141,7 @@ class Tabs(object):
             self.printh('{}: {}'.format(uicKey, self.toggleDisplayNotes.__doc__))
     
     def toggleDisplayIntervals(self, uicKey=None, pt=1):
-        '''Toggle (enable or disable) display of intervals section [cmd line opt -o]'''
+        '''Toggle (enable or disable) display of intervals section [cmd line opt -I]'''
         self.displayIntervals = (self.displayIntervals + 1) % len(self.DISPLAY_INTERVALS)
         line = self.row2Line(self.row)
         if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
@@ -1214,6 +1214,7 @@ class Tabs(object):
         self.printh('{}: {}'.format(uicKey, self.toggleBrightness.__doc__))
     
     def toggleColors(self, uicKey=None):
+        '''Toggle color schemes'''
         self.colorsIndex = (self.colorsIndex + 1) % 3
         self.initColors()
         self._toggleCursorDir()
