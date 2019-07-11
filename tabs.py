@@ -207,13 +207,15 @@ class Tabs(object):
             if 'help' in self.argMap and len(self.argMap['help']) == 0: self.printHelpInfo(ui=0)      # display the help info
             if '?' in self.argMap and len(self.argMap['?']) == 0: self.printHelpInfo(ui=0)            # display the help info
             if 'h' in self.argMap and len(self.argMap['h']) == 0: self.printHelpInfo(ui=0)            # display the help info
+            if 'k' in self.argMap and len(self.argMap['k'])  > 0: self.setCapo(c=self.argMap['k'][0]) # set capo at desired fret
             if 'F' in self.argMap and len(self.argMap['F']) == 0: self.toggleEnharmonic()             # enharmonic notes displayed as sharp or flat
             if 'i' in self.argMap and len(self.argMap['i']) == 0: self.toggleCursorDir(dbg=1)         # automatic cursor movement direction as down or up
-            if 'k' in self.argMap and len(self.argMap['k'])  > 0: self.setCapo(c=self.argMap['k'][0]) # set capo at desired fret
-            if 'a' in self.argMap and len(self.argMap['a']) == 0: self.toggleDisplayLabels(pt=0)      # display edit mode, cursor mode, and column number labels in first row for each line
+            if 'a' in self.argMap and len(self.argMap['a']) == 0: self.toggleDisplayLabels(pt=0)      # display edit mode, cursor mode, and column numbers
             if 'b' in self.argMap and len(self.argMap['b']) == 0: self.toggleDisplayChords(pt=0)      # chords display section
             if 'I' in self.argMap and len(self.argMap['I']) == 0: self.toggleDisplayIntervals(pt=0)   # intervals display section
             if 'n' in self.argMap and len(self.argMap['n']) == 0: self.toggleDisplayNotes(pt=0)       # notes display section
+            if 'D' in self.argMap and len(self.argMap['D'])  > 0: self.toggleBrightness(pt=0, bi=int(self.argMap['D'][0])) # color scheme
+            if 'U' in self.argMap and len(self.argMap['U'])  > 0: self.toggleColors(pt=0,     ci=int(self.argMap['U'][0])) # brightness
             if 'l' in self.argMap and len(self.argMap['l']) == 0: self.goToLastTab(cs=1)              # go to last tab on current line of current string
             if 'L' in self.argMap and len(self.argMap['L']) == 0: self.goToLastTab()                  # go to last tab on current line of all strings
             if 'z' in self.argMap and len(self.argMap['z']) == 0: self.goToLastTab(cs=1, ll=1)        # go to last tab on last line of current string
@@ -230,7 +232,7 @@ class Tabs(object):
                     self.moveToCol(c)
                     self.chordsObj.printChord(c)                 # need to populate chordInfo before calling selectChord
                     self.selectChord(pt=0)
-            self.printTabs()                                     # display the tabs section, optionally display the notes, intervals, and chords sections and the modes/labels row
+            self.printTabs()                                     # display the tabs, notes, intervals, and chords sections and the modes/labels row
             self.moveTo(self.ROW_OFF, self.COL_OFF, hi=1)        # display the status and hilite the first tab character
             self.printh('{}: {}'.format('?', self.printHelpInfo.__doc__))
     
@@ -426,12 +428,15 @@ class Tabs(object):
         self.DISPLAY_CHORDS = { 'DISABLED':0, 'ENABLED':1 }
     
     def initBrightness(self):
+        print('initBrightness() brightness={}'.format(self.brightness), file=Tabs.DBG_FILE)
         if   self.brightness == 0:
             self.brightnessA, self.brightnessB, self.bStyle = self.styles['NORMAL'], self.styles['BRIGHT'], self.styles['NORMAL']
         elif self.brightness == 1:
             self.brightnessA, self.brightnessB, self.bStyle = self.styles['BRIGHT'], self.styles['NORMAL'], self.styles['BRIGHT']
+        else: self.printe('initBrightness() brightness={} our of range [0-1]'.format(self.brightness))
     
     def initColors(self):
+        print('initColors() colorsIndex={}'.format(self.colorsIndex), file=Tabs.DBG_FILE)
         if   self.colorsIndex == 0:
             self.styles = { 'NAT_NOTE':self.GREEN_WHITE,    'NAT_H_NOTE':self.YELLOW_WHITE,  'NAT_IVAL':self.YELLOW_WHITE,  'NAT_CHORD':self.BLACK_WHITE,    'TABS':self.RED_WHITE,
                             'FLT_NOTE':self.BLUE_WHITE,     'FLT_H_NOTE':self.CYAN_WHITE,    'FLT_IVAL':self.CYAN_WHITE,    'FLT_CHORD':self.CYAN_WHITE,   'H_TABS':self.CYAN_WHITE,
@@ -453,7 +458,7 @@ class Tabs(object):
                               'NUT_UP':self.MAGENTA_BLACK, 'MIN_COL_NUM':self.RED_BLACK,     'IVAL_LABEL':self.YELLOW_BLACK,     'STATUS':self.MAGENTA_BLACK, 'ERROR':self.RED_BLACK,
                               'NUT_DN':self.WHITE_BLACK,   'MAJ_COL_NUM':self.YELLOW_BLACK, 'CHORD_LABEL':self.GREEN_BLACK,    'HLT_STUS':self.GREEN_BLACK,    'CONS':self.WHITE_BLACK,
                              'NO_IVAL':self.WHITE_BLACK,     'MOD_DELIM':self.BLUE_BLACK,        'NORMAL':'22;',                 'BRIGHT':'1;' }
-    
+        else: self.printe('initColors() colorsIndex={} out of range [0-2]'.format(self.colorsIndex))
     def initText(self, FG, BG):
         return '3' + self.COLORS[FG] + ';4' + self.COLORS[BG] + 'm'
     
@@ -1206,20 +1211,27 @@ class Tabs(object):
         self.printStatus()
         self.printh('{}: {}'.format(uicKey, self.toggleHarmonicNote.__doc__))
     
-    def toggleBrightness(self, uicKey=None):
+    def toggleBrightness(self, uicKey=None, bi=None, pt=1):
         '''Toggle display between normal and bright colors'''
-        self.brightness = (self.brightness + 1) % 2
+        print('toggleBrightness(bi={}) brightness={}'.format(bi, self.brightness), file=Tabs.DBG_FILE)
+        if bi == None: self.brightness = (self.brightness + 1) % 2
+        else:          self.brightness = bi
         self.initBrightness()
-        self.printTabs()
-        self.printh('{}: {}'.format(uicKey, self.toggleBrightness.__doc__))
+        if pt:
+            self.printTabs()
+            self.printh('{}: {}'.format(uicKey, self.toggleBrightness.__doc__))
     
-    def toggleColors(self, uicKey=None):
-        '''Toggle color schemes'''
-        self.colorsIndex = (self.colorsIndex + 1) % 3
+    def toggleColors(self, uicKey=None, ci=None, pt=1):
+        '''Toggle between color schemes'''
+        print('toggleColors(ci={}) colorsIndex={} bgn'.format(ci, self.colorsIndex), file=Tabs.DBG_FILE)
+        if ci == None: self.colorsIndex = (self.colorsIndex + 1) % 3
+        else:          self.colorsIndex = ci
+        print('toggleColors(ci={}) colorsIndex={}'.format(ci, self.colorsIndex), file=Tabs.DBG_FILE)
         self.initColors()
         self._toggleCursorDir()
-        self.printTabs()
-        self.printh('{}: {}'.format(uicKey, self.toggleColors.__doc__))
+        if pt:
+            self.printTabs()
+            self.printh('{}: {}'.format(uicKey, self.toggleColors.__doc__))
     
     def printColNums(self, row):
         print('printColNums(row={})'.format(row), file=Tabs.DBG_FILE)
