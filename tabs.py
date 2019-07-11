@@ -117,9 +117,9 @@ class Tabs(object):
         
         self.ROW_OFF = 1                                           # offset between cursor row    number and tabs row    index
         self.COL_OFF = 3                                           # offset between cursor column number and tabs column index
-        self.CHORDS_LEN = 0                                        # number of rows used to display chords on a given line
         self.NOTES_LEN = 0                                         # number of rows used to display notes  on a given line
         self.INTERVALS_LEN = 0                                     # number of rows used to display intervals on a given line
+        self.CHORDS_LEN = 0                                        # number of rows used to display chords on a given line
         self.NUM_FRETS = 24                                        # number of frets (might make this a list for each string)?
         self.IVAL_LABEL = 'INTRVL'                                 # label displayed for intervals (first col)
         
@@ -468,13 +468,13 @@ class Tabs(object):
             self.strings = strings.Strings(Tabs.DBG_FILE, alias=alias, spelling=spelling)
         except Exception as ex:
             e = sys.exc_info()[0]
-            self.quit('initStrings() Exception: \'{}\', e={}'.format(ex, str(e)), code=1)
+            self.quit('initStrings() Exception: \'{}\', e={}'.format(ex, str(e)), code=2)
         self.stringMap = self.strings.map
         self.stringKeys = self.strings.keys
         self.numStrings = len(self.stringKeys)
         if len(self.strings.map) < 1:
             print('initStrings() ERROR! invalid stringMap, numStrings={}'.format(self.numStrings), file=Tabs.DBG_FILE)
-            self.quit('initStrings() ERROR! Empty stringMap!', code=1)
+            self.quit('initStrings() ERROR! Empty stringMap!', code=2)
         self.printStringMap(file=Tabs.DBG_FILE)
     
     def printStringMap(self, file):
@@ -582,8 +582,7 @@ class Tabs(object):
                         elif self.isTab(tab) and self.numTabsPerStringPerLine != 0 and int(col) == self.COL_OFF - 1 + self.numTabsPerStringPerLine:
                             tmp, htmp, rowStr = self.appendTabs(tmp, htmp, rowStr)
                     else:
-                        info = 'readTabs() prior to bgnTabs!'
-                        quit(info)
+                        self.quit('readTabs() prior to bgnTabs!', code=1)
                 bgn = i + 2
             if endTabs: break
             data = self.inFile.read(readSize)
@@ -793,7 +792,7 @@ class Tabs(object):
         while True:
             b = ord(getwch())                                                           # get wide char -> int
             if self.isTab(chr(b)): self.uiCmds['Tablature'](b)                          # setTab()                 # N/A
-            elif b == 0:   self.printe('loop() b=0') #continue
+            elif b == 0:   self.printe('loop() b=0, what key was that?', x=1) #continue
             elif b == 1:   self.uiCmds['Ctrl A']          (uicKey='Ctrl A')             # toggleDisplayLabels()    # cmd line opt -a
             elif b == 2:   self.uiCmds['Ctrl B']          (uicKey='Ctrl B')             # toggleDisplayChords()    # cmd line opt -b
             elif b == 3:   self.uiCmds['Ctrl C']          (uicKey='Ctrl C')             # copySelectTabs()         # N/A
@@ -818,6 +817,10 @@ class Tabs(object):
             elif b == 24:  self.uiCmds['Ctrl X']          (uicKey='Ctrl X')             # cutSelectTabs()          # N/A
             elif b == 26:  self.uiCmds['Ctrl Z']          (uicKey='Ctrl Z', ll=1, cs=1) # goToLastTab()            # cmd line opt -z
             elif b == 27:  self.uiCmds['Escape']          (uicKey='Escape')             # printStatus()            # N/A
+#            elif b == 28:  self.uiCmds['Ctrl \\']         (uicKey='Ctrl \\')
+#            elif b == 29:  self.uiCmds['Ctrl ]']          (uicKey='Ctrl ]')
+#            elif b == 30:  self.uiCmds['Ctrl ]']          (uicKey='Ctrl ^')
+#            elif b == 31:  self.uiCmds['Ctrl _']          (uicKey='Ctrl _')
             elif b == 32:  self.uiCmds['Space']           (uicKey='Space')              # moveCursor()             # N/A
             elif b == 63:  self.uiCmds['?']               (uicKey='?')                  # printHelpInfo()          # cmd line opt -?
             elif b == 65:  self.uiCmds['Shift A']         (uicKey='Shift A')            # analyzeChord()           # N/A
@@ -1213,9 +1216,10 @@ class Tabs(object):
     
     def toggleBrightness(self, uicKey=None, bi=None, pt=1):
         '''Toggle display between normal and bright colors'''
-        print('toggleBrightness(bi={}) brightness={}'.format(bi, self.brightness), file=Tabs.DBG_FILE)
+        print('toggleBrightness(bi={}) brightness={} bgn'.format(bi, self.brightness), file=Tabs.DBG_FILE)
         if bi == None: self.brightness = (self.brightness + 1) % 2
         else:          self.brightness = bi
+        print('toggleBrightness(bi={}) brightness={}'.format(bi, self.brightness), file=Tabs.DBG_FILE)
         self.initBrightness()
         if pt:
             self.printTabs()
@@ -1249,7 +1253,8 @@ class Tabs(object):
     def getColMod(c):
         if   c % 10:  return c % 10
         elif c < 100: return c // 10
-        else:         return ((c - 100) // 10)
+        elif c < 200: return ((c - 100) // 10)
+        else:         return ((c - 200) // 10)
     
     def hiliteRowColNum(self, dbg=1):
         self.hiliteCount += 1
@@ -1490,7 +1495,7 @@ class Tabs(object):
         self.printh('{}: {}'.format(uicKey, self.resetTabs.__doc__))
     
     def saveTabs(self, uicKey=None):
-        '''Save all tabs and ANSI codes to output file 'cat' cmd can be used to view the file'''
+        '''Save tabs and ANSI codes to output file, the 'cat' cmd can be used to view the file'''
         with open(self.outName, 'w') as self.outFile:
             self.dumpLineInfo('saveTabs({}, {}) bgn writing tabs to file type={}'.format(self.row, self.col, self.outFile))
             Tabs.clearScreen(file=self.outFile, reason='saveTabs()')
@@ -2389,7 +2394,7 @@ class Tabs(object):
         print('ERROR! printe({}, {}) r={} c={} {}'.format(row, col, self.row2Index(row), self.col2Index(col), reason), file=Tabs.DBG_FILE)
         print(Tabs.CSI + style + Tabs.CSI + '{};{}H{}'.format(self.lastRow, 1, reason), end='')
         self.resetPos()
-        if x: exit()
+        if x: self.quit('printe() {}'.format(reason), code=3)
     
     def printh(self, reason, col=61, style=None, status=0, hist=0):
         if col is None:     col = self.col
