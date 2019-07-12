@@ -62,7 +62,7 @@ class Chords(object):
         self.tobj.printFileMark('<END_CHORDS_SECTION>')
         return self.chordNames
     
-    def printChord(self, c, bStyle='', dbg=3):
+    def printChord(self, c, bStyle='', pc=1, dbg=0):
         '''Analyze notes in given column index and if a valid chord is discovered then print it in the appropriate chords section.'''
         self.c = c
         if self.c is None:
@@ -70,7 +70,7 @@ class Chords(object):
         self.eraseChord(self.c, rmv=0)
         row, col = self.tobj.indices2RowCol(self.tobj.numStrings + self.tobj.NOTES_LEN + self.tobj.INTERVALS_LEN, self.c)
         if dbg:
-            print('printChord(c={}) row={} col={} len(chords)={} dbg={} BGN'.format(self.c, row, col, len(self.chords), dbg), file=self.tobj.DBG_FILE)
+            print('printChord(pc={}, c={}) row={} col={} len(chords)={} dbg={} BGN'.format(pc, self.c, row, col, len(self.chords), dbg), file=self.tobj.DBG_FILE)
             self.printStrings()
             self.printTabs()
         if dbg >= 3: self.printTabs(capoed=1)
@@ -91,13 +91,13 @@ class Chords(object):
                         selectedChord = self.tobj.imap2String(self.tobj.selectChords[chordName])
                         print('printChord({}) FOUND SELECTED chordName={} in selectChords[{}]={}'.format(self.c, chordName, chordName, selectedChord), file=self.tobj.DBG_FILE)
                         self.tobj.chordInfo[self.c] = {'INDEX': i, 'CHORDS': lchords, 'LIMAP': limap}
-                        self.printChordName(row, col, chordName, imap, bStyle)
+                        if pc: self.printChordName(row, col, chordName, imap, bStyle)
                         self.chordNames[self.c] = chordName
                         print('printChord({}) ADDING chordName[{}]={} to chordNames={}'.format(self.c, self.c, self.chordNames[self.c], self.chordNames), file=self.tobj.DBG_FILE)
         if selected == 0 and len(limap):
             imap = limap[0]
             print('printChord({}) currentName={} chordName={} imap={}'.format(self.c, currentName, chordName, imap), file=self.tobj.DBG_FILE)
-            self.printChordName(row, col, chordName, imap, bStyle)
+            if pc: self.printChordName(row, col, chordName, imap, bStyle)
             self.tobj.chordInfo[self.c] = {'INDEX': i, 'CHORDS': lchords, 'LIMAP': limap}
             if len(chordName) > 0:
                 self.chordNames[self.c] = chordName

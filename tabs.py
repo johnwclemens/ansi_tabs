@@ -173,7 +173,7 @@ class Tabs(object):
         
         try:
             with open(self.inName, 'rb') as self.inFile:
-                self.readTabs(readSize=500)
+                self.readTabs(readSize=8192)
         except FileNotFoundError as e: #Exception as e:
             print('init() Exception: {} - {}'.format(e, sys.exc_info()[0]), file=Tabs.DBG_FILE)
             mult = 1
@@ -230,7 +230,7 @@ class Tabs(object):
                 for c in self.chordAliases:
                     print('init() calling moveToCol({}) printChord({}) & selectChord()'.format(c, c), file=Tabs.DBG_FILE)
                     self.moveToCol(c)
-                    self.chordsObj.printChord(c)                 # need to populate chordInfo before calling selectChord
+                    self.chordsObj.printChord(c, pc=0)           # need to populate chordInfo before calling selectChord
                     self.selectChord(pt=0)
             self.printTabs()                                     # display the tabs, notes, intervals, and chords sections and the modes/labels row
             self.moveTo(self.ROW_OFF, self.COL_OFF, hi=1)        # display the status and hilite the first tab character
@@ -501,7 +501,7 @@ class Tabs(object):
 [40m[32m[2;1H1[40m[32m[2;2H|[40m[32m[2;3H0[40m[32m[2;4H1[40m[32m[2;5H2[40m[32m[2;6H3[40m[32m[2;7H4[40m[32m[2;8H5[40m[32m[2;9H6
     '''
     
-    def readTabs(self, readSize=600):
+    def readTabs(self, readSize=4096):
         dbg = 1
         fileSize = self.initInFile()
         tmp, htmp = [], []
@@ -1251,10 +1251,10 @@ class Tabs(object):
     
     @staticmethod
     def getColMod(c):
-        if   c % 10:  return c % 10
-        elif c < 100: return c // 10
-        elif c < 200: return ((c - 100) // 10)
-        else:         return ((c - 200) // 10)
+        if c % 10:  return c % 10
+        else:
+            while c >= 100: c-= 100
+        return c // 10
     
     def hiliteRowColNum(self, dbg=1):
         self.hiliteCount += 1
@@ -2022,7 +2022,7 @@ class Tabs(object):
                 self.printColumnIvals(cc, dbg=dbg)
         self.printFileMark('<END_INTERVALS_SECTION>')
     
-    def printColumnIvals(self, c, dbg=1):
+    def printColumnIvals(self, c, dbg=0):
         line = self.colIndex2Line(c)
         if dbg and c==0: print('printColumnIvals({}) bgn line={} selectChords={}'.format(c, line, self.selectChords), file=Tabs.DBG_FILE)
         for r in range(0, self.numStrings):
@@ -2288,8 +2288,9 @@ class Tabs(object):
             self.dumpSelectImaps()
             self.selectImaps[self.imap2String(im)] = imap
             self.dumpSelectImaps()
-            if pt: self.printTabs()
-        self.printh('{}: {}'.format(uicKey, self.selectChord.__doc__))
+            if pt: 
+                self.printTabs()
+                self.printh('{}: {}'.format(uicKey, self.selectChord.__doc__))
     
     def dumpSelectImaps(self):
         print('selectImaps={{'.format(), end=' ', file=Tabs.DBG_FILE)
@@ -2297,10 +2298,10 @@ class Tabs(object):
             print('{} : {}'.format(k, self.selectImaps[k]), end=', ', file=Tabs.DBG_FILE)
         print('}', file=Tabs.DBG_FILE)
     
-    def printChordInfo(self, r, c, m, reason=None, dbg=1):
+    def printChordInfo(self, r, c, m, reason=None, dbg=0):
         tab = chr(self.tabs[r][c])
         print('printChordInfo(r={} c={} m={} tab={}) bgn reason={}'.format(r, c, m, tab, reason), file=Tabs.DBG_FILE)
-        self.dumpInfo('printChordInfo()')
+        if dbg: self.dumpInfo('printChordInfo()')
         if m < len(self.chordInfo[c]['LIMAP']): print('printChordInfo() m={} < len(self.chordInfo[c][LIMAP])={}'.format(m, len(self.chordInfo[c]['LIMAP'])), file=Tabs.DBG_FILE)
         else: print('printChordInfo(?) m={} >= len(self.chordInfo[c][LIMAP])={}'.format(r, c, m, tab, len(self.chordInfo[c]['LIMAP'])), file=Tabs.DBG_FILE)
         imap = self.chordInfo[c]['LIMAP'][m]
