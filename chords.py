@@ -23,14 +23,14 @@ class Chords(object):
     def getChordKey(self, keys):
         return ' '.join(keys)
     
-    def eraseChord(self, c, rmv=1, dbg=1):
+    def eraseChord(self, c, rmv=1, dbg=0):
         row, col = self.tobj.indices2RowCol(self.tobj.numStrings + self.tobj.NOTES_LEN + self.tobj.INTERVALS_LEN, c)
         if dbg and c == 0: print('eraseChord(rmv={} c={}) row={} col={} bgn'.format(rmv, c, row, col), file=self.tobj.DBG_FILE)
         if c in self.tobj.chordInfo:
-            print('eraseChord(rmv={} c={}) deleting chordInfo'.format(rmv, c), file=self.tobj.DBG_FILE)
+            if dbg: print('eraseChord(rmv={} c={}) deleting chordInfo'.format(rmv, c), file=self.tobj.DBG_FILE)
             self.tobj.dumpChordInfoCol(self.tobj.chordInfo[c])
             del self.tobj.chordInfo[c]
-            self.tobj.dumpChordInfo(self.tobj.chordInfo)
+            if dbg: self.tobj.dumpChordInfo(self.tobj.chordInfo)
         if rmv == 1:
             if c in self.tobj.chordAliases:
                 print('eraseChord(rmv={}) deleting chordAliases[{}]={}'.format(rmv, c, self.tobj.chordAliases[c]), file=self.tobj.DBG_FILE)

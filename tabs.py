@@ -345,7 +345,7 @@ class Tabs(object):
         print(Tabs.CSI +  '1;37;45m' + Tabs.CSI + '1B' + Tabs.CSI + '23D' + 'Bright White on Magenta', end='')
         print(Tabs.CSI + '22;37;46m' + Tabs.CSI + '1B' + Tabs.CSI +  '0D' + 'Normal White on Cyan',    end='')
         print(Tabs.CSI +  '1;37;46m' + Tabs.CSI + '1B' + Tabs.CSI + '20D' + 'Bright White on Cyan',    end='')
-        exit()
+        self.quit(reason='testAnsi3()', code=4)
     
     def testStruct(self):
         s = {}
@@ -791,8 +791,12 @@ class Tabs(object):
         '''Run the user interactive loop, executing commands as they are entered via the keyboard'''
         while True:
             b = ord(getwch())                                                           # get wide char -> int
-            if self.isTab(chr(b)): self.uiCmds['Tablature'](b)                          # setTab()                 # N/A
-            elif b == 0:   self.printe('loop() b=0, what key was that?', x=1) #continue
+            if 0 <= b <= 127: print('loop() b={}({})'.format(b, chr(b)), file=Tabs.DBG_FILE)
+            else:             print('loop() b={}'.format(b), file=Tabs.DBG_FILE)
+            if b == 0:
+                self.printe('loop() b=0, what key was that?')
+                continue
+            elif self.isTab(chr(b)): self.uiCmds['Tablature'](b)                        # setTab()                 # N/A
             elif b == 1:   self.uiCmds['Ctrl A']          (uicKey='Ctrl A')             # toggleDisplayLabels()    # cmd line opt -a
             elif b == 2:   self.uiCmds['Ctrl B']          (uicKey='Ctrl B')             # toggleDisplayChords()    # cmd line opt -b
             elif b == 3:   self.uiCmds['Ctrl C']          (uicKey='Ctrl C')             # copySelectTabs()         # N/A
@@ -1073,6 +1077,7 @@ class Tabs(object):
                 self.prints(chr(self.capo), r + self.bgnRow(line)                                                        , self.cursorModeCol, self.cursorDirStyle)
                 self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings                                      , self.cursorModeCol, self.cursorDirStyle)
                 self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings + self.NOTES_LEN                     , self.cursorModeCol, self.cursorDirStyle)
+            for r in range(0, self.CHORDS_LEN):
                 self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings + self.NOTES_LEN + self.INTERVALS_LEN, self.cursorModeCol, self.cursorDirStyle)
         if dbg: self.dumpLineInfo('toggleCursorDir({}) line={} row={} col={}'.format(self.cursorDir, line, self.row, self.col))
     
@@ -1356,7 +1361,7 @@ class Tabs(object):
                 print('setCapo() c={}({}) capo={} capFN={} maxFret={}({}) maxFN={} setting capo'.format(ord(c), c, self.capo, capFN, self.maxFretInfo['MAX'], chr(self.maxFretInfo['MAX']), maxFN), file=Tabs.DBG_FILE)
                 self.printTabs()
     
-    def setTab(self, tab, dbg=1):
+    def setTab(self, tab, dbg=0):
         '''Set tab byte at current row and col, print corresponding tab character automatic move cursor'''
         row, col = self.row, self.col
         rr, cc = self.rowCol2Indices(row, col)
@@ -1453,7 +1458,7 @@ class Tabs(object):
         self.printStatus()
         self.printh('{}: {}'.format(uicKey, self.deletePrevTab.__doc__))
     
-    def _deleteTab(self, row, col, rmv=1, dbg=1):
+    def _deleteTab(self, row, col, rmv=1, dbg=0):
         r, c = self.rowCol2Indices(row, col)
         print('_deleteTab({} {} {} {}) rmv={} resetting tab to -/0 bgn'.format(row, col, r, c, rmv), file=Tabs.DBG_FILE)
         self.tabs[r][c] = ord('-')
@@ -2038,13 +2043,13 @@ class Tabs(object):
     def wrapPrintInterval(self, r, c, bStyle='', dbg=0):
         if c in self.analyzeIndices: index = self.analyzeIndices[c]
         else:                        index = 0
-        print('wrapPrintInterval({:>3} {}) bgn'.format(c, index), file=Tabs.DBG_FILE)
+        if dbg: print('wrapPrintInterval({:>3} {}) bgn'.format(c, index), file=Tabs.DBG_FILE)
         imap = self.chordInfo[c]['LIMAP'][index]
         imapstr = self.imap2String(imap)
-        print('wrapPrintInterval({:>3} {}) imap={} CHECKING IF imapstr={} IN selectImaps={}'.format(c, index, imap, imapstr, self.selectImaps), file=Tabs.DBG_FILE)
+        if dbg: print('wrapPrintInterval({:>3} {}) imap={} CHECKING IF imapstr={} IN selectImaps={}'.format(c, index, imap, imapstr, self.selectImaps), file=Tabs.DBG_FILE)
         if imapstr in self.selectImaps:
             imap = self.selectImaps[imapstr]
-            if r == 0:
+            if dbg and r == 0:
                 print('wrapPrintInterval({:>3} {}) imap={}        FOUND imapstr={} in'.format(c, index, imap, imapstr), end=' ', file=Tabs.DBG_FILE)
                 self.dumpSelectImaps()
                 print('wrapPrintInterval({:>3} {}) imap={} SWAP MAP K&V imapstr={}'.format(c, index, imap, self.imap2String(imap)), file=Tabs.DBG_FILE)
@@ -2235,7 +2240,7 @@ class Tabs(object):
         print('printDefaultStatus() txt[len={}]={}'.format(len(txt), txt), file=Tabs.DBG_FILE)
         return len(txt)+1
     
-    def printChordStatus(self, r, c, dbg=1):
+    def printChordStatus(self, r, c, dbg=0):
         if dbg: self.dumpChordInfo(self.chordInfo, reason='printChordStatus() CHECKING IF c={} IN chordInfo'.format(c))
         if c in self.chordInfo:
             if dbg: self.dumpChordInfo(self.chordInfo, reason='printChordStatus()'.format(c))
@@ -2259,38 +2264,39 @@ class Tabs(object):
             self.printChordInfo(r, c, self.analyzeIndices[c], reason='analyzeChord()')
         self.printh('{}: {}'.format(uicKey, self.analyzeChord.__doc__))
     
-    def selectChord(self, uicKey=None, pt=1, dbg=1):
+    def selectChord(self, uicKey=None, pt=1, dbg=0):
         '''Select chordInfo index for chord names and intervals and info on the Status line'''
         r, c = self.rowCol2Indices(self.row, self.col)
-        if dbg: self.dumpChordInfo(self.chordInfo, reason='selectChord(pt={} c={}) row={} col={} r={}'.format(pt, c, self.row, self.col, r))
-        if c in self.chordInfo:
+        self.dumpInfo(reason='selectChord(pt={} c={}) row={} col={} r={}'.format(pt, c, self.row, self.col, r))
+        if c in self.chordInfo and c in self.analyzeIndices:
             index = self.analyzeIndices[c]
             self.chordInfo[c]['INDEX'] = index
             self.dumpChordInfoCol(self.chordInfo[c], reason='selectChord(c={})'.format(c))
             name, imap = self.printChordInfo(r, c, index, reason='selectChord()')
-            print('selectChord(c={}) index={} analyzeIndices[c]={} chordAliases={}'.format(c, index, self.analyzeIndices[c], self.chordAliases), file=Tabs.DBG_FILE)
+            if dbg: print('selectChord(c={}) index={} analyzeIndices[c]={} chordAliases={}'.format(c, index, self.analyzeIndices[c], self.chordAliases), file=Tabs.DBG_FILE)
             if c in self.chordAliases:
-                print('selectChord(c={}) found c in chordAliases={}'.format(c, self.chordAliases), file=Tabs.DBG_FILE)
+                if dbg: print('selectChord(c={}) found c in chordAliases={}'.format(c, self.chordAliases), file=Tabs.DBG_FILE)
                 n = self.chordAliases[c]
-                print('selectChord(c={}) checking if alias={} in selectChords={}'.format(c, n, self.selectChords), file=Tabs.DBG_FILE)
+                if dbg: print('selectChord(c={}) checking if alias={} in selectChords={}'.format(c, n, self.selectChords), file=Tabs.DBG_FILE)
                 if n in self.selectChords:
-                    print('selectChord(c={}) removing alias={} from selectChords={}'.format(c, n, self.selectChords), file=Tabs.DBG_FILE)
+                    if dbg: print('selectChord(c={}) removing alias={} from selectChords={}'.format(c, n, self.selectChords), file=Tabs.DBG_FILE)
                     del self.selectChords[n]
-            print('selectChord(c={}) adding key={} val={} to selectChords={}'.format(c, name, imap, self.selectChords), file=Tabs.DBG_FILE)
+            if dbg: print('selectChord(c={}) adding key={} val={} to selectChords={}'.format(c, name, imap, self.selectChords), file=Tabs.DBG_FILE)
             self.selectChords[name] = imap
-            print('selectChord(c={}) selectChords={}'.format(c, self.selectChords), file=Tabs.DBG_FILE)
-            print('selectChord(c={}) adding alias={} to chordAliases={}'.format(c, name, self.chordAliases), file=Tabs.DBG_FILE)
+            if dbg: print('selectChord(c={}) selectChords={}'.format(c, self.selectChords), file=Tabs.DBG_FILE)
+            if dbg: print('selectChord(c={}) adding alias={} to chordAliases={}'.format(c, name, self.chordAliases), file=Tabs.DBG_FILE)
             self.chordAliases[c] = name
-            print('selectChord(c={}) chordAliases={}'.format(c, self.chordAliases), file=Tabs.DBG_FILE)
-            print('selectChord(c={}) index={} selectChords[{}]={}'.format(c, index, name, self.selectChords[name]), file=Tabs.DBG_FILE)
+            if dbg: print('selectChord(c={}) chordAliases={}'.format(c, self.chordAliases), file=Tabs.DBG_FILE)
+            if dbg: print('selectChord(c={}) index={} selectChords[{}]={}'.format(c, index, name, self.selectChords[name]), file=Tabs.DBG_FILE)
             im = self.chordInfo[c]['LIMAP'][index]
-            print('selectChord(c={}) adding key={} : val={} to '.format(c, self.imap2String(im), imap), end='', file=Tabs.DBG_FILE)
-            self.dumpSelectImaps()
+            if dbg: print('selectChord(c={}) adding key={} : val={} to '.format(c, self.imap2String(im), imap), end='', file=Tabs.DBG_FILE)
+            if dbg: self.dumpSelectImaps()
             self.selectImaps[self.imap2String(im)] = imap
-            self.dumpSelectImaps()
+            if dbg: self.dumpSelectImaps()
             if pt: 
                 self.printTabs()
                 self.printh('{}: {}'.format(uicKey, self.selectChord.__doc__))
+        else: self.printe('selectChord() nothing to seect use analyzeChord() first')
     
     def dumpSelectImaps(self):
         print('selectImaps={{'.format(), end=' ', file=Tabs.DBG_FILE)
@@ -2395,7 +2401,7 @@ class Tabs(object):
         print('ERROR! printe({}, {}) r={} c={} {}'.format(row, col, self.row2Index(row), self.col2Index(col), reason), file=Tabs.DBG_FILE)
         print(Tabs.CSI + style + Tabs.CSI + '{};{}H{}'.format(self.lastRow, 1, reason), end='')
         self.resetPos()
-        if x: self.quit('printe() {}'.format(reason), code=3)
+        if x: self.quit(reason='printe() {}'.format(reason), code=3)
     
     def printh(self, reason, col=61, style=None, status=0, hist=0):
         if col is None:     col = self.col
