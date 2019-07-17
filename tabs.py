@@ -170,6 +170,7 @@ class Tabs(object):
         self.numTabs = self.numStrings * self.numTabsPerString     # total number of tab characters
         self.tests()
         self.testText()
+#        self.test_print_values()
         
         try:
             with open(self.inName, 'rb') as self.inFile:
@@ -787,15 +788,33 @@ class Tabs(object):
             self.uiCmds[key] = method
         self.uiKeys = sorted(self.uiCmds)
     
+    def test_print_values(self):
+        self.print_values(my_name="thor", your_name="hulk")
+        self.quit(code=6, reason='test_print_values()')
+    
+    def print_values(self, **kwargs):
+        for key, value in kwargs.items():
+            print("The value of {} is {}".format(key, value))
+    
+    def dispatch(self, **kwargs):
+        args = {}
+        b, uicKey, dbg = None, None, None
+        print('dispatch() kwargs={}'.format(kwargs), file=Tabs.DBG_FILE)
+        for key, val in kwargs.items():
+            print('dispatch() key={} val={}'.format(key, val), file=Tabs.DBG_FILE)
+            if   key == 'b':      b = val
+            elif key == 'uicKey': uicKey = val
+            else: args[key] = val
+        print('dispatch() b={} uicKey={} args={}'.format(b, uicKey, args), file=Tabs.DBG_FILE)
+        self.uiCmds[uicKey](uicKey=uicKey, **args)
+    
     def loop(self):
         '''Run the user interactive loop, executing commands as they are entered via the keyboard'''
         while True:
             b = ord(getwch())                                                           # get wide char -> int
             if 0 <= b <= 127: print('loop() b={}({})'.format(b, chr(b)), file=Tabs.DBG_FILE)
             else:             print('loop() b={}'.format(b), file=Tabs.DBG_FILE)
-            if b == 0:
-                self.printe('loop() b=0, what key was that?')
-                continue
+            if b == 0: self.printe('loop() b=0, what key was that?'); continue
             elif self.isTab(chr(b)): self.uiCmds['Tablature'](b)                        # setTab()                 # N/A
             elif b == 1:   self.uiCmds['Ctrl A']          (uicKey='Ctrl A')             # toggleDisplayLabels()    # cmd line opt -a
             elif b == 2:   self.uiCmds['Ctrl B']          (uicKey='Ctrl B')             # toggleDisplayChords()    # cmd line opt -b
@@ -807,8 +826,10 @@ class Tabs(object):
             elif b == 8:   self.uiCmds['Ctrl H Backspace'](uicKey='Ctrl H Backspace')   # deletePrevTab()          # N/A
             elif b == 9:   self.uiCmds['Ctrl I Tab']      (uicKey='Ctrl I or Tab')      # toggleCursorDir()        # cmd line opt -i
             elif b == 10:  self.uiCmds['Ctrl J']          (uicKey='Ctrl J')             # shiftSelectTabs()        # N/A
-            elif b == 11:  self.uiCmds['Ctrl K']          (uicKey='Ctrl K', dbg=3)      # printChord()             # N/A
-            elif b == 12:  self.uiCmds['Ctrl L']          (uicKey='Ctrl L', cs=1)       # goToLastTab()            # cmd line opt -l
+#            elif b == 11:  self.uiCmds['Ctrl K']          (uicKey='Ctrl K', dbg=3)      # printChord()             # N/A
+            elif b == 11:  self.dispatch(b=b, uicKey='Ctrl K', dbg=3)      # printChord()             # N/A
+            elif b == 12:  self.dispatch(b=b, uicKey='Ctrl L', cs=1)       # goToLastTab()            # cmd line opt -l
+#            elif b == 12:  self.uiCmds['Ctrl L']          (uicKey='Ctrl L', cs=1)       # goToLastTab()            # cmd line opt -l
             elif b == 13:  self.uiCmds['Ctrl M Enter']    (uicKey='Ctrl M or Enter')    # toggleCursorMode()       # cmd line opt -m
             elif b == 14:  self.uiCmds['Ctrl N']          (uicKey='Ctrl N')             # toggleDisplayNotes()     # cmd line opt -n
             elif b == 16:  self.uiCmds['Ctrl P']          (uicKey='Ctrl P')             # printTabs()              # DBG?
@@ -2293,10 +2314,10 @@ class Tabs(object):
             if dbg: self.dumpSelectImaps()
             self.selectImaps[self.imap2String(im)] = imap
             if dbg: self.dumpSelectImaps()
-            if pt: 
+            if pt:
                 self.printTabs()
                 self.printh('{}: {}'.format(uicKey, self.selectChord.__doc__))
-        else: self.printe('selectChord() nothing to seect use analyzeChord() first')
+        else: self.printe('selectChord() nothing to select use \'Ctrl A\' analyzeChord() first')
     
     def dumpSelectImaps(self):
         print('selectImaps={{'.format(), end=' ', file=Tabs.DBG_FILE)
@@ -2444,7 +2465,7 @@ class Tabs(object):
     
     def printChord(self, uicKey=None, c=None, dbg=0):
         '''Analyze notes at given column and if they form a chord print the chord in chords section'''
-        self.chordsObj.printChord(c, dbg)
+        self.chordsObj.printChord(c, dbg=dbg)
         self.printh('{}: {}'.format(uicKey, self.printChord.__doc__))
     
     def isTab(self, c):

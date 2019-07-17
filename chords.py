@@ -70,7 +70,7 @@ class Chords(object):
         self.eraseChord(self.c, rmv=0)
         row, col = self.tobj.indices2RowCol(self.tobj.numStrings + self.tobj.NOTES_LEN + self.tobj.INTERVALS_LEN, self.c)
         if dbg:
-            print('printChord(pc={}, c={}) row={} col={} len(chords)={} dbg={} BGN'.format(pc, self.c, row, col, len(self.chords), dbg), file=self.tobj.DBG_FILE)
+            print('printChord(row={} col={}) c={} bStyle={} pc={} dbg={} BGN'.format(row, col, self.c, bStyle, pc, dbg), file=self.tobj.DBG_FILE)
             self.printStrings()
             self.printTabs()
         if dbg >= 3: self.printTabs(capoed=1)
