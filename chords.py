@@ -88,7 +88,7 @@ class Chords(object):
                 if chordName in self.tobj.selectChords:
                     selected += 1
                     if selected == 1:
-                        selectedChord = self.tobj.imap2String(self.tobj.selectChords[chordName])
+                        selectedChord = self.tobj.map2String(self.tobj.selectChords[chordName])
                         print('printChord({}) FOUND SELECTED chordName={} in selectChords[{}]={}'.format(self.c, chordName, chordName, selectedChord), file=self.tobj.DBG_FILE)
                         self.tobj.chordInfo[self.c] = {'INDEX': i, 'CHORDS': lchords, 'LIMAP': limap}
                         if pc: self.printChordName(row, col, chordName, imap, bStyle)
@@ -259,7 +259,7 @@ class Chords(object):
         self.tobj.dumpLimap(limap, reason='dumpLimaps()')
     
     def printChordName(self, row, col, chordName, imap, bStyle='', dbg=0):
-        print('printChordName() {:<7}, imap={}'.format(chordName, self.tobj.imap2String(imap)), file=self.tobj.DBG_FILE)
+        print('printChordName() {:<7}, imap={}'.format(chordName, self.tobj.map2String(imap)), file=self.tobj.DBG_FILE)
         if len(chordName) > 1 and ( chordName[1] == '#' or chordName[1] == 'b' ):
             chordName = chordName[0] + chordName[2:]
             if dbg: print('printChordName() strip # or b, name={}'.format(chordName), file=self.tobj.DBG_FILE)
