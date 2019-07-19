@@ -684,6 +684,8 @@ class Tabs(object):
         for i in range(18): print('##########', end='', file=Tabs.DBG_FILE)
         print(file=Tabs.DBG_FILE)
         self.dumpInfo('quit()')
+        self.printErrorHistory()
+        self.printCmdHistory()
         txt  = 'ExitCode={}, reason={} '.format(code, reason)
         txt += '{}: {}'.format(uicKey, self.quit.__doc__)
         cBgn = len(txt) + 1
@@ -814,7 +816,7 @@ class Tabs(object):
         while True:
             b = ord(getwch())                                                  # get wide char -> int
             if self.isTab(chr(b)): self.dispatch(tab=b, uicKey='Tablature')    # setTab()                 # N/A
-            elif b == 0:   self.printe('loop() b=0, null escape?'); continue
+            elif b == 0:   continue                                            # null escape?
             elif b == 1:   self.dispatch(b=b, uicKey='Ctrl A')                 # toggleDisplayLabels()    # cmd line opt -a
             elif b == 2:   self.dispatch(b=b, uicKey='Ctrl B')                 # toggleDisplayChords()    # cmd line opt -b
             elif b == 3:   self.dispatch(b=b, uicKey='Ctrl C')                 # copySelectTabs()         # N/A
@@ -863,12 +865,12 @@ class Tabs(object):
             elif b == 87:  self.dispatch(b=b, uicKey='Shift W', back=0)        # printErrorHistory()      # N/A
             elif b == 88:  self.dispatch(b=b, uicKey='Shift X', arpg=1)        # cutSelectTabs()          # N/A
             elif b == 90:  self.dispatch(b=b, uicKey='Shift Z', ll=1)          # goToLastTab()            # cmd line opt -Z
-            elif b == 155: self.dispatch(b=b, uicKey='Alt Left Arrow', left=1) # unselectCol()        # N/A
-            elif b == 157: self.dispatch(b=b, uicKey='Alt Right Arrow')        # unselectCol()        # N/A
+            elif b == 155: self.dispatch(b=b, uicKey='Alt Left Arrow', left=1) # unselectCol()            # N/A
+            elif b == 157: self.dispatch(b=b, uicKey='Alt Right Arrow')        # unselectCol()            # N/A
             elif b == 152: self.dispatch(b=b, uicKey='Alt Up Arrow', up=1)     # unselectRow()            # N/A
             elif b == 160: self.dispatch(b=b, uicKey='Alt Down Arrow')         # unselectRow()            # N/A
 #            elif b == 161: self.dispatch(b=b, uicKey='Alt Page Down')          # movePageDown()           # N/A
-            elif b == 224:                                                              # Escape Sequence          # N/A
+            elif b == 224:                                                              # Escape Sequence        # N/A
                 b = ord(getwch())                                                       # Read the escaped character
                 if   b == 75:  self.dispatch(b=b, uicKey='Left Arrow')                  # moveLeft()             # N/A
                 elif b == 77:  self.dispatch(b=b, uicKey='Right Arrow')                 # moveRight()            # N/A
@@ -1441,6 +1443,7 @@ class Tabs(object):
         self.moveCursor()
         self.getMaxFretInfo()
         self.dumpTabs('setTab() end')
+        self.printh('{}: {}'.format(uicKey, self.setTab.__doc__))
     
     def deleteTab(self, uicKey=None, back=0, dbg=0):
         '''Delete current tab setting it back to '-', with automatic cursor movement, wrapping across edges'''
@@ -2498,7 +2501,7 @@ class Tabs(object):
         elif m == 3 and n != 13: return 'rd'
         else:                    return 'th'
     
-    def clearRow(self, row, col=1, arg=2, file=None, dbg=1): # arg=0: col to end of line, arg=1: begin of line to col, arg=2: entire line
+    def clearRow(self, row, col=1, arg=2, file=None, dbg=0): # arg=0: col to end of line, arg=1: begin of line to col, arg=2: entire line
         cBgn = 1
         cEnd = self.endCol() + 1
         if   arg == 0: cBgn = col
