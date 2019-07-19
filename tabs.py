@@ -2519,13 +2519,6 @@ class Tabs(object):
         print(Tabs.CSI + '{};{}H'.format(row, col), end='', file=file)
         print(Tabs.CSI + '{}K'.format(arg), end='', file=file)
     
-#    @staticmethod
-#    def clearRow_ORIG(arg=2, row=None, col=None, file=None, dbg=1): # arg=0: cursor to end of line, arg=1: begin of line to cursor, arg=2: entire line
-#        if dbg: print('clearRow() arg={} row={} col={}'.format(arg, row, col), file=Tabs.DBG_FILE)
-#        if row is not None and col is not None:
-#            print(Tabs.CSI + '{};{}H'.format(row, col), end='', file=file)
-#        print(Tabs.CSI + '{}K'.format(arg), end='', file=file)
-    
     @staticmethod
     def clearScreen(arg=2, file=None, reason=None, dbg=0):
         if dbg: print('clearScreen() arg={} file={} reason={}'.format(arg, file, reason), file=Tabs.DBG_FILE)
