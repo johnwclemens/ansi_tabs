@@ -1279,7 +1279,7 @@ class Tabs(object):
             while c >= 100: c-= 100
         return c // 10
     
-    def hiliteRowColNum(self, dbg=1):
+    def hiliteRowColNum(self, dbg=0):
         self.hiliteCount += 1
         if dbg: print('hiliteRowColNum({}, {}) hilitePrevRowPos={} hiliteRowNum={} hiliteColNum={} hiliteCount={}'.format(self.row, self.col, self.hilitePrevRowPos, self.hiliteRowNum, self.hiliteColNum, self.hiliteCount), file=Tabs.DBG_FILE)
         for line in range(0, self.numLines):
@@ -1968,7 +1968,7 @@ class Tabs(object):
             print(Tabs.CSI + self.styles['NORMAL'] + self.styles['CONS'] + Tabs.CSI + '{};{}H'.format(self.row, self.col), end='') # restore the console cursor to the given position (row, col) and set the foreground and background color
         self.printStatus()
         self.dumpLineInfo('printTabs(cs={}) end outFile={}'.format(cs, self.outFile))
-        self.printh('{}: {}'.format(uicKey, self.printTabs.__doc__))
+        self.printh('{}: {}'.format(uicKey, self.printTabs.__doc__), status=1)
     
     def printFileMark(self, mark):
         if self.outFile != None:
@@ -2173,22 +2173,22 @@ class Tabs(object):
         for k in m: s += '{} '.format(k)
         return s.strip()
     
-    def printStatus(self, uicKey=None, hinfo=0):
+    def printStatus(self, uicKey=None, hinfo=0, dbg=0):
         '''Display the status line info with intervals and chords on the right and notes on the left'''
         r, c = self.rowCol2Indices(self.row, self.col)
         print('printStatus() row={} col={} r={} c={} bgn'.format(self.row, self.col, r, c), file=Tabs.DBG_FILE)
         tab = chr(self.tabs[r][c])
-        print('printStatus() row={} col={} r={} c={} tab={}({})'.format(self.row, self.col, r, c, self.tabs[r][c], tab), file=Tabs.DBG_FILE)
+        if dbg: print('printStatus() row={} col={} r={} c={} tab={}({})'.format(self.row, self.col, r, c, self.tabs[r][c], tab), file=Tabs.DBG_FILE)
         if   Tabs.isFret(tab): cnt = self.printFretStatus(tab, r, c)
         elif tab in self.mods: cnt = self.printModStatus(tab, r, c)
         else:                  cnt = self.printDefaultStatus(tab, r, c)
         self.clearRow(self.lastRow, arg=0, col=cnt, file=self.outFile)
         self.printChordStatus(r, c)
-        print('printStatus() row={} col={} r={} c={} cnt={} end'.format(self.row, self.col, r, c, cnt), file=Tabs.DBG_FILE)
+        print('printStatus() row={} col={} r={} c={} cnt={} tab={}({}) end'.format(self.row, self.col, r, c, cnt, self.tabs[r][c], tab), file=Tabs.DBG_FILE)
         if hinfo: self.printh('{}: {}'.format(uicKey, self.printStatus.__doc__), status=1)
         else:     self.resetPos()
     
-    def printFretStatus(self, tab, r, c, dbg=1):
+    def printFretStatus(self, tab, r, c, dbg=0):
         s, ss = r + 1, self.getOrdSfx(r + 1)
         f, fs = self.getFretNum(ord(tab)), self.getOrdSfx(self.getFretNum(ord(tab)))
         statStyle, fretStyle = Tabs.CSI + self.bStyle + self.styles['STATUS'], Tabs.CSI + self.bStyle + self.styles['TABS']
@@ -2248,9 +2248,9 @@ class Tabs(object):
         print('printModStatus() txt[len={}]={}'.format(len(txt), txt), file=Tabs.DBG_FILE)
         return len(txt)+1
     
-    def printDefaultStatus(self, tab, r, c):
+    def printDefaultStatus(self, tab, r, c, dbg=0):
         s, ss, tabStyle, statStyle = r + 1, self.getOrdSfx(r + 1), Tabs.CSI + self.bStyle + self.styles['TABS'], Tabs.CSI + self.bStyle + self.styles['STATUS']
-        print('printDefaultStatus({}, {}) tab={}'.format(r, c, tab), file=Tabs.DBG_FILE)
+        if dbg: print('printDefaultStatus({}, {}) tab={}'.format(r, c, tab), file=Tabs.DBG_FILE)
         print(tabStyle + Tabs.CSI + '{};{}H{} '.format(self.lastRow, 1, tab), end='', file=self.outFile)
         print(tabStyle + '{}{}'.format(s, ss) + statStyle + ' string ' + tabStyle + 'muted' + statStyle + ' not played', end='', file=self.outFile)
         txt = tab + ' '
@@ -2324,7 +2324,7 @@ class Tabs(object):
     
     def printChordInfo(self, r, c, m, reason=None, dbg=0):
         tab = chr(self.tabs[r][c])
-        print('printChordInfo(r={} c={} m={} tab={}) bgn reason={}'.format(r, c, m, tab, reason), file=Tabs.DBG_FILE)
+        if dbg: print('printChordInfo(r={} c={} m={} tab={}) bgn reason={}'.format(r, c, m, tab, reason), file=Tabs.DBG_FILE)
         if dbg: self.dumpInfo('printChordInfo()')
         if m < len(self.chordInfo[c]['LIMAP']): print('printChordInfo() m={} < len(self.chordInfo[c][LIMAP])={}'.format(m, len(self.chordInfo[c]['LIMAP'])), file=Tabs.DBG_FILE)
         else: print('printChordInfo(?) m={} >= len(self.chordInfo[c][LIMAP])={}'.format(r, c, m, tab, len(self.chordInfo[c]['LIMAP'])), file=Tabs.DBG_FILE)
@@ -2421,7 +2421,7 @@ class Tabs(object):
         self.resetPos()
         if x: self.quit(reason='printe() {}'.format(reason), code=3)
     
-    def printh(self, reason, col=61, style=None, status=0, hist=0):
+    def printh(self, reason, col=61, style=None, status=0, hist=0, dbg=0):
         if col is None:     col = self.col
         if style is None: style = self.styles['HLT_STUS']
         if hist == 0:
@@ -2508,21 +2508,27 @@ class Tabs(object):
             self.printe('clearRow() arg={} col={} invalid row={}'.format(arg, col, row))
             return 0
         else:
-            if dbg: print('clearRow({} {}) arg={} row={} col={} cBgn={} cEnd={}'.format(self.row, self.col, arg, row, col, cBgn, cEnd), file=Tabs.DBG_FILE)
-            for c in range(cBgn, cEnd):
-                print(Tabs.CSI + self.styles['SHP_NOTE'] + Tabs.CSI + '{};{}H '.format(row, c), end='', file=file)
+            blank = ''
+            for c in range(cBgn, cEnd): blank += ' '
+            print(Tabs.CSI + self.styles['SHP_NOTE'] + Tabs.CSI + '{};{}H{}'.format(row, cBgn, blank), end='', file=file)
+            if dbg: print('clearRow({} {}) arg={} row={} col={} cBgn={} cEnd={} blank=\n{}'.format(self.row, self.col, arg, row, col, cBgn, cEnd, blank), file=Tabs.DBG_FILE)
             return 1
     
-    @staticmethod
-    def clearRow_OLD(arg=2, row=None, col=None, file=None, dbg=1): # arg=0: cursor to end of line, arg=1: begin of line to cursor, arg=2: entire line
+    def clearRow_OLD(self, row, col=1, arg=2, file=None, dbg=1):
         if dbg: print('clearRow() arg={} row={} col={}'.format(arg, row, col), file=Tabs.DBG_FILE)
-        if row is not None and col is not None:
-            print(Tabs.CSI + '{};{}H'.format(row, col), end='', file=file)
+        print(Tabs.CSI + '{};{}H'.format(row, col), end='', file=file)
         print(Tabs.CSI + '{}K'.format(arg), end='', file=file)
     
+#    @staticmethod
+#    def clearRow_ORIG(arg=2, row=None, col=None, file=None, dbg=1): # arg=0: cursor to end of line, arg=1: begin of line to cursor, arg=2: entire line
+#        if dbg: print('clearRow() arg={} row={} col={}'.format(arg, row, col), file=Tabs.DBG_FILE)
+#        if row is not None and col is not None:
+#            print(Tabs.CSI + '{};{}H'.format(row, col), end='', file=file)
+#        print(Tabs.CSI + '{}K'.format(arg), end='', file=file)
+    
     @staticmethod
-    def clearScreen(arg=2, file=None, reason=None):
-        print('clearScreen() arg={} file={} reason={}'.format(arg, file, reason), file=Tabs.DBG_FILE)
+    def clearScreen(arg=2, file=None, reason=None, dbg=0):
+        if dbg: print('clearScreen() arg={} file={} reason={}'.format(arg, file, reason), file=Tabs.DBG_FILE)
         print(Tabs.CSI + '{}J'.format(arg), file=file)
     
     def hiliteText(self, text):
