@@ -799,14 +799,14 @@ class Tabs(object):
             print("The value of {} is {}".format(key, value))
     
     def dispatch(self, **kwargs):
-        args, b, uicKey, dbg = {}, -1, None, None
-#        print('dispatch() kwargs={}\ndispatch()'.format(kwargs), end=' ', file=Tabs.DBG_FILE)
+        args, b, uicKey, dbg = {}, -1, None, 0
+        if dbg: print('dispatch() kwargs={}\ndispatch()'.format(kwargs), end=' ', file=Tabs.DBG_FILE)
         for key, val in kwargs.items():
-#            print('{}={}'.format(key, val), end=', ', file=Tabs.DBG_FILE)
+            if dbg: print('{}={}'.format(key, val), end=', ', file=Tabs.DBG_FILE)
             if    key == 'b':      b = val
             elif  key == 'uicKey': uicKey = val
             else:                  args[key] = val
-#        print(file=Tabs.DBG_FILE)
+        if dbg: print(file=Tabs.DBG_FILE)
         if 0 <= b <= 127: print('dispatch() {}(uicKey={}, b={}({}), args={})'.format(self.uiCmds[uicKey].__name__, uicKey, b, chr(b), args), file=Tabs.DBG_FILE)
         else:             print('dispatch() {}(uicKey={}, b={}, args={})'.format(self.uiCmds[uicKey].__name__, uicKey, b, args), file=Tabs.DBG_FILE)
         self.uiCmds[uicKey](uicKey=uicKey, **args)
