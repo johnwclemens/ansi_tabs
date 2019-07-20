@@ -88,6 +88,8 @@ class Tabs(object):
         self.maxFretInfo = {'MAX':0, 'LINE':-1, 'STR':-1, 'COL':-1} # dict -> max fret info (max, line, row, col)
         self.chordsObj = None                                      # the chords.Chords instance
         self.dbgMove = True                                        # used for finding bugs in basic movement functionality
+        self.cmdFilterStr = 'None:'
+        self.filterCmds = 1
         
         self.htabs = []                                            # list of bytearrays, one for each string; for harmonic tabs
         self.tabCount = 0                                          # used by appendTabs()
@@ -169,8 +171,6 @@ class Tabs(object):
         self.setLastRow()                                          # calculate last row, depends on numStrings which is supposed to be set in initStrings()
         self.numTabs = self.numStrings * self.numTabsPerString     # total number of tab characters
         self.tests()
-        self.testText()
-#        self.test_print_values()
         
         try:
             with open(self.inName, 'rb') as self.inFile:
@@ -366,10 +366,6 @@ class Tabs(object):
         print('testStruct() index={} chord={} imap={}'.format(index, chord, imap), file=Tabs.DBG_FILE)
         self.dumpLimap(s[0]['LIMAP'], reason='testStruct()')
         self.dumpChordInfo(s, reason='testStruct()')
-    
-    def testText(self):
-        ln, fn, mi = 'Clemens', 'John', 'W'
-        print('testText() {} {} {}'.format(ln, fn, mi), file=Tabs.DBG_FILE)
     
     def initFiles(self, inName, outName):
         self.inName = inName
@@ -685,7 +681,7 @@ class Tabs(object):
         print(file=Tabs.DBG_FILE)
         self.dumpInfo('quit()')
         self.printErrorHistory()
-        self.printCmdHistory()
+        self.printCmdHistory(back=0)
         txt  = 'ExitCode={}, reason={} '.format(code, reason)
         txt += '{}: {}'.format(uicKey, self.quit.__doc__)
         cBgn = len(txt) + 1
@@ -790,14 +786,6 @@ class Tabs(object):
             self.uiCmds[key] = method
         self.uiKeys = sorted(self.uiCmds)
     
-    def test_print_values(self):
-        self.print_values(my_name="thor", your_name="hulk")
-        self.quit(code=6, reason='test_print_values()')
-    
-    def print_values(self, **kwargs):
-        for key, value in kwargs.items():
-            print("The value of {} is {}".format(key, value))
-    
     def dispatch(self, **kwargs):
         args, b, uicKey, dbg = {}, -1, None, 0
         if dbg: print('dispatch() kwargs={}\ndispatch()'.format(kwargs), end=' ', file=Tabs.DBG_FILE)
@@ -886,9 +874,9 @@ class Tabs(object):
                 elif b == 116: self.dispatch(b=b, uicKey='Ctrl Right Arrow')            # selectCol()            # N/A
                 elif b == 141: self.dispatch(b=b, uicKey='Ctrl Up Arrow', up=1)         # selectRow()            # N/A
                 elif b == 145: self.dispatch(b=b, uicKey='Ctrl Down Arrow')             # selectRow()            # N/A
-                else:          self.printe('unsupported Escape Cmd: {}({})'.format(b, chr(b)))
-            elif 0 <= b <= 127: self.printe('unsupported Cmd Key: {}({})'.format(b, chr(b)))
-            else: self.printe('unsupported Cmd Key: {}'.format(b))
+                else:          self.printe('loop() unsupported Escape Cmd: {}({})'.format(b, chr(b)))
+            elif 0 <= b <= 127: self.printe('loop() unsupported Cmd Key: {}({})'.format(b, chr(b)))
+            else: self.printe('loop() unsupported Cmd Key: {}'.format(b))
     
     def resetPos(self):
         print(Tabs.CSI + '{};{}H'.format(self.row, self.col), end='')
@@ -1442,7 +1430,7 @@ class Tabs(object):
                         self.wrapPrintInterval(r, cc, dbg=dbg)
         self.moveCursor()
         self.getMaxFretInfo()
-        self.dumpTabs('setTab() end')
+        if dbg: self.dumpTabs('setTab() end')
         self.printh('{}: {}'.format(uicKey, self.setTab.__doc__))
     
     def deleteTab(self, uicKey=None, back=0, dbg=0):
@@ -2383,7 +2371,6 @@ class Tabs(object):
             for i in range(iBgn, iEnd, iDelta):
                 print('    [{}] {}'.format(i, self.errors[i]), file=Tabs.DBG_FILE)
             print(']', file=Tabs.DBG_FILE)
-        print('printErrorHistory() [{}] {}'.format(self.errorsIndex, self.errors[self.errorsIndex]), file=Tabs.DBG_FILE)
         self.printh('{}: {} {} [{}] {}'.format(uicKey, self.printErrorHistory.__doc__, dir, self.errorsIndex, self.errors[self.errorsIndex]), col=1, hist=1)
         if back == 1:
             self.errorsIndex -= 1
@@ -2404,7 +2391,6 @@ class Tabs(object):
             for i in range(iBgn, iEnd, iDelta):
                 print('    [{}] {}'.format(i, self.cmds[i]), file=Tabs.DBG_FILE)
             print(']', file=Tabs.DBG_FILE)
-        print('printCmdHistory() [{}] {}'.format(self.cmdsIndex, self.cmds[self.cmdsIndex]), file=Tabs.DBG_FILE)
         self.printh('{}: {} {} [{}] {}'.format(uicKey, self.printCmdHistory.__doc__, dir, self.cmdsIndex, self.cmds[self.cmdsIndex]), col=1, hist=1)
         if back == 1:
             self.cmdsIndex -= 1
@@ -2428,8 +2414,9 @@ class Tabs(object):
         if col is None:     col = self.col
         if style is None: style = self.styles['HLT_STUS']
         if hist == 0:
-            self.cmds.append(reason)
-            self.cmdsIndex = len(self.cmds) - 1
+            if not self.filterCmds or reason.find(self.cmdFilterStr, 0, len(self.cmdFilterStr)) == -1:
+                self.cmds.append(reason)
+                self.cmdsIndex = len(self.cmds) - 1
         clear = self.clearRow(self.lastRow, file=self.outFile)
         print('printh(col={}) clear={} status={} hist={} reason={}'.format(col, clear, status, hist, reason), file=Tabs.DBG_FILE)
         if clear and not status and not hist:
