@@ -685,7 +685,7 @@ class Tabs(object):
         self.printCmdHistory(back=0)
         print('quit() rCmds=[', file=Tabs.DBG_FILE)
         for k in self.rCmds:
-            if type(self.rCmds[k]) == str: print('{:>20} = {}'.format(k, self.rCmds[k]), file=Tabs.DBG_FILE)
+            if type(self.rCmds[k]) == str: print('{:>22} = {}'.format(k, self.rCmds[k]), file=Tabs.DBG_FILE)
             else:
                 print('{:>22} = [ '.format(k), end='', file=Tabs.DBG_FILE)
                 for kk in self.rCmds[k]: print('{}, '.format(kk), end='', file=Tabs.DBG_FILE)
@@ -926,14 +926,13 @@ class Tabs(object):
     
     def moveRight(self, uicKey=None, dbg=None):
         '''Move cursor right 1 column on current line wrapping to start of row on next line or first line'''
-        if uicKey == None: uicKey = self.rCmds['moveRight']
         if dbg or self.dbgMove: print('moveRight({}, {})'.format(self.row, self.col), file=Tabs.DBG_FILE)
         if self.col == self.endCol():
             line = self.row2Line(self.row)
             if line == self.numLines - 1: self.moveTo(row=self.row - self.lineDelta() * (self.numLines - 1), col=self.bgnCol(), hi=1)
             else:                         self.moveTo(row=self.row + self.lineDelta(), col=self.bgnCol(), hi=1)
         else:                             self.moveTo(col=self.col + 1, hi=1)
-        self.printh('{}: {}'.format(uicKey, self.moveRight.__doc__))
+        self.printh('{}: {}'.format(self.rCmds[self.moveRight.__name__], self.moveRight.__doc__))
     
     def moveUp(self, uicKey=None, dbg=None):
         '''Move cursor up 1 row on current line wrapping to last row on previous line or last line'''
@@ -1349,6 +1348,10 @@ class Tabs(object):
     
     def goToLastTab(self, uicKey=None, cs=0, ll=0):
         '''Go to last tab pos on current line or last line ll=1, of all strings or current string, cs=1'''
+        if not cs and not ll: index=2
+        elif cs and not ll: index=0
+        elif not cs and ll: index=3
+        elif cs and ll: index=1
         rr, cc = 0, 0
         if ll: lineBgn, lineEnd = self.numLines,               0
         else:  lineBgn, lineEnd = self.row2Line(self.row) + 1, self.row2Line(self.row)
@@ -1368,7 +1371,7 @@ class Tabs(object):
             row, col = self.indices2RowCol(rr, cc)
             print('goToLastTab() row,col=({},{})'.format(row, col), file=Tabs.DBG_FILE)
             self.moveTo(row=row, col=col, hi=1)
-        self.printh('{}: {}'.format(uicKey, self.goToLastTab.__doc__))
+        self.printh('{}: {}'.format(self.rCmds[self.goToLastTab.__name__][index], self.goToLastTab.__doc__))
     
     def setCapo(self, uicKey=None, c=None):
         '''Place capo on fret specified by user input of a single character [0-9][a-o] [cmd line opt -k]'''
