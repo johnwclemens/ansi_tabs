@@ -171,6 +171,7 @@ class Tabs(object):
         self.setLastRow()                                           # calculate last row, depends on numStrings which is supposed to be set in initStrings()
         self.numTabs = self.numStrings * self.numTabsPerString      # total number of tab characters
         self.tests()
+#        self.testList()
         
         try:
             with open(self.inName, 'rb') as self.inFile:
@@ -278,7 +279,7 @@ class Tabs(object):
         exit()
     
     def testList(self):
-        a = [3, 2, 4, 5, 1]
+        a = [1, 2, 3, [1, 2, 3], 4, 5]
         print('testList() a={}'.format(a), file=Tabs.DBG_FILE)
         b = [e for e in reversed(a)]
         print('testList() b={}'.format(b), file=Tabs.DBG_FILE)
@@ -682,6 +683,14 @@ class Tabs(object):
         self.dumpInfo('quit()')
         self.printErrorHistory()
         self.printCmdHistory(back=0)
+        print('quit() rCmds=[', file=Tabs.DBG_FILE)
+        for k in self.rCmds:
+            if type(self.rCmds[k]) == str: print('{:>20} = {}'.format(k, self.rCmds[k]), file=Tabs.DBG_FILE)
+            else:
+                print('{:>22} = [ '.format(k), end='', file=Tabs.DBG_FILE)
+                for kk in self.rCmds[k]: print('{}, '.format(kk), end='', file=Tabs.DBG_FILE)
+                print(']', file=Tabs.DBG_FILE)
+        print(']', file=Tabs.DBG_FILE)
         txt  = 'ExitCode={}, reason={} '.format(code, reason)
         txt += '{}: {}'.format(uicKey, self.quit.__doc__)
         cBgn = len(txt) + 1
@@ -715,6 +724,7 @@ class Tabs(object):
             print('{:>20} : {}'.format(k, self.uiCmds[k].__doc__), file=Tabs.DBG_FILE)
     
     def registerUiCmds(self):
+        self.rCmds = {}
         self.uiCmds = {}
         self.uiKeys = []
         self.registerUiCmd('Tablature',           self.setTab)
@@ -782,8 +792,16 @@ class Tabs(object):
         self.registerUiCmd('Ctrl Down Arrow',     self.selectRow)
     
     def registerUiCmd(self, key, method):
+        print('registerUiCmd() key={} method={}'.format(key, method.__name__), file=Tabs.DBG_FILE)
         if key not in self.uiKeys:
             self.uiCmds[key] = method
+        else: self.printe('registerUiCmd() duplicate key={}'.format(key), x)
+        if method.__name__ in self.rCmds:
+            print('registerUiCmd() type(self.rCmds[method.__name__]){}'.format(type(self.rCmds[method.__name__])), file=Tabs.DBG_FILE)
+            if type(self.rCmds[method.__name__]) is str:
+                self.rCmds[method.__name__] = [self.rCmds[method.__name__], key]
+            else: self.rCmds[method.__name__].append(key)
+        else: self.rCmds[method.__name__] = key
         self.uiKeys = sorted(self.uiCmds)
     
     def dispatch(self, **kwargs):
@@ -802,8 +820,8 @@ class Tabs(object):
     def loop(self):
         '''Run the user interactive loop, executing commands as they are entered via the keyboard'''
         while True:
-            b = ord(getwch())                                                  # get wide char -> int
-            if self.isTab(chr(b)): self.dispatch(tab=b, uicKey='Tablature')    # setTab()                 # N/A
+            c = getwch(); b = ord(c)                                           # get wide char -> int
+            if self.isTab(c): self.dispatch(tab=b, uicKey='Tablature')         # setTab()                 # N/A
             elif b == 0:   continue                                            # null escape?
             elif b == 1:   self.dispatch(b=b, uicKey='Ctrl A')                 # toggleDisplayLabels()    # cmd line opt -a
             elif b == 2:   self.dispatch(b=b, uicKey='Ctrl B')                 # toggleDisplayChords()    # cmd line opt -b
@@ -908,6 +926,7 @@ class Tabs(object):
     
     def moveRight(self, uicKey=None, dbg=None):
         '''Move cursor right 1 column on current line wrapping to start of row on next line or first line'''
+        if uicKey == None: uicKey = self.rCmds['moveRight']
         if dbg or self.dbgMove: print('moveRight({}, {})'.format(self.row, self.col), file=Tabs.DBG_FILE)
         if self.col == self.endCol():
             line = self.row2Line(self.row)
@@ -1968,7 +1987,7 @@ class Tabs(object):
             else:
                 print(Tabs.CSI + self.styles['NORMAL'] + self.styles['CONS'] + Tabs.CSI + '{};{}H{}'.format(1, 1, mark), file=self.outFile)
     
-    def printNotes(self, dbg=1):
+    def printNotes(self, dbg=0):
         self.printFileMark('<BGN_NOTES_SECTION>')
         for line in range(0, self.numLines):
             for r in range(0, self.numStrings):
@@ -2033,7 +2052,7 @@ class Tabs(object):
                     self.prints(' ', row, c, self.styles['IVAL_LABEL'])
             for c in range (0, self.numTabsPerStringPerLine):
                 cc = c + line * self.numTabsPerStringPerLine
-                self.printColumnIvals(cc, dbg=dbg)
+                self.printColumnIvals(cc, dbg=0)
         self.printFileMark('<END_INTERVALS_SECTION>')
     
     def printColumnIvals(self, c, dbg=0):
@@ -2043,9 +2062,9 @@ class Tabs(object):
             row = r + self.bgnRow(line) + self.numStrings + self.NOTES_LEN
             cc = c % self.numTabsPerStringPerLine
             self.prints('-', row, cc + self.COL_OFF, self.styles['NAT_IVAL'])
-            if r == 0 and c == 0:
-                if dbg: self.dumpChordInfo(self.chordInfo, reason='printColumnIvals({} {}) line={} r={} row={}'.format(c, cc, line, r, row))
-                elif c in self.chordInfo: self.dumpLimap(self.chordInfo[c]['LIMAP'], reason='printColumnIvals() c={}'.format(c))
+            if dbg and r == 0 and c == 0:
+                self.dumpChordInfo(self.chordInfo, reason='printColumnIvals({} {}) line={} r={} row={}'.format(c, cc, line, r, row))
+                if c in self.chordInfo: self.dumpLimap(self.chordInfo[c]['LIMAP'], reason='printColumnIvals() c={}'.format(c))
             if c in self.chordInfo: 
                 self.wrapPrintInterval(r, c, dbg=0)
     
@@ -2118,7 +2137,7 @@ class Tabs(object):
         self.prints('1', r, self.editModeCol, self.styles['MODES'])
         self.prints('{}'.format(line + 1), r, self.cursorModeCol, self.styles['MODES'])
     
-    def dumpInfo(self, reason):
+    def dumpInfo(self, reason, dbg=0):
         print('dumpInfo() {}'.format(reason), file=Tabs.DBG_FILE)
         print('dumpInfo() selectImaps={}'.format(self.selectImaps), file=Tabs.DBG_FILE)
         print('dumpInfo() selectChords={}'.format(self.selectChords), file=Tabs.DBG_FILE)
@@ -2126,7 +2145,7 @@ class Tabs(object):
         print('dumpInfo() analyzeIndices={}'.format(self.analyzeIndices), file=Tabs.DBG_FILE)
         print('dumpInfo() selectChordAliases={}'.format(self.selectChordAliases), file=Tabs.DBG_FILE)
         print('dumpInfo() selectAnalyzeIndices={}'.format(self.selectAnalyzeIndices), file=Tabs.DBG_FILE)
-        self.dumpChordInfo(self.chordInfo, reason='dumpInfo()')
+        if dbg: self.dumpChordInfo(self.chordInfo, reason='dumpInfo()')
     
     def dumpColInfo(self, c, reason):
         print('dumpColInfo(c={}) {}'.format(c, reason), file=Tabs.DBG_FILE)
@@ -2417,6 +2436,8 @@ class Tabs(object):
             if not self.filterCmds or reason.find(self.cmdFilterStr, 0, len(self.cmdFilterStr)) == -1:
                 self.cmds.append(reason)
                 self.cmdsIndex = len(self.cmds) - 1
+            else:
+                print('printh() filtered cmd={}'.format(reason), file=Tabs.DBG_FILE)
         print('printh(col={}) hist={} reason={}'.format(col, hist, reason), file=Tabs.DBG_FILE)
         self.prints(reason, self.lastRow, col, style)
         self.resetPos()
