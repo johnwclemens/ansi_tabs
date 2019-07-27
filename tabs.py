@@ -1408,12 +1408,10 @@ class Tabs(object):
                         maxFN = currFN
                         self.maxFretInfo['MAX'], self.maxFretInfo['LINE'], self.maxFretInfo['STR'], self.maxFretInfo['COL'] = self.getFretByte(maxFN), self.colIndex2Line(c), self.indices2Row(r, c)-1, self.index2Col(c)
                         if dbg: print('getMaxFretInfo() r={} c={} tab={}({}) maxFN={}'.format(r, c, tab, chr(tab), maxFN), file=Tabs.DBG_FILE)
-#                        if dbg: print('getMaxFretInfo() r={} c={} tab={} maxFN={}'.format(r, c, tab, maxFN), file=Tabs.DBG_FILE)
                         self.dumpMaxFretInfo('getMaxFretInfo()')
     
     def dumpMaxFretInfo(self, reason):
         print('dumpMaxFretInfo() {} max={}({}) line={} string={} col={}'.format(reason, self.maxFretInfo['MAX'], chr(self.maxFretInfo['MAX']), self.maxFretInfo['LINE']+1, self.maxFretInfo['STR'], self.maxFretInfo['COL']-2), file=Tabs.DBG_FILE)
-#        print('dumpMaxFretInfo() {} max={} line={} string={} col={}'.format(reason, self.maxFretInfo['MAX'], self.maxFretInfo['LINE']+1, self.maxFretInfo['STR'], self.maxFretInfo['COL']-2), file=Tabs.DBG_FILE)
     
     def printMaxFretInfo(self, uicKey=None):
         '''Print max fret info'''
@@ -1463,7 +1461,8 @@ class Tabs(object):
             row, col = self.indices2RowCol(rr, cc)
             print('goToLastTab() row,col=({},{})'.format(row, col), file=Tabs.DBG_FILE)
             self.moveTo(row=row, col=col, hi=1)
-        self.printh('{}: {}'.format(self.rCmds[self.goToLastTab.__name__][index], self.goToLastTab.__doc__))
+        info = 'goToLastTab() go to ({}, {})'.format(rr, cc)
+        self.printh('{}: {}'.format(self.rCmds['goToLastTab'][index], info))
     
     def setCapo(self, uicKey=None, c=None):
         '''Place capo on fret specified by user input of a single character [0-9][a-o] [cmd line opt -k]'''
@@ -1610,9 +1609,11 @@ class Tabs(object):
         print('eraseTabs() deleting chordAliases={} analyzeIndices={}'.format(self.chordAliases, self.analyzeIndices), file=Tabs.DBG_FILE)
         self.chordAliases = {}
         self.analyzeIndices = {}
+        count = 0
         print('eraseTabs() chordAliases={} analyzeIndices={} setting all tabs to - and htabs to 0'.format(self.chordAliases, self.analyzeIndices), file=Tabs.DBG_FILE)
         for r in range(0, len(self.tabs)):
             for c in range(0, len(self.tabs[r])):
+                count += 1
                 self.tabs[r][c] = ord('-')
                 self.htabs[r][c] = ord('0')
                 if c in self.chordInfo:
@@ -1620,13 +1621,16 @@ class Tabs(object):
                     del self.chordInfo[c]
         self.maxFretInfo['MAX'] = ord('0')
         self.printTabs()
-        self.printh('{}: {}'.format(uicKey, self.eraseTabs.__doc__))
+        info = 'eraseTabs() erased {} tabs on {} lines, {} strings, and {} columns'.format(count, self.numLines, self.numStrings, self.numTabsPerStringPerLine)
+        self.printh('{}: {}'.format(self.rCmds['eraseTabs'], info))
     
     def resetTabs(self, uicKey=None):
         '''Reset all tabs to their initial state at start up by re-reading the data file'''
         self.init()
         self.getMaxFretInfo()
-        self.printh('{}: {}'.format(uicKey, self.resetTabs.__doc__))
+        count = self.numLines * self.numStrings * self.numTabsPerStringPerLine
+        info = 'resetTabs() reset {} tabs on {} lines, {} strings, and {} columns'.format(count, self.numLines, self.numStrings, self.numTabsPerStringPerLine)
+        self.printh('{}: {}'.format(self.rCmds['resetTabs'], info))
     
     def saveTabs(self, uicKey=None):
         '''Save tabs and ANSI codes to output file, the 'cat' cmd can be used to view the file'''
@@ -1647,7 +1651,9 @@ class Tabs(object):
             self.dumpLineInfo('saveTabs({}, {}) end writing tabs to file'.format(self.row, self.col))
         self.outFile = None
         self.printTabs()
-        self.printh('{}: {}'.format(uicKey, self.saveTabs.__doc__))
+        count = self.numLines * self.numStrings * self.numTabsPerStringPerLine
+        info = 'saveTabs() saved {} tabs on {} lines, {} strings, and {} columns'.format(count, self.numLines, self.numStrings, self.numTabsPerStringPerLine)
+        self.printh('{}: {}'.format(self.rCmds['saveTabs'], info))
     
     def saveOrdDict(self, d, reason, q=''):
         print('{}'.format(reason), file=self.outFile)
@@ -1670,9 +1676,10 @@ class Tabs(object):
             else:  dir, pos = 'down', 'end'
             self.printe('selectRow(up={}) ignoring cursor movement, because dir={} and row={} == {}Row'.format(up, dir, row, pos))
             return
-        if up: self.moveUp()
-        else:  self.moveDown()
-        self.printh('{}: {}'.format(uicKey, self.selectRow.__doc__))
+        if up: self.moveUp();   index = 0
+        else:  self.moveDown(); index = 1
+        info = 'selectRow() at ({}, {})'.format(r, c)
+        self.printh('{}: {}'.format(self.rCmds['selectRow'][index], info))
     
     def unselectRow(self, uicKey=None, up=0):
         '''Unselect row, remove it from selected rows list, unhilite current tab, go up or down to next tab'''
@@ -1685,11 +1692,12 @@ class Tabs(object):
                 self.selectRows.remove(r)
                 print('unselectRow(up={}) ({},{}) after removing r={} c={} from selectRows={} selectCols={}'.format(up, self.row, self.col, r, c, self.selectRows, self.selectCols), file=Tabs.DBG_FILE)
                 self.selectStyle(c, self.styles['NORMAL'], r=r)
-                if up: self.moveUp()
-                else:  self.moveDown()
+                if up: self.moveUp();   index = 0
+                else:  self.moveDown(); index = 1
+                info = 'unselectRow() at ({}, {})'.format(r, c)
+                self.printh('{}: {}'.format(self.rCmds['unselectRow'][index], info))
             else: self.printe('unselectRow(up={}) ({},{}) nothing to unselect r={} not in selectRows={} selectCols={}'.format(up, self.row, self.col, r, self.selectRows, self.selectCols))
         else: self.printe('unselectRow(up={}) ({},{}) empty list, nothing to unselect r={} selectRows={} selectCols={}'.format(up, self.row, self.col, r, self.selectRows, self.selectCols))
-        self.printh('{}: {}'.format(uicKey, self.unselectRow.__doc__))
     
     def selectCol(self, uicKey=None, left=0):
         '''Select col, append to selected cols list, hilite current tab, go left or right to next tab'''
@@ -1709,9 +1717,10 @@ class Tabs(object):
         self.selectCols.append(cc)
         print('selectCol(left={}) ({},{}) appended cc={} selectFlag={} selectRows={} selectCols={}'.format(left, self.row, self.col, cc, self.selectFlag, self.selectRows, self.selectCols), file=Tabs.DBG_FILE)
         self.selectStyle(cc, self.styles['BRIGHT'], rList=self.selectRows)
-        if left: self.moveLeft()
-        else:    self.moveRight()
-        self.printh('{}: {}'.format(uicKey, self.selectCol.__doc__))
+        if left: self.moveLeft();  index = 0
+        else:    self.moveRight(); index = 1
+        info = 'selectCol() selectRows={} selectCols={}'.format(self.selectRows, self.selectCols)
+        self.printh('{}: {}'.format(self.rCmds['selectCol'][index], info))
     
     def unselectCol(self, uicKey=None, left=0):
         '''Unselect col, remove it from selected cols list, unhilite tab, and go left or right to next tab'''
@@ -1724,11 +1733,12 @@ class Tabs(object):
                 self.selectCols.remove(c)
                 print('unselectCol(left={}) ({},{}) after removing c={} from selectCols={}'.format(left, self.row, self.col, c, self.selectCols), file=Tabs.DBG_FILE)
                 self.selectStyle(c, self.styles['NORMAL'], rList=self.selectRows)
-                if left: self.moveLeft()
-                else:    self.moveRight()
+                if left: self.moveLeft();  index = 0
+                else:    self.moveRight(); index = 1
+                info = 'unselectCol() selectCols={}'.format(self.selectCols)
+                self.printh('{}: {}'.format(self.rCmds['unselectCol'][index], info))
             else: self.printe('unselectCol(left={}) ({},{}) c={} not in selectCols={}, nothing to unselect'.format(left, self.row, self.col, c, self.selectCols))
         else: self.printe('unselectCol(left={}) ({},{}) selectCols={}, empty list, nothing to unselect'.format(left, self.row, self.col, self.selectCols))
-        self.printh('{}: {}'.format(uicKey, self.unselectCol.__doc__))
     
     def unselectAll(self, uicKey=None):
         '''Unselect all rows and columns.'''
@@ -1737,7 +1747,8 @@ class Tabs(object):
             self.selectStyle(self.selectCols[c], self.styles['NORMAL'], rList=self.selectRows)
         self.selectRows, self.selectCols, self.selectTabs, self.selectHTabs, self.selectFlag = [], [], [], [], 0
         print('unselectAll({},{}) end selectFlag={} selectRows={} selectCols={} selectTabs={}'.format(self.row, self.col, self.selectFlag, self.selectRows, self.selectCols, self.selectTabs), file=Tabs.DBG_FILE)
-        self.printh('{}: {}'.format(uicKey, self.unselectAll.__doc__))
+        info = 'unselectAll() selectRows={} selectCols={}'.format(self.selectRows, self.selectCols)
+        self.printh('{}: {}'.format(self.rCmds['unselectAll'], info))
     
     def selectStyle(self, c, bStyle, rList=None, r=None):
         print('selectStyle({}) c={}, rList={}, r={}'.format(bStyle, c, rList, r), file=Tabs.DBG_FILE)
@@ -1812,9 +1823,9 @@ class Tabs(object):
         if nsr == 0 or nsc == 0:
             self.printe('copySelectTabs(arpg={}) no tabs selected nsr={} nsc={} use the CTRL ARROW keys to select rows and or columns'.format(arpg, nsr, nsc))
             return
-        if arpg is None: size, nc = nsc,           nsc
-        elif  arpg == 1: size, nc = nsc * nsr,     nsc
-        elif  arpg == 0: size, nc = int(nsc / ns), int(nsc / ns)
+        if arpg is None: size, nc, index = nsc,           nsc,   0
+        elif  arpg == 1: size, nc, index = nsc * nsr,     nsc,   1
+        elif  arpg == 0: size, nc, index = int(nsc / ns), int(nsc / ns), 2
         self.dumpSelectTabs(reason='copySelectTabs()', cols=1)
         for r in range(0, nsr):
             self.selectTabs.append(bytearray([ord(' ')] * size))
@@ -1838,7 +1849,8 @@ class Tabs(object):
                 print('copySelectTabs() selectTabs[{}][{}]={} tabs[{}][{}]={}'.format(r, cst, chr(self.selectTabs[r][cst]), rr, ct, chr(self.tabs[rr][ct])), file=Tabs.DBG_FILE)
             self.copyColInfo(ct)
             self.dumpSelectTabs(reason='copySelectTabs()')
-        self.printh('{}: {}'.format(uicKey, self.copySelectTabs.__doc__))
+        info = 'copySelectTabs() selectCols={}'.format(self.selectCols)
+        self.printh('{}: {}'.format(self.rCmds['copySelectTabs'][index], info))
     
     def copyColInfo(self, c):
         self.dumpInfo('copyColInfo(c={})'.format(c))
@@ -1866,14 +1878,18 @@ class Tabs(object):
         if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
             self.chordsObj.printChords()
         self.getMaxFretInfo()
-        self.printh('{}: {}'.format(uicKey, self.deleteSelectTabs.__doc__))
+        info = 'deleteSelectTabs() selectCols={}'.format(self.selectCols)   
+        self.printh('{}: {}'.format(self.rCmds['deleteSelectTabs'], info))
     
     def cutSelectTabs(self, uicKey=None, arpg=None):
         '''Cut selected tabs keeping in memory for a corresponding paste cmd in the future'''
         print('cutSelectTabs() arpg={}'.format(arpg), file=Tabs.DBG_FILE)
         self.copySelectTabs(arpg=arpg)
         self.deleteSelectTabs(rmv=0)
-        self.printh('{}: {}'.format(uicKey, self.cutSelectTabs.__doc__))
+        if arpg is None: index = 0
+        elif erpg is 1:  index = 1
+        info = 'cutSelectTabs() selectCols={}'.format(self.selectCols)
+        self.printh('{}: {}'.format(self.rCmds['cutSelectTabs'][index], info))
     
     def dumpSelectTabs(self, reason='', cols=0):
         print('dumpSelectTabs(cols={}, reason={}) len(selectCols)={} len(selectTabs)={}'.format(cols, reason, len(self.selectCols), len(self.selectTabs)), file=Tabs.DBG_FILE)
@@ -2017,12 +2033,13 @@ class Tabs(object):
                         if c in self.chordInfo:
                             self.wrapPrintInterval(r, c, dbg=dbg)
             self.printStatus()
-        if not rangeError:
-            self.selectTabs, self.selectHTabs, self.selectCols, self.selectRows = [], [], [], []
         self.arpeggiate, self.selectFlag = 0, 0
         self.dumpTabs('pasteSelectTabs({},{}) end row={} col={}'.format(self.arpeggiate, self.cursorDir, row, col))
         self.getMaxFretInfo()
-        self.printh('{}: {}'.format(uicKey, self.pasteSelectTabs.__doc__))
+        info = 'pasteSelectTabs() selectCols={}'.format(self.selectCols)
+        self.printh('{}: {}'.format(self.rCmds['pasteSelectTabs'], info))
+        if not rangeError:
+            self.selectTabs, self.selectHTabs, self.selectCols, self.selectRows = [], [], [], []
     
     def dumpTabs(self, reason='', h=None):
         print('dumpTabs({})'.format(reason), file=Tabs.DBG_FILE)
