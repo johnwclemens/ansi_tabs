@@ -648,7 +648,8 @@ class Tabs(object):
         print('appendLine(new) numTabsPerString:{} = numLines:{} * numTabsPerStringPerLine:{}, numTabs:{} = numStrings:{} * len(tabs[0]):{}'.format(self.numTabsPerString, self.numLines, self.numTabsPerStringPerLine, self.numTabs, self.numStrings, len(self.tabs[0])), file=Tabs.DBG_FILE)
         if pt:
             self.printTabs()
-            self.printh('{}: {}'.format(uicKey, self.appendLine.__doc__))
+            info = 'appendLine() added {} tabs on {} strings with {} columns'.format(self.numStrings * self.numTabsPerStringPerLine, self.numStrings, self.numTabsPerStringPerLine)
+            self.printh('{}: {}'.format(self.rCmds['appendLine'], info))
     
     def removeLine(self, uicKey=None):
         '''Remove last line of tabs from the display'''
@@ -671,7 +672,8 @@ class Tabs(object):
         self.numTabs = count
         print('removeLine(new) numTabsPerString:{} = numLines:{} * numTabsPerStringPerLine:{}, numTabs:{} = numStrings:{} * len(tabs[0]):{}'.format(self.numTabsPerString, self.numLines, self.numTabsPerStringPerLine, self.numTabs, self.numStrings, len(self.tabs[0])), file=Tabs.DBG_FILE)
         self.printTabs(cs=1)
-        self.printh('{}: {}'.format(uicKey, self.removeLine.__doc__))
+        info = 'removeLine() removed {} tabs on {} strings with {} columns'.format(self.numStrings * self.numTabsPerStringPerLine, self.numStrings, self.numTabsPerStringPerLine)
+        self.printh('{}: {}'.format(self.rCmds['removeLine'], info))
     
     def quit(self, uicKey=None, reason='Received Quit Cmd, Exiting', code=0):
         '''Quit with exit code and reason'''
@@ -1421,7 +1423,7 @@ class Tabs(object):
     
     def goToCol(self, uicKey=None):
         '''Go to col given by user input of up to 3 digits terminated by space char [12 ][123]'''
-        self.printh('{}: {}'.format(uicKey, self.goToCol.__doc__))
+        self.prints('{}: {}'.format(uicKey, self.goToCol.__doc__), self.lastRow, 61, self.styles['HLT_STUS'])
         cc, tmp = '', []
         while len(tmp) < 3:
             cc = getwch()
@@ -1435,6 +1437,8 @@ class Tabs(object):
             row = self.bgnRow(0) + line * self.lineDelta()
             print('goToCol() row={} bgnRow(0)={} line={} lineDelta={}'.format(row, self.bgnRow(0), line, self.lineDelta()), file=Tabs.DBG_FILE)
             self.moveTo(row=row, col=col, hi=1)
+            info = 'goToCol() moved to c={}'.format(c)
+            self.printh('{}: {}'.format(self.rCmds['goToCol'], info))
     
     def goToLastTab(self, uicKey=None, cs=0, ll=0):
         '''Go to last tab pos on current line or last line ll=1, of all strings or current string, cs=1'''
@@ -1466,7 +1470,7 @@ class Tabs(object):
     
     def setCapo(self, uicKey=None, c=None):
         '''Place capo on fret specified by user input of a single character [0-9][a-o] [cmd line opt -k]'''
-        self.printh('{}: {}'.format(uicKey, self.setCapo.__doc__))
+        self.prints('{}: {}'.format(uicKey, self.setCapo.__doc__), self.lastRow, 61, self.styles['HLT_STUS'])
         if c is None: c = getwch()
         print('setCapo({}, {}) c={}({}) prevCapo={} check isFret(c) BGN'.format(self.row, self.col, ord(c), c, self.capo), file=Tabs.DBG_FILE)
         if not Tabs.isFret(c): self.printe('[{}] not a fret num, enter the fret num as a single char [0-9][a-o]'.format(c))
@@ -1481,6 +1485,8 @@ class Tabs(object):
                 self.capo = ord(c)
                 print('setCapo() c={}({}) capo={} capFN={} maxFret={}({}) maxFN={} setting capo'.format(ord(c), c, self.capo, capFN, self.maxFretInfo['MAX'], chr(self.maxFretInfo['MAX']), maxFN), file=Tabs.DBG_FILE)
                 self.printTabs()
+            info = 'setCapo() capo at c={}'.format(c)
+            self.printh('{}: {}'.format(self.rCmds['setCapo'], info))
     
     def setTab(self, tab, uicKey=None, dbg=0):
         '''Set and print tab byte at current row and col, auto move cursor'''
@@ -1788,7 +1794,7 @@ class Tabs(object):
     
     def shiftSelectTabs(self, uicKey=None):
         '''Shift selected tabs up or down # frets,  user input of up to 2 digits terminated by space [-10 ]'''
-        self.printh('{}: {}'.format(uicKey, self.shiftSelectTabs.__doc__))
+        self.prints('{}: {}'.format(uicKey, self.shiftSelectTabs.__doc__), self.lastRow, 61, self.styles['HLT_STUS'])
         c, tmp = '', []
         while len(tmp) <= 3:
             c = getwch()
@@ -1812,10 +1818,12 @@ class Tabs(object):
                         shifted = True
                         print('shiftSelectTabs({},{}) tab={} tabFN={} shift={} shiftedFN={} shifted={}'.format(r, c, chr(tab), tabFN, shift, tabFN + shift, chr(self.tabs[r][c])), file=Tabs.DBG_FILE)
                     else: self.printe('shiftSelectTabs() out of range (0-{})! r={} c={} tab={} tabFN={} shift={}'.format(self.NUM_FRETS, r, c, chr(tab), tabFN, shift))
-        self.selectCols = []
         if shifted:
             self.printTabs()
+            info = 'shiftSelectTabs() shifted selectCols={} {} frets'.format(self.selectCols, shift)
+            self.printh('{}: {}'.format(self.rCmds['shiftSelectTabs'], info))
         self.maxFretInfo['MAX'] += shift
+        self.selectCols = []
     
     def copySelectTabs(self, uicKey=None, arpg=None):
         '''Copy selected tabs, arpg=1 xform a chord to an arpeggio, arpg=0 xform an arpeggio to a chord'''
@@ -2096,7 +2104,8 @@ class Tabs(object):
             print(Tabs.CSI + self.styles['NORMAL'] + self.styles['CONS'] + Tabs.CSI + '{};{}H'.format(self.row, self.col), end='') # restore the console cursor to the given position (row, col) and set the foreground and background color
         self.printStatus()
         self.dumpLineInfo('printTabs(cs={}) end outFile={}'.format(cs, self.outFile))
-        self.printh('{}: {}'.format(uicKey, self.printTabs.__doc__))
+        info = 'printTabs() printed {} tabs on {} lines {} strings and {} columns'.format(self.numStrings * self.numTabsPerStringPerLine * self.numLines, self.numLines, self.numStrings, self.numTabsPerStringPerLine)
+        self.printh('{}: {}'.format(self.rCmds['printTabs'], info))
     
     def printFileMark(self, mark):
         if self.outFile != None:
@@ -2313,7 +2322,8 @@ class Tabs(object):
         self.clearRow(self.lastRow, arg=0, col=cnt, file=self.outFile)
         self.printChordStatus(r, c)
         print('printStatus() row={} col={} r={} c={} cnt={} tab={}({}) end'.format(self.row, self.col, r, c, cnt, self.tabs[r][c], tab), file=Tabs.DBG_FILE)
-        if hinfo: self.printh('{}: {}'.format(uicKey, self.printStatus.__doc__))
+        info = 'printStatus() of ({}, {}) tab={}({})'.format(r, c, ord(tab), tab)
+        if hinfo: self.printh('{}: {}'.format(self.rCmds['printStatus'], info))
         else:     self.resetPos()
     
     def printFretStatus(self, tab, r, c, dbg=0):
@@ -2408,7 +2418,8 @@ class Tabs(object):
             self.analyzeIndices[c] = index % len(self.chordInfo[c]['LIMAP'])
             print('analyzeChord() index={} len(chordInfo[{}])={} analyzeIndices[c]={}'.format(index, c, len(self.chordInfo[c]['LIMAP']), self.analyzeIndices[c]), file=Tabs.DBG_FILE)
             self.printChordInfo(r, c, self.analyzeIndices[c], reason='analyzeChord()')
-        self.printh('{}: {}'.format(uicKey, self.analyzeChord.__doc__))
+            info = 'analyzeChord() at c={} index={}'.format(c, index)
+            self.printh('{}: {}'.format(self.rCmds['analyzeChord'], info))
     
     def selectChord(self, uicKey=None, pt=1, dbg=0):
         '''Select chordInfo index for chord names and intervals and info on the Status line'''
@@ -2441,7 +2452,8 @@ class Tabs(object):
             if dbg: self.dumpSelectImaps()
             if pt:
                 self.printTabs()
-                self.printh('{}: {}'.format(uicKey, self.selectChord.__doc__))
+                info = 'selectChord() at c={} index={}'.format(c, index)
+                self.printh('{}: {}'.format(self.rCmds['selectChord'], info))
         else: self.printe('selectChord() nothing to select use \'Ctrl A\' analyzeChord() first')
     
     def dumpSelectImaps(self):
