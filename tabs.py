@@ -695,12 +695,12 @@ class Tabs(object):
                 print(']', file=Tabs.DBG_FILE)
         print(']', file=Tabs.DBG_FILE)
         txt  = 'ExitCode={}, reason={} '.format(code, reason)
-        txt += '{}: {}'.format(uicKey, self.quit.__doc__)
+        txt += '{}: {}'.format(self.rCmds['quit'], self.quit.__doc__)
         cBgn = len(txt) + 1
         blank = ''
         for c in range(cBgn, self.endCol() + 1): blank += ' '
         print(Tabs.CSI + self.bStyle + self.styles['CONS'] + Tabs.CSI + '{};{}HExitCode={}, reason={} '.format(self.lastRow + 1, 1, code, reason), end='')
-        print(Tabs.CSI + self.bStyle + self.styles['HLT_STUS'] + '{}: {}{}'.format(uicKey, self.quit.__doc__, blank), end='')
+        print(Tabs.CSI + self.bStyle + self.styles['HLT_STUS'] + '{}: {}{}'.format(self.rCmds['quit'], self.quit.__doc__, blank), end='')
 #        Tabs.DBG_FILE.flush()
 #        os.fsync(Tabs.DBG_FILE)
         Tabs.DBG_FILE.close()
@@ -1061,7 +1061,7 @@ class Tabs(object):
                         self.moveRight()
         print('moveCursor(row={}, col={}, back={}) new: row={}, col={} end'.format(row, col, back, self.row, self.col), file=Tabs.DBG_FILE)
         info = 'moveCursor() from ({}, {}) to ({}, {})'.format(oldRow, oldCol, self.rowCol2Indices(self.row, self.col)[0], self.rowCol2Indices(self.row, self.col)[1])
-        self.printh('{}: {}'.format(uicKey, info))
+        self.printh('{}: {}'.format(self.rCmds['moveCursor'], info))
     
     def tests(self):
         for c in (0, 207, 208, 415, 416, 623, 624, 831): print('tests() line=colIndex2Line({})={}'.format(c, self.colIndex2Line(c)), file=Tabs.DBG_FILE)
@@ -1398,7 +1398,7 @@ class Tabs(object):
         self.prints(self.hiliteRowNum, self.row, self.editModeCol, self.brightnessB + self.styles['TABS'])
         self.resetPos()
     
-    def getMaxFretInfo(self, dbg=1):
+    def getMaxFretInfo(self, dbg=0):
         maxFN = 0
         if dbg: print('getMaxFretInfo() len(tabs)={} len(tabs[0])={}'.format(len(self.tabs), len(self.tabs[0])), file=Tabs.DBG_FILE)
         for r in range(0, len(self.tabs)):
@@ -1423,7 +1423,7 @@ class Tabs(object):
     
     def goToCol(self, uicKey=None):
         '''Go to col given by user input of up to 3 digits terminated by space char [12 ][123]'''
-        self.prints('{}: {}'.format(uicKey, self.goToCol.__doc__), self.lastRow, 61, self.styles['HLT_STUS'])
+        self.prints('{}: {}'.format(self.rCmds['goToCol'], self.goToCol.__doc__), self.lastRow, 61, self.styles['HLT_STUS'])
         cc, tmp = '', []
         while len(tmp) < 3:
             cc = getwch()
@@ -1470,7 +1470,7 @@ class Tabs(object):
     
     def setCapo(self, uicKey=None, c=None):
         '''Place capo on fret specified by user input of a single character [0-9][a-o] [cmd line opt -k]'''
-        self.prints('{}: {}'.format(uicKey, self.setCapo.__doc__), self.lastRow, 61, self.styles['HLT_STUS'])
+        self.prints('{}: {}'.format(self.rCmds['setCapo'], self.setCapo.__doc__), self.lastRow, 61, self.styles['HLT_STUS'])
         if c is None: c = getwch()
         print('setCapo({}, {}) c={}({}) prevCapo={} check isFret(c) BGN'.format(self.row, self.col, ord(c), c, self.capo), file=Tabs.DBG_FILE)
         if not Tabs.isFret(c): self.printe('[{}] not a fret num, enter the fret num as a single char [0-9][a-o]'.format(c))
@@ -1794,7 +1794,7 @@ class Tabs(object):
     
     def shiftSelectTabs(self, uicKey=None):
         '''Shift selected tabs up or down # frets,  user input of up to 2 digits terminated by space [-10 ]'''
-        self.prints('{}: {}'.format(uicKey, self.shiftSelectTabs.__doc__), self.lastRow, 61, self.styles['HLT_STUS'])
+        self.prints('{}: {}'.format(self.rCmds['shiftSelectTabs'], self.shiftSelectTabs.__doc__), self.lastRow, 61, self.styles['HLT_STUS'])
         c, tmp = '', []
         while len(tmp) <= 3:
             c = getwch()
@@ -2513,14 +2513,14 @@ class Tabs(object):
         if back == 1: iBgn, iEnd, iDelta, dir = len(self.errors)-1, -1, -1, 'BACKWARD'
         else:         iBgn, iEnd, iDelta, dir = 0, len(self.errors), 1, 'FORWARD'
         if self.errorsIndex == None:
-            self.printh('{}: {} {} No error history to display - Press ? for help'.format(uicKey, self.printErrorHistory.__doc__, dir), col=1, hist=1)
+            self.printh('{}: {} {} No error history to display - Press ? for help'.format(self.rCmds['printErrorHistory'], self.printErrorHistory.__doc__, dir), col=1, hist=1)
             return
         if dbg:
             print('printErrorHistory({} {} {}) back={} errorsIndex={} errors[len={}]=['.format(iBgn, iEnd, iDelta, back, self.errorsIndex, len(self.errors)), file=Tabs.DBG_FILE)
             for i in range(iBgn, iEnd, iDelta):
                 print('    [{}] {}'.format(i, self.errors[i]), file=Tabs.DBG_FILE)
             print(']', file=Tabs.DBG_FILE)
-        self.printh('{}: {} {} [{}] {}'.format(uicKey, self.printErrorHistory.__doc__, dir, self.errorsIndex, self.errors[self.errorsIndex]), col=1, hist=1)
+        self.printh('{}: {} {} [{}] {}'.format(self.rCmds['printErrorHistory'], self.printErrorHistory.__doc__, dir, self.errorsIndex, self.errors[self.errorsIndex]), col=1, hist=1)
         if back == 1:
             self.errorsIndex -= 1
             if self.errorsIndex == -1:               self.errorsIndex = len(self.errors) - 1
@@ -2533,7 +2533,7 @@ class Tabs(object):
         if back == 1: iBgn, iEnd, iDelta, dir = len(self.cmds)-1, -1, -1, 'BACKWARD'
         else:         iBgn, iEnd, iDelta, dir = 0, len(self.cmds), 1, 'FORWARD'
         if self.cmdsIndex == None:
-            self.printh('{}: {} {} No command history to display - Press ? for help'.format(uicKey, self.printCmdHistory.__doc__, dir), col=1, hist=1)
+            self.printh('{}: {} {} No command history to display - Press ? for help'.format(self.rCmds['printCmdHistory'], self.printCmdHistory.__doc__, dir), col=1, hist=1)
             return
         if dbg:
             print('printCmdHistory({} {} {}) back={} cmdsIndex={} cmds[len={}]=['.format(iBgn, iEnd, iDelta, back, self.cmdsIndex, len(self.cmds)), file=Tabs.DBG_FILE)
@@ -2545,9 +2545,9 @@ class Tabs(object):
                 name = cmd[0 : cmd.find(' ')]
                 cmd = cmd.replace(name, '')
                 cmd = cmd.lstrip()
-                print('{:>4} {:>17} {:<24} {}'.format(i, key, name, cmd), file=Tabs.DBG_FILE)
+                print('{:>4} {:>17}  {:<24} {}'.format(i, key, name, cmd), file=Tabs.DBG_FILE)
             print(']', file=Tabs.DBG_FILE)
-        self.printh('{}: {} {} [{}] {}'.format(uicKey, self.printCmdHistory.__doc__, dir, self.cmdsIndex, self.cmds[self.cmdsIndex]), col=1, hist=1)
+        self.printh('{}: {} {} [{}] {}'.format(self.rCmds['printCmdHistory'], self.printCmdHistory.__doc__, dir, self.cmdsIndex, self.cmds[self.cmdsIndex]), col=1, hist=1)
         if back == 1:
             self.cmdsIndex -= 1
             if self.cmdsIndex == -1:             self.cmdsIndex = len(self.cmds) - 1
