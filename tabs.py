@@ -683,7 +683,6 @@ class Tabs(object):
         for i in range(18): print('##########', end='', file=Tabs.DBG_FILE)
         print(file=Tabs.DBG_FILE)
         self.dumpInfo('quit()')
-        self.clearRow(self.lastRow)
         self.printErrorHistory()
         self.printCmdHistory(back=0)
         print('quit() rCmds[len={}]=['.format(len(self.rCmds)), file=Tabs.DBG_FILE)
@@ -818,6 +817,7 @@ class Tabs(object):
         if dbg: print(file=Tabs.DBG_FILE)
         if 0 <= b <= 127: print('dispatch() {}(uicKey={}, b={}({}), args={})'.format(self.uiCmds[uicKey].__name__, uicKey, b, chr(b), args), file=Tabs.DBG_FILE)
         else:             print('dispatch() {}(uicKey={}, b={}, args={})'.format(self.uiCmds[uicKey].__name__, uicKey, b, args), file=Tabs.DBG_FILE)
+        self.clearRow(self.lastRow, arg=2)
         self.uiCmds[uicKey](uicKey=uicKey, **args)
     
     def loop(self):
@@ -2041,11 +2041,11 @@ class Tabs(object):
                         if c in self.chordInfo:
                             self.wrapPrintInterval(r, c, dbg=dbg)
             self.printStatus()
-        self.arpeggiate, self.selectFlag = 0, 0
         self.dumpTabs('pasteSelectTabs({},{}) end row={} col={}'.format(self.arpeggiate, self.cursorDir, row, col))
         self.getMaxFretInfo()
         info = 'pasteSelectTabs() selectCols={}'.format(self.selectCols)
         self.printh('{}: {}'.format(self.rCmds['pasteSelectTabs'], info))
+        self.arpeggiate, self.selectFlag = 0, 0
         if not rangeError:
             self.selectTabs, self.selectHTabs, self.selectCols, self.selectRows = [], [], [], []
     
@@ -2319,7 +2319,6 @@ class Tabs(object):
         if   Tabs.isFret(tab): cnt = self.printFretStatus(tab, r, c)
         elif tab in self.mods: cnt = self.printModStatus(tab, r, c)
         else:                  cnt = self.printDefaultStatus(tab, r, c)
-        self.clearRow(self.lastRow, arg=0, col=cnt, file=self.outFile)
         self.printChordStatus(r, c)
         print('printStatus() row={} col={} r={} c={} cnt={} tab={}({}) end'.format(self.row, self.col, r, c, cnt, self.tabs[r][c], tab), file=Tabs.DBG_FILE)
         info = 'printStatus() of ({}, {}) tab={}({})'.format(r, c, ord(tab), tab)
@@ -2356,7 +2355,7 @@ class Tabs(object):
         txt += ' index=' + '{}'.format(n.index)
         txt += ' freq=' + '{:03.1f}'.format(n.getFreq()) + 'Hz'
         txt += ' wvln=' + '{:04.3f}'.format(n.getWaveLen()) + 'm'
-        print('printFretStatus() txt[len={}]={}'.format(len(txt), txt), file=Tabs.DBG_FILE)
+        print('printFretStatus() txt[len={}]=\n{}'.format(len(txt), txt), file=Tabs.DBG_FILE)
         return len(txt)+1
     
     def printModStatus(self, tab, r, c):
@@ -2383,7 +2382,7 @@ class Tabs(object):
         print(Tabs.CSI + self.bStyle + self.styles['TABS'] + '{}{}'.format(s, ss) + Tabs.CSI + self.bStyle + self.styles['STATUS'] + ' string {}'.format(self.mods[tab]), end='', file=self.outFile)
         txt = tab + ' '
         txt += '{}{}'.format(s, ss) + ' string {}'.format(self.txts[tab])
-        print('printModStatus() txt[len={}]={}'.format(len(txt), txt), file=Tabs.DBG_FILE)
+        print('printModStatus() txt[len={}]=\n{}'.format(len(txt), txt), file=Tabs.DBG_FILE)
         return len(txt)+1
     
     def printDefaultStatus(self, tab, r, c, dbg=0):
@@ -2393,7 +2392,7 @@ class Tabs(object):
         print(tabStyle + '{}{}'.format(s, ss) + statStyle + ' string ' + tabStyle + 'muted' + statStyle + ' not played', end='', file=self.outFile)
         txt = tab + ' '
         txt += '{}{}'.format(s, ss) + ' string ' + 'muted' + ' not played'
-        print('printDefaultStatus() txt[len={}]={}'.format(len(txt), txt), file=Tabs.DBG_FILE)
+        print('printDefaultStatus() txt[len={}]=\n{}'.format(len(txt), txt), file=Tabs.DBG_FILE)
         return len(txt)+1
     
     def printChordStatus(self, r, c, dbg=0):
@@ -2466,8 +2465,8 @@ class Tabs(object):
         tab = chr(self.tabs[r][c])
         if dbg: print('printChordInfo(r={} c={} m={} tab={}) bgn reason={}'.format(r, c, m, tab, reason), file=Tabs.DBG_FILE)
         if dbg: self.dumpInfo('printChordInfo()')
-        if m < len(self.chordInfo[c]['LIMAP']): print('printChordInfo() m={} < len(self.chordInfo[c][LIMAP])={}'.format(m, len(self.chordInfo[c]['LIMAP'])), file=Tabs.DBG_FILE)
-        else: print('printChordInfo(?) m={} >= len(self.chordInfo[c][LIMAP])={}'.format(r, c, m, tab, len(self.chordInfo[c]['LIMAP'])), file=Tabs.DBG_FILE)
+        if dbg and m < len(self.chordInfo[c]['LIMAP']): print('printChordInfo() m={} < len(self.chordInfo[c][LIMAP])={}'.format(m, len(self.chordInfo[c]['LIMAP'])), file=Tabs.DBG_FILE)
+        elif dbg: print('printChordInfo(?) m={} >= len(self.chordInfo[c][LIMAP])={}'.format(r, c, m, tab, len(self.chordInfo[c]['LIMAP'])), file=Tabs.DBG_FILE)
         imap = self.chordInfo[c]['LIMAP'][m]
         imapKeys = sorted(imap, key=self.chordsObj.imapKeyFunc, reverse=False)
         if dbg: 
@@ -2491,36 +2490,38 @@ class Tabs(object):
         if chordKey in self.chordsObj.chords:
             chordName = self.chordsObj.chords[chordKey]
         infoCol -= (len(chordName) + len(chordDelim))
-        if self.chordStatusCol is not None:
-            if infoCol < self.chordStatusCol: self.chordStatusCol = infoCol
-        else: self.chordStatusCol = infoCol
+        self.chordStatusCol = infoCol
         if dbg: print('printChordInfo() infoCol={} len(chordName)={} len(chordDelim)={} chordStatusCol={}'.format(infoCol, len(chordName), len(chordDelim), self.chordStatusCol), file=Tabs.DBG_FILE)
-        print('printChordInfo(r={} c={} m={} tab={}) chordName={} info={} infoCol={} chordStatusCol={}'.format(r, c, m, tab, chordName, info, infoCol, self.chordStatusCol), file=Tabs.DBG_FILE)
+        if dbg: print('printChordInfo(r={} c={} m={} tab={}) infoCol={} chordStatusCol={}'.format(r, c, m, tab, infoCol, self.chordStatusCol), file=Tabs.DBG_FILE)
         style = Tabs.CSI + self.bStyle + self.styles['HLT_STUS']
         if len(chordName) > 0:
             style = Tabs.CSI + self.bStyle + self.getEnharmonicStyle(chordName, self.styles['NAT_NOTE'], self.styles['FLT_NOTE'], self.styles['SHP_NOTE'])
         print(style + Tabs.CSI + '{};{}H{}'.format(self.lastRow, infoCol, chordName), end='', file=self.outFile)
         print(Tabs.CSI + self.bStyle + self.styles['MOD_DELIM'] + '{}'.format(chordDelim), end='', file=self.outFile)
+        self.chordStatus = '{}{}'.format(chordName, chordDelim)
         for k in imapKeys:
             if k == hk: style = Tabs.CSI + self.bStyle + self.styles['HLT_STUS']
             else:       style = Tabs.CSI + self.bStyle + self.styles['STATUS']
             print(style + '{}'.format(info[i]), end='', file=self.outFile)
+            self.chordStatus += '{}'.format(info[i])
             i += 1
+        print('printChordInfo() infoCol={} chordStatusCol={} chordStatus[len={}]=\n{}'.format(infoCol, self.chordStatusCol, len(self.chordStatus), self.chordStatus), file=Tabs.DBG_FILE)
         return chordName, imap
     
     def printErrorHistory(self, uicKey=None, back=1, dbg=1):
         '''Display error history'''
-        if back == 1: iBgn, iEnd, iDelta, dir = len(self.errors)-1, -1, -1, 'BACKWARD'
-        else:         iBgn, iEnd, iDelta, dir = 0, len(self.errors), 1, 'FORWARD'
+        if back == 1: iBgn, iEnd, iDelta, dir, index = len(self.errors)-1, -1, -1, 'BACKWARD', 0
+        else:         iBgn, iEnd, iDelta, dir, index = 0, len(self.errors), 1, 'FORWARD', 1
         if self.errorsIndex == None:
-            self.printh('{}: {} {} No error history to display - Press ? for help'.format(self.rCmds['printErrorHistory'], self.printErrorHistory.__doc__, dir), col=1, hist=1)
+            self.printh('{}: {} {} No error history to display - Press ? for help'.format(self.rCmds['printErrorHistory'][index], self.printErrorHistory.__doc__, dir), col=1, hist=1)
             return
         if dbg:
             print('printErrorHistory({} {} {}) back={} errorsIndex={} errors[len={}]=['.format(iBgn, iEnd, iDelta, back, self.errorsIndex, len(self.errors)), file=Tabs.DBG_FILE)
             for i in range(iBgn, iEnd, iDelta):
                 print('    [{}] {}'.format(i, self.errors[i]), file=Tabs.DBG_FILE)
             print(']', file=Tabs.DBG_FILE)
-        self.printh('{}: {} {} [{}] {}'.format(self.rCmds['printErrorHistory'], self.printErrorHistory.__doc__, dir, self.errorsIndex, self.errors[self.errorsIndex]), col=1, hist=1)
+        info = 'printErrorHistory() {} errors'.format(len(self.errors))
+        self.printh('{}: {} {} [{}] {}'.format(self.rCmds['printErrorHistory'][index], info, dir, self.errorsIndex, self.errors[self.errorsIndex]), col=1, hist=1)
         if back == 1:
             self.errorsIndex -= 1
             if self.errorsIndex == -1:               self.errorsIndex = len(self.errors) - 1
@@ -2530,13 +2531,13 @@ class Tabs(object):
     
     def printCmdHistory(self, uicKey='', back=1, dbg=1):
         '''Display command history'''
-        if back == 1: iBgn, iEnd, iDelta, dir = len(self.cmds)-1, -1, -1, 'BACKWARD'
-        else:         iBgn, iEnd, iDelta, dir = 0, len(self.cmds), 1, 'FORWARD'
+        if back == 1: iBgn, iEnd, iDelta, dir, index = len(self.cmds)-1, -1, -1, 'BACKWARD', 0
+        else:         iBgn, iEnd, iDelta, dir, index = 0, len(self.cmds), 1, 'FORWARD', 1
         if self.cmdsIndex == None:
-            self.printh('{}: {} {} No command history to display - Press ? for help'.format(self.rCmds['printCmdHistory'], self.printCmdHistory.__doc__, dir), col=1, hist=1)
+            self.printh('{}: {} {} No command history to display - Press ? for help'.format(self.rCmds['printCmdHistory'][index], self.printCmdHistory.__doc__, dir), col=1, hist=1)
             return
         if dbg:
-            print('printCmdHistory({} {} {}) back={} cmdsIndex={} cmds[len={}]=['.format(iBgn, iEnd, iDelta, back, self.cmdsIndex, len(self.cmds)), file=Tabs.DBG_FILE)
+            print('printCmdHistory({} {} {}) {} back={} cmdsIndex={} cmds[len={}]=['.format(iBgn, iEnd, iDelta, self.rCmds['printCmdHistory'][index], back, self.cmdsIndex, len(self.cmds)), file=Tabs.DBG_FILE)
             for i in range(iBgn, iEnd, iDelta):
                 cmd = self.cmds[i]
                 key = cmd[0 : cmd.find(':') + 1]
@@ -2547,7 +2548,8 @@ class Tabs(object):
                 cmd = cmd.lstrip()
                 print('{:>4} {:>17}  {:<24} {}'.format(i, key, name, cmd), file=Tabs.DBG_FILE)
             print(']', file=Tabs.DBG_FILE)
-        self.printh('{}: {} {} [{}] {}'.format(self.rCmds['printCmdHistory'], self.printCmdHistory.__doc__, dir, self.cmdsIndex, self.cmds[self.cmdsIndex]), col=1, hist=1)
+        info = 'printCmdHistory() {} cmds'.format(len(self.cmds))
+        self.printh('{}: {} {} [{}] {}'.format(self.rCmds['printCmdHistory'][index], info, dir, self.cmdsIndex, self.cmds[self.cmdsIndex]), col=1, hist=1)
         if back == 1:
             self.cmdsIndex -= 1
             if self.cmdsIndex == -1:             self.cmdsIndex = len(self.cmds) - 1
@@ -2651,12 +2653,14 @@ class Tabs(object):
         if   arg == 0: cBgn = col
         elif arg == 1: cEnd = col + 1
         elif arg == 2: pass
+        elif arg == 3: cBgn = col; cEnd = self.chordStatusCol
         if row is None: self.printe('clearRow(arg={} col={}) invalid row={}'.format(arg, col, row))
+        if cEnd is None: cEnd = self.endCol() + 1
         else:
             blank = ''
             for c in range(cBgn, cEnd): blank += ' '
             print(Tabs.CSI + self.styles['SHP_NOTE'] + Tabs.CSI + '{};{}H{}'.format(row, cBgn, blank), end='', file=file)
-            if dbg: print('clearRow({} {}) arg={} row={} col={} cBgn={} cEnd={} blank=\n{}'.format(self.row, self.col, arg, row, col, cBgn, cEnd, blank), file=Tabs.DBG_FILE)
+            if dbg: print('clearRow({} {}) arg={} row={} col={} cBgn={} cEnd={} chordStatusCol={} len(blank)={} blank=\n{}'.format(self.row, self.col, arg, row, col, cBgn, cEnd, self.chordStatusCol, len(blank), blank), file=Tabs.DBG_FILE)
     
     def clearRow_OLD(self, row, col=1, arg=2, file=None, dbg=1):
         if dbg: print('clearRow() arg={} row={} col={}'.format(arg, row, col), file=Tabs.DBG_FILE)
