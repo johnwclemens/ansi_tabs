@@ -91,9 +91,9 @@ class Tabs(object):
         self.cmdFilterStr = 'None:'
         self.filterCmds = 1
         
+        self.tabs = []                                              # list of bytearrays, one for each string; for normal tabs
         self.htabs = []                                             # list of bytearrays, one for each string; for harmonic tabs
         self.tabCount = 0                                           # used by appendTabs()
-        self.tabs = []                                              # list of bytearrays, one for each string; for all the tabs
         self.chordInfo = {}                                         # dict column index -> (list of dict intervals -> note names) i.e. dict col -> list of imaps for status chord info
         self.selectChords = {}                                      # dict chord name -> imap, for displaying the selected chord name and imap
         self.selectImaps = {}                                       # dict imap string -> imap, for displaying intervals corresponding to selected chord name & imap
@@ -102,6 +102,7 @@ class Tabs(object):
         self.chordStatusCol = None                                  # tab column index used to display chord info on status row
         self.selectChordAliases = {}                                # dict column index -> chord names, temp storage for cut & paste
         self.selectAnalyzeIndices = {}                              # dict column index -> chordInfo index, temp storage for cut & paste
+        self.tabStatusLen = 0
         
         self.arpeggiate = 0                                         # used to transform chords to arpeggios
         self.selectFlag = 0                                         # used to un-hilite selected rows
@@ -817,7 +818,7 @@ class Tabs(object):
         if dbg: print(file=Tabs.DBG_FILE)
         if 0 <= b <= 127: print('dispatch() {}(uicKey={}, b={}({}), args={})'.format(self.uiCmds[uicKey].__name__, uicKey, b, chr(b), args), file=Tabs.DBG_FILE)
         else:             print('dispatch() {}(uicKey={}, b={}, args={})'.format(self.uiCmds[uicKey].__name__, uicKey, b, args), file=Tabs.DBG_FILE)
-        self.clearRow(self.lastRow, arg=2)
+        self.clearRow(self.lastRow, col=self.tabStatusLen, arg=0)
         self.uiCmds[uicKey](uicKey=uicKey, **args)
     
     def loop(self):
@@ -879,8 +880,8 @@ class Tabs(object):
             elif b == 152:    self.dispatch(b=b, uicKey='Alt Up Arrow', up=1)     # unselectRow()            # N/A
             elif b == 160:    self.dispatch(b=b, uicKey='Alt Down Arrow')         # unselectRow()            # N/A
 #            elif b == 161:    self.dispatch(b=b, uicKey='Alt Page Down')          # movePageDown()           # N/A
-            elif b == 224:                                                                 # Escape Sequence        # N/A
-                b = ord(getwch())                                                          # Read the escaped character
+            elif b == 224:                                                                   # Escape Sequence        # N/A
+                b = ord(getwch())                                                            # Read the escaped character
                 if   b == 75:       self.dispatch(b=b, uicKey='Left Arrow')                  # moveLeft()             # N/A
                 elif b == 77:       self.dispatch(b=b, uicKey='Right Arrow')                 # moveRight()            # N/A
                 elif b == 72:       self.dispatch(b=b, uicKey='Up Arrow')                    # moveUp()               # N/A
@@ -2316,11 +2317,11 @@ class Tabs(object):
         print('printStatus() row={} col={} r={} c={} bgn'.format(self.row, self.col, r, c), file=Tabs.DBG_FILE)
         tab = chr(self.tabs[r][c])
         if dbg: print('printStatus() row={} col={} r={} c={} tab={}({})'.format(self.row, self.col, r, c, self.tabs[r][c], tab), file=Tabs.DBG_FILE)
-        if   Tabs.isFret(tab): cnt = self.printFretStatus(tab, r, c)
-        elif tab in self.mods: cnt = self.printModStatus(tab, r, c)
-        else:                  cnt = self.printDefaultStatus(tab, r, c)
+        if   Tabs.isFret(tab): self.tabStatusLen = self.printFretStatus(tab, r, c)
+        elif tab in self.mods: self.tabStatusLen = self.printModStatus(tab, r, c)
+        else:                  self.tabStatusLen = self.printDefaultStatus(tab, r, c)
         self.printChordStatus(r, c)
-        print('printStatus() row={} col={} r={} c={} cnt={} tab={}({}) end'.format(self.row, self.col, r, c, cnt, self.tabs[r][c], tab), file=Tabs.DBG_FILE)
+        print('printStatus() row={} col={} r={} c={} tabStatusLen={} tab={}({}) end'.format(self.row, self.col, r, c, self.tabStatusLen, self.tabs[r][c], tab), file=Tabs.DBG_FILE)
         info = 'printStatus() of ({}, {}) tab={}({})'.format(r, c, ord(tab), tab)
         if hinfo: self.printh('{}: {}'.format(self.rCmds['printStatus'], info))
         else:     self.resetPos()
