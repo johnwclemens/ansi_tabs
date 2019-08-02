@@ -818,7 +818,7 @@ class Tabs(object):
         if dbg: print(file=Tabs.DBG_FILE)
         if 0 <= b <= 127: print('dispatch() {}(uicKey={}, b={}({}), args={})'.format(self.uiCmds[uicKey].__name__, uicKey, b, chr(b), args), file=Tabs.DBG_FILE)
         else:             print('dispatch() {}(uicKey={}, b={}, args={})'.format(self.uiCmds[uicKey].__name__, uicKey, b, args), file=Tabs.DBG_FILE)
-        self.clearRow(self.lastRow, col=self.tabStatusLen, arg=0)
+        self.clearRow(self.lastRow)#, col=self.tabStatusLen, arg=0)
         self.uiCmds[uicKey](uicKey=uicKey, **args)
     
     def loop(self):
@@ -1021,14 +1021,21 @@ class Tabs(object):
         print('moveCursor(row={}, col={}, back={}) old: row={} col={} bgn'.format(row, col, back, self.row, self.col), file=Tabs.DBG_FILE)
         if row != None: self.row = row
         if col != None: self.col = col
+        self.clearRow(self.lastRow)#, col=self.tabStatusLen, arg=0)
+        print('moveCursor(row={}, col={}, back={}) new: row={}, col={} end'.format(row, col, back, self.row, self.col), file=Tabs.DBG_FILE)
+        info = 'moveCursor() from ({}, {}) to ({}, {})'.format(oldRow, oldCol, self.rowCol2Indices(self.row, self.col)[0], self.rowCol2Indices(self.row, self.col)[1])
+        self.printh('{}: {}'.format(self.rCmds['moveCursor'], info))
         if self.cursorMode == self.CURSOR_MODES['MELODY']:
+            self.clearRow(self.lastRow)#, col=self.tabStatusLen, arg=0)
             if back == 1: self.moveLeft()
-            else:    self.moveRight()
+            else:         self.moveRight()
         elif self.cursorMode == self.CURSOR_MODES['CHORD'] or self.cursorMode == self.CURSOR_MODES['ARPEGGIO']:
             if self.cursorMode == self.CURSOR_MODES['ARPEGGIO']:
+                self.clearRow(self.lastRow)#, col=self.tabStatusLen, arg=0)
                 self.moveRight()
             line = self.row2Line(self.row)
             if self.cursorDir == self.CURSOR_DIRS['DOWN']:
+                self.clearRow(self.lastRow)#, col=self.tabStatusLen, arg=0)
                 if back == 1:
                     if self.row > self.bgnRow(line):
                         self.moveUp()
@@ -1045,6 +1052,7 @@ class Tabs(object):
                         self.row = self.bgnRow(line)
                         self.moveRight()
             elif self.cursorDir == self.CURSOR_DIRS['UP']:
+                self.clearRow(self.lastRow)#, col=self.tabStatusLen, arg=0)
                 if back == 1:
                     if self.row < self.endRow(line):
                         self.moveDown()
@@ -1060,9 +1068,6 @@ class Tabs(object):
                         print('moveCursor(line={} UP !>) row={} ? bgnRow(line)={} endRow(line)={}'.format(line, self.row, self.bgnRow(line), self.endRow(line)), file=Tabs.DBG_FILE)
                         self.row = self.endRow(line)
                         self.moveRight()
-        print('moveCursor(row={}, col={}, back={}) new: row={}, col={} end'.format(row, col, back, self.row, self.col), file=Tabs.DBG_FILE)
-        info = 'moveCursor() from ({}, {}) to ({}, {})'.format(oldRow, oldCol, self.rowCol2Indices(self.row, self.col)[0], self.rowCol2Indices(self.row, self.col)[1])
-        self.printh('{}: {}'.format(self.rCmds['moveCursor'], info))
     
     def tests(self):
         for c in (0, 207, 208, 415, 416, 623, 624, 831): print('tests() line=colIndex2Line({})={}'.format(c, self.colIndex2Line(c)), file=Tabs.DBG_FILE)
@@ -1411,7 +1416,7 @@ class Tabs(object):
                         maxFN = currFN
                         self.maxFretInfo['MAX'], self.maxFretInfo['LINE'], self.maxFretInfo['STR'], self.maxFretInfo['COL'] = self.getFretByte(maxFN), self.colIndex2Line(c), self.indices2Row(r, c)-1, self.index2Col(c)
                         if dbg: print('getMaxFretInfo() r={} c={} tab={}({}) maxFN={}'.format(r, c, tab, chr(tab), maxFN), file=Tabs.DBG_FILE)
-                        self.dumpMaxFretInfo('getMaxFretInfo()')
+                        if dbg: self.dumpMaxFretInfo('getMaxFretInfo()')
     
     def dumpMaxFretInfo(self, reason):
         print('dumpMaxFretInfo() {} max={}({}) line={} string={} col={}'.format(reason, self.maxFretInfo['MAX'], chr(self.maxFretInfo['MAX']), self.maxFretInfo['LINE']+1, self.maxFretInfo['STR'], self.maxFretInfo['COL']-2), file=Tabs.DBG_FILE)
@@ -2401,7 +2406,7 @@ class Tabs(object):
         if c in self.chordInfo:
             if dbg: self.dumpChordInfo(self.chordInfo, reason='printChordStatus()'.format(c))
             print('printChordStatus() c={} chordNames={} chordAliases={} selectChords={}'.format(c, self.chordsObj.chordNames, self.chordAliases, self.selectChords), file=Tabs.DBG_FILE)
-            print('printChordStatus() c={} analyzeIndices={}'.format(c, self.analyzeIndices), file=Tabs.DBG_FILE)
+            if dbg: print('printChordStatus() c={} analyzeIndices={}'.format(c, self.analyzeIndices), file=Tabs.DBG_FILE)
             if c in self.analyzeIndices: index = self.analyzeIndices[c]
             else:                        index = 0
             self.printChordInfo(r, c, index, reason='printChordStatus()')
@@ -2578,7 +2583,7 @@ class Tabs(object):
                 self.cmdsIndex = len(self.cmds) - 1
             else:
                 print('printh() filtered cmd={}'.format(reason), file=Tabs.DBG_FILE)
-        print('printh(col={}) hist={} reason={}'.format(col, hist, reason), file=Tabs.DBG_FILE)
+        print('printh(col={}) hist={} reason[len={}]={}'.format(col, hist, len(reason), reason), file=Tabs.DBG_FILE)
         self.prints(reason, self.lastRow, col, style)
         self.resetPos()
     
