@@ -90,6 +90,7 @@ class Tabs(object):
         self.dbgMove = 1                                            # used for finding bugs in basic movement functionality
         self.cmdFilterStr = 'None:'
         self.filterCmds = 1
+        self.cleanExit = 0
         
         self.tabs = []                                              # list of bytearrays, one for each string; for normal tabs
         self.htabs = []                                             # list of bytearrays, one for each string; for harmonic tabs
@@ -684,10 +685,11 @@ class Tabs(object):
         for i in range(18): print('##########', end='', file=Tabs.DBG_FILE)
         print(file=Tabs.DBG_FILE)
         self.dumpInfo('quit()')
-        self.printErrorHistory()
-        self.printCmdHistory(back=0)
+        self.clearRow(self.lastRow)
+        self.printErrorHistory(disp=not self.cleanExit)
+        self.printCmdHistory(back=0, disp=not self.cleanExit)
+        if self.cleanExit: exit(code)
         print('quit() rCmds[len={}]=['.format(len(self.rCmds)), file=Tabs.DBG_FILE)
-        exit(code)
         for k in self.rCmds:
             if type(self.rCmds[k]) == str: print('{:>22} = {}'.format(k, self.rCmds[k]), file=Tabs.DBG_FILE)
             else:
@@ -819,7 +821,7 @@ class Tabs(object):
         if dbg: print(file=Tabs.DBG_FILE)
         if 0 <= b <= 127: print('dispatch() {}(uicKey={}, b={}({}), args={})'.format(self.uiCmds[uicKey].__name__, uicKey, b, chr(b), args), file=Tabs.DBG_FILE)
         else:             print('dispatch() {}(uicKey={}, b={}, args={})'.format(self.uiCmds[uicKey].__name__, uicKey, b, args), file=Tabs.DBG_FILE)
-        self.clearRow(self.lastRow)
+        if self.uiCmds[uicKey] != self.quit: self.clearRow(self.lastRow)
         self.uiCmds[uicKey](uicKey=uicKey, **args)
     
     def loop(self):
@@ -1019,7 +1021,6 @@ class Tabs(object):
     def moveCursor(self, uicKey=None, row=None, col=None, back=0):
         '''Move cursor to next row and or col with automatic cursor mode optionally hilite new row and col'''
         oldRow, oldCol = self.rowCol2Indices(self.row, self.col)
-        tmp = []
         print('moveCursor(row={}, col={}, back={}) old: row={} col={} bgn'.format(row, col, back, self.row, self.col), file=Tabs.DBG_FILE)
         if row != None: self.row = row
         if col != None: self.col = col
@@ -1071,24 +1072,20 @@ class Tabs(object):
         info = 'moveCursor() from ({}, {}) to ({}, {})'.format(oldRow, oldCol, self.rowCol2Indices(self.row, self.col)[0], self.rowCol2Indices(self.row, self.col)[1])
         self.printh('{}: {}'.format(self.rCmds['moveCursor'], info))
     
-    def moveCursor_OLD(self, uicKey=None, row=None, col=None, back=0):
+    def moveCursor_LIST(self, uicKey=None, row=None, col=None, back=0):
         '''Move cursor to next row and or col with automatic cursor mode optionally hilite new row and col'''
-        oldRow, oldCol = self.rowCol2Indices(self.row, self.col)
-        tmp = []
+        oldRow, oldCol = self.rowCol2Indices(self.row, self.col); tmp = []
         print('moveCursor(row={}, col={}, back={}) old: row={} col={} bgn'.format(row, col, back, self.row, self.col), file=Tabs.DBG_FILE)
         if row != None: self.row = row
         if col != None: self.col = col
         if self.cursorMode == self.CURSOR_MODES['MELODY']:
-#            self.clearRow(self.lastRow)
             if back == 1: tmp.append(self.moveLeft)
             else:         tmp.append(self.moveRight)
         elif self.cursorMode == self.CURSOR_MODES['CHORD'] or self.cursorMode == self.CURSOR_MODES['ARPEGGIO']:
             if self.cursorMode == self.CURSOR_MODES['ARPEGGIO']:
-#                self.clearRow(self.lastRow)
                 tmp.append(self.moveRight)
             line = self.row2Line(self.row)
             if self.cursorDir == self.CURSOR_DIRS['DOWN']:
-#                self.clearRow(self.lastRow)
                 if back == 1:
                     if self.row > self.bgnRow(line):
                         tmp.append(self.moveUp)
@@ -1105,7 +1102,6 @@ class Tabs(object):
                         self.row = self.bgnRow(line)
                         tmp.append(self.moveRight)
             elif self.cursorDir == self.CURSOR_DIRS['UP']:
-#                self.clearRow(self.lastRow)
                 if back == 1:
                     if self.row < self.endRow(line):
                         tmp.append(self.moveDown)
@@ -1121,7 +1117,6 @@ class Tabs(object):
                         print('moveCursor(line={} UP !>) row={} ? bgnRow(line)={} endRow(line)={}'.format(line, self.row, self.bgnRow(line), self.endRow(line)), file=Tabs.DBG_FILE)
                         self.row = self.endRow(line)
                         tmp.append(self.moveRight)
-#        self.clearRow(self.lastRow)
         print('moveCursor(row={}, col={}, back={}) new: row={}, col={} end'.format(row, col, back, self.row, self.col), file=Tabs.DBG_FILE)
         info = 'moveCursor() from ({}, {}) to ({}, {})'.format(oldRow, oldCol, self.rowCol2Indices(self.row, self.col)[0], self.rowCol2Indices(self.row, self.col)[1])
         self.printh('{}: {}'.format(self.rCmds['moveCursor'], info))
@@ -2577,20 +2572,21 @@ class Tabs(object):
         print('printChordInfo() infoCol={} chordStatusCol={} chordStatus[len={}]=\n{}'.format(infoCol, self.chordStatusCol, len(self.chordStatus), self.chordStatus), file=Tabs.DBG_FILE)
         return chordName, imap
     
-    def printErrorHistory(self, uicKey=None, back=1, dbg=1):
+    def printErrorHistory(self, uicKey=None, back=1, disp=1, dbg=1):
         '''Display error history'''
         if back == 1: iBgn, iEnd, iDelta, dir, index = len(self.errors)-1, -1, -1, 'BACKWARD', 0
         else:         iBgn, iEnd, iDelta, dir, index = 0, len(self.errors), 1, 'FORWARD', 1
         if self.errorsIndex == None:
-            self.printh('{}: {} {} No error history to display - Press ? for help'.format(self.rCmds['printErrorHistory'][index], self.printErrorHistory.__doc__, dir), col=1, hist=1)
+            if disp: self.printh('{}: {} {} No error history to display - Press ? for help'.format(self.rCmds['printErrorHistory'][index], self.printErrorHistory.__doc__, dir), col=1, hist=1)
             return
         if dbg:
             print('printErrorHistory({} {} {}) back={} errorsIndex={} errors[len={}]=['.format(iBgn, iEnd, iDelta, back, self.errorsIndex, len(self.errors)), file=Tabs.DBG_FILE)
             for i in range(iBgn, iEnd, iDelta):
                 print('    [{}] {}'.format(i, self.errors[i]), file=Tabs.DBG_FILE)
             print(']', file=Tabs.DBG_FILE)
-        info = 'printErrorHistory() {} errors'.format(len(self.errors))
-        self.printh('{}: {} {} [{}] {}'.format(self.rCmds['printErrorHistory'][index], info, dir, self.errorsIndex, self.errors[self.errorsIndex]), col=1, hist=1)
+        if disp:
+            info = 'printErrorHistory() {} errors'.format(len(self.errors))
+            self.printh('{}: {} {} [{}] {}'.format(self.rCmds['printErrorHistory'][index], info, dir, self.errorsIndex, self.errors[self.errorsIndex]), col=1, hist=1)
         if back == 1:
             self.errorsIndex -= 1
             if self.errorsIndex == -1:               self.errorsIndex = len(self.errors) - 1
@@ -2598,12 +2594,12 @@ class Tabs(object):
             self.errorsIndex += 1
             if self.errorsIndex == len(self.errors): self.errorsIndex = 0
     
-    def printCmdHistory(self, uicKey='', back=1, dbg=1):
+    def printCmdHistory(self, uicKey='', back=1, disp=1, dbg=1):
         '''Display command history'''
         if back == 1: iBgn, iEnd, iDelta, dir, index = len(self.cmds)-1, -1, -1, 'BACKWARD', 0
         else:         iBgn, iEnd, iDelta, dir, index = 0, len(self.cmds), 1, 'FORWARD', 1
         if self.cmdsIndex == None:
-            self.printh('{}: {} {} No command history to display - Press ? for help'.format(self.rCmds['printCmdHistory'][index], self.printCmdHistory.__doc__, dir), col=1, hist=1)
+            if disp: self.printh('{}: {} {} No command history to display - Press ? for help'.format(self.rCmds['printCmdHistory'][index], self.printCmdHistory.__doc__, dir), col=1, hist=1)
             return
         if dbg:
             print('printCmdHistory({} {} {}) {} back={} cmdsIndex={} cmds[len={}]=['.format(iBgn, iEnd, iDelta, self.rCmds['printCmdHistory'][index], back, self.cmdsIndex, len(self.cmds)), file=Tabs.DBG_FILE)
@@ -2617,8 +2613,9 @@ class Tabs(object):
                 cmd = cmd.lstrip()
                 print('{:>4} {:>17}  {:<24} {}'.format(i, key, name, cmd), file=Tabs.DBG_FILE)
             print(']', file=Tabs.DBG_FILE)
-        info = 'printCmdHistory() {} cmds'.format(len(self.cmds))
-        self.printh('{}: {} {} [{}] {}'.format(self.rCmds['printCmdHistory'][index], info, dir, self.cmdsIndex, self.cmds[self.cmdsIndex]), col=1, hist=1)
+        if disp:
+            info = 'printCmdHistory() {} cmds'.format(len(self.cmds))
+            self.printh('{}: {} {} [{}] {}'.format(self.rCmds['printCmdHistory'][index], info, dir, self.cmdsIndex, self.cmds[self.cmdsIndex]), col=1, hist=1)
         if back == 1:
             self.cmdsIndex -= 1
             if self.cmdsIndex == -1:             self.cmdsIndex = len(self.cmds) - 1
