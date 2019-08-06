@@ -91,6 +91,7 @@ class Tabs(object):
         self.cmdFilterStr = 'None:'
         self.filterCmds = 1
         self.cleanExit = 0
+        self.cmdLvl = 0
         
         self.tabs = []                                              # list of bytearrays, one for each string; for normal tabs
         self.htabs = []                                             # list of bytearrays, one for each string; for harmonic tabs
@@ -812,6 +813,7 @@ class Tabs(object):
     
     def dispatch(self, **kwargs):
         args, b, uicKey, dbg = {}, -1, None, 0
+        self.cmdLvl += 1
         if dbg: print('dispatch() kwargs={}\ndispatch()'.format(kwargs), end=' ', file=Tabs.DBG_FILE)
         for key, val in kwargs.items():
             if dbg: print('{}={}'.format(key, val), end=', ', file=Tabs.DBG_FILE)
@@ -819,10 +821,11 @@ class Tabs(object):
             elif  key == 'uicKey': uicKey = val
             else:                  args[key] = val
         if dbg: print(file=Tabs.DBG_FILE)
-        if 0 <= b <= 127: print('dispatch() {}(uicKey={}, b={}({}), args={})'.format(self.uiCmds[uicKey].__name__, uicKey, b, chr(b), args), file=Tabs.DBG_FILE)
-        else:             print('dispatch() {}(uicKey={}, b={}, args={})'.format(self.uiCmds[uicKey].__name__, uicKey, b, args), file=Tabs.DBG_FILE)
+        if 0 <= b <= 127: print('dispatch({}) {}(uicKey={}, b={}({}), args={})'.format(self.cmdLvl, self.uiCmds[uicKey].__name__, uicKey, b, chr(b), args), file=Tabs.DBG_FILE)
+        else:             print('dispatch({}) {}(uicKey={}, b={}, args={})'.format(self.cmdLvl, self.uiCmds[uicKey].__name__, uicKey, b, args), file=Tabs.DBG_FILE)
         if self.uiCmds[uicKey] != self.quit: self.clearRow(self.lastRow)
         self.uiCmds[uicKey](uicKey=uicKey, **args)
+        self.cmdLvl -= 1
     
     def loop(self):
         '''Run the user interactive loop, executing commands as they are entered via the keyboard'''
@@ -1026,47 +1029,47 @@ class Tabs(object):
         if col != None: self.col = col
         if self.cursorMode == self.CURSOR_MODES['MELODY']:
             self.clearRow(self.lastRow)
-            if back == 1: self.moveLeft()
-            else:         self.moveRight()
+            if back == 1: self.dispatch(uicKey=self.rCmds['moveLeft'])
+            else:         self.dispatch(uicKey=self.rCmds['moveRight'])
         elif self.cursorMode == self.CURSOR_MODES['CHORD'] or self.cursorMode == self.CURSOR_MODES['ARPEGGIO']:
             if self.cursorMode == self.CURSOR_MODES['ARPEGGIO']:
                 self.clearRow(self.lastRow)
-                self.moveRight()
+                self.dispatch(uicKey=self.rCmds['moveRight'])
             line = self.row2Line(self.row)
             if self.cursorDir == self.CURSOR_DIRS['DOWN']:
                 self.clearRow(self.lastRow)
                 if back == 1:
                     if self.row > self.bgnRow(line):
-                        self.moveUp()
+                        self.dispatch(uicKey=self.rCmds['moveUp'])
                     else:
                         print('moveCursor(line={} DOWN !<) row={} ? endRow(line)={}'.format(line, self.row, self.endRow(line)), file=Tabs.DBG_FILE)
                         self.row = self.endRow(line)
-                        self.moveLeft()
+                        self.dispatch(uicKey=self.rCmds['moveLeft'])
                 else:
                     if self.row < self.endRow(line):
                         print('moveCursor(line={} DOWN <) row={} ? endRow(line)={}'.format(line, self.row, self.endRow(line)), file=Tabs.DBG_FILE)
-                        self.moveDown()
+                        self.dispatch(uicKey=self.rCmds['moveDown'])
                     else:
                         print('moveCursor(line={} DOWN !<) row={} ? endRow(line)={} bgnRow={}'.format(line, self.row, self.endRow(line), self.bgnRow(line)), file=Tabs.DBG_FILE)
                         self.row = self.bgnRow(line)
-                        self.moveRight()
+                        self.dispatch(uicKey=self.rCmds['moveRight'])
             elif self.cursorDir == self.CURSOR_DIRS['UP']:
                 self.clearRow(self.lastRow)
                 if back == 1:
                     if self.row < self.endRow(line):
-                        self.moveDown()
+                        self.dispatch(uicKey=self.rCmds['moveDown'])
                     else:
                         print('moveCursor(line={} UP !>) row={} ? bgnRow(line)={}'.format(line, self.row, self.bgnRow(line)), file=Tabs.DBG_FILE)
                         self.row = self.bgnRow(line)
-                        self.moveLeft()
+                        self.dispatch(uicKey=self.rCmds['moveLeft'])
                 else:
                     if self.row > self.bgnRow(line):
                         print('moveCursor(line={} UP >) row={} ? bgnRow(line)={}'.format(line, self.row, self.bgnRow(line)), file=Tabs.DBG_FILE)
-                        self.moveUp()
+                        self.dispatch(uicKey=self.rCmds['moveUp'])
                     else:
                         print('moveCursor(line={} UP !>) row={} ? bgnRow(line)={} endRow(line)={}'.format(line, self.row, self.bgnRow(line), self.endRow(line)), file=Tabs.DBG_FILE)
                         self.row = self.endRow(line)
-                        self.moveRight()
+                        self.dispatch(uicKey=self.rCmds['moveRight'])
         self.clearRow(self.lastRow)
         print('moveCursor(row={}, col={}, back={}) new: row={}, col={} end'.format(row, col, back, self.row, self.col), file=Tabs.DBG_FILE)
         info = 'moveCursor() from ({}, {}) to ({}, {})'.format(oldRow, oldCol, self.rowCol2Indices(self.row, self.col)[0], self.rowCol2Indices(self.row, self.col)[1])
@@ -1613,7 +1616,7 @@ class Tabs(object):
                         self.wrapPrintInterval(r, cc, dbg=dbg)
         info = 'setTab() set tab={}({}) at ({}, {})'.format(tab, chr(tab), self.rowCol2Indices(row, col)[0], self.rowCol2Indices(row, col)[1])
         self.printh('{}: {}'.format(self.rCmds['setTab'], info))
-        self.moveCursor()
+        self.dispatch(uicKey=self.rCmds['moveCursor'])
         self.getMaxFretInfo()
         if dbg: self.dumpTabs('setTab() end')
     
