@@ -91,7 +91,7 @@ class Tabs(object):
         self.cmdFilterStr = 'None:'
         self.filterCmds = 1
         self.cleanExit = 0
-        self.cmdLvl = 0
+        self.dispatchCnt = 0
         
         self.tabs = []                                              # list of bytearrays, one for each string; for normal tabs
         self.htabs = []                                             # list of bytearrays, one for each string; for harmonic tabs
@@ -813,19 +813,20 @@ class Tabs(object):
     
     def dispatch(self, **kwargs):
         args, b, uicKey, dbg = {}, -1, None, 0
-        self.cmdLvl += 1
-        if dbg: print('dispatch() kwargs={}\ndispatch()'.format(kwargs), end=' ', file=Tabs.DBG_FILE)
+        if dbg: print('dispatch(bgn) kwargs={}\ndispatch()'.format(kwargs), end=' ', file=Tabs.DBG_FILE)
         for key, val in kwargs.items():
             if dbg: print('{}={}'.format(key, val), end=', ', file=Tabs.DBG_FILE)
-            if    key == 'b':      b = val
-            elif  key == 'uicKey': uicKey = val
-            else:                  args[key] = val
+            if   key == 'b':      b = val
+            elif key == 'uicKey': uicKey = val
+            else:                 args[key] = val
         if dbg: print(file=Tabs.DBG_FILE)
-        if 0 <= b <= 127: print('dispatch({}) {}(uicKey={}, b={}({}), args={})'.format(self.cmdLvl, self.uiCmds[uicKey].__name__, uicKey, b, chr(b), args), file=Tabs.DBG_FILE)
-        else:             print('dispatch({}) {}(uicKey={}, b={}, args={})'.format(self.cmdLvl, self.uiCmds[uicKey].__name__, uicKey, b, args), file=Tabs.DBG_FILE)
+        if 0 <= b <= 127: print('dispatch({}) {}(uicKey={}, b={}({}), args={})'.format(self.dispatchCnt, self.uiCmds[uicKey].__name__, uicKey, b, chr(b), args), file=Tabs.DBG_FILE)
+        else:             print('dispatch({}) {}(uicKey={}, b={}, args={})'.    format(self.dispatchCnt, self.uiCmds[uicKey].__name__, uicKey, b,         args), file=Tabs.DBG_FILE)
         if self.uiCmds[uicKey] != self.quit: self.clearRow(self.lastRow)
+        self.dispatchCnt += 1
         self.uiCmds[uicKey](uicKey=uicKey, **args)
-        self.cmdLvl -= 1
+        self.dispatchCnt -= 1
+        print('dispatch({}) len(cmds)={} cmdsIndex={} cmds[-1]={}'.format(self.dispatchCnt, len(self.cmds), self.cmdsIndex, self.cmds[self.cmdsIndex]), file=Tabs.DBG_FILE)
     
     def loop(self):
         '''Run the user interactive loop, executing commands as they are entered via the keyboard'''
@@ -2606,6 +2607,7 @@ class Tabs(object):
             return
         if dbg:
             print('printCmdHistory({} {} {}) {} back={} cmdsIndex={} cmds[len={}]=['.format(iBgn, iEnd, iDelta, self.rCmds['printCmdHistory'][index], back, self.cmdsIndex, len(self.cmds)), file=Tabs.DBG_FILE)
+            print('printCmdHistory() dispatchCnt={}'.format(self.dispatchCnt), file=Tabs.DBG_FILE)
             for i in range(iBgn, iEnd, iDelta):
                 cmd = self.cmds[i]
                 key = cmd[0 : cmd.find(':') + 1]
@@ -2614,7 +2616,7 @@ class Tabs(object):
                 name = cmd[0 : cmd.find(' ')]
                 cmd = cmd.replace(name, '')
                 cmd = cmd.lstrip()
-                print('{:>4} {:>17}  {:<24} {}'.format(i, key, name, cmd), file=Tabs.DBG_FILE)
+                print('{:>4} {:>4} {:>17}  {:<24} {}'.format(i, self.dispatchCnt, key, name, cmd), file=Tabs.DBG_FILE)
             print(']', file=Tabs.DBG_FILE)
         if disp:
             info = 'printCmdHistory() {} cmds'.format(len(self.cmds))
