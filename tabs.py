@@ -92,6 +92,7 @@ class Tabs(object):
         self.filterCmds = 1
         self.cleanExit = 0
         self.dispatchCnt = 0
+        self.cmdLvls = {}
         
         self.tabs = []                                              # list of bytearrays, one for each string; for normal tabs
         self.htabs = []                                             # list of bytearrays, one for each string; for harmonic tabs
@@ -174,7 +175,6 @@ class Tabs(object):
         self.setLastRow()                                           # calculate last row, depends on numStrings which is supposed to be set in initStrings()
         self.numTabs = self.numStrings * self.numTabsPerString      # total number of tab characters
         self.tests()
-#        self.testList()
         
         try:
             with open(self.inName, 'rb') as self.inFile:
@@ -460,6 +460,7 @@ class Tabs(object):
                               'NUT_DN':self.WHITE_BLACK,   'MAJ_COL_NUM':self.YELLOW_BLACK, 'CHORD_LABEL':self.GREEN_BLACK,    'HLT_STUS':self.GREEN_BLACK,    'CONS':self.WHITE_BLACK,
                              'NO_IVAL':self.WHITE_BLACK,     'MOD_DELIM':self.BLUE_BLACK,        'NORMAL':'22;',                 'BRIGHT':'1;' }
         else: self.printe('initColors() colorsIndex={} out of range [0-2]'.format(self.colorsIndex))
+    
     def initText(self, FG, BG):
         return '3' + self.COLORS[FG] + ';4' + self.COLORS[BG] + 'm'
     
@@ -826,7 +827,10 @@ class Tabs(object):
         self.dispatchCnt += 1
         self.uiCmds[uicKey](uicKey=uicKey, **args)
         self.dispatchCnt -= 1
-        print('dispatch({}) len(cmds)={} cmdsIndex={} cmds[-1]={}'.format(self.dispatchCnt, len(self.cmds), self.cmdsIndex, self.cmds[self.cmdsIndex]), file=Tabs.DBG_FILE)
+        if   self.cmdsIndex not in self.cmdLvls:                 self.cmdLvls[self.cmdsIndex] = self.dispatchCnt
+        elif self.dispatchCnt    > self.cmdLvls[self.cmdsIndex]: self.cmdLvls[self.cmdsIndex] = self.dispatchCnt
+        print('cmdLvls={}'.format (self.cmdLvls), file=Tabs.DBG_FILE)
+        print('dispatch({} {} {}) {}'.format(self.dispatchCnt, len(self.cmds), self.cmdsIndex, self.cmds[self.cmdsIndex]), file=Tabs.DBG_FILE)
     
     def loop(self):
         '''Run the user interactive loop, executing commands as they are entered via the keyboard'''
@@ -1616,9 +1620,9 @@ class Tabs(object):
                     for r in range(self.numStrings):
                         self.wrapPrintInterval(r, cc, dbg=dbg)
         info = 'setTab() set tab={}({}) at ({}, {})'.format(tab, chr(tab), self.rowCol2Indices(row, col)[0], self.rowCol2Indices(row, col)[1])
-        self.printh('{}: {}'.format(self.rCmds['setTab'], info))
         self.dispatch(uicKey=self.rCmds['moveCursor'])
         self.getMaxFretInfo()
+        self.printh('{}: {}'.format(self.rCmds['setTab'], info))
         if dbg: self.dumpTabs('setTab() end')
     
     def deleteTab(self, uicKey=None, back=0, dbg=0):
@@ -2607,7 +2611,6 @@ class Tabs(object):
             return
         if dbg:
             print('printCmdHistory({} {} {}) {} back={} cmdsIndex={} cmds[len={}]=['.format(iBgn, iEnd, iDelta, self.rCmds['printCmdHistory'][index], back, self.cmdsIndex, len(self.cmds)), file=Tabs.DBG_FILE)
-            print('printCmdHistory() dispatchCnt={}'.format(self.dispatchCnt), file=Tabs.DBG_FILE)
             for i in range(iBgn, iEnd, iDelta):
                 cmd = self.cmds[i]
                 key = cmd[0 : cmd.find(':') + 1]
@@ -2616,7 +2619,8 @@ class Tabs(object):
                 name = cmd[0 : cmd.find(' ')]
                 cmd = cmd.replace(name, '')
                 cmd = cmd.lstrip()
-                print('{:>4} {:>4} {:>17}  {:<24} {}'.format(i, self.dispatchCnt, key, name, cmd), file=Tabs.DBG_FILE)
+                if i in self.cmdLvls: print('{:>4} {:>4} {:>17}  {:<24} {}'.format(i, self.cmdLvls[i], key, name, cmd), file=Tabs.DBG_FILE)
+                else:                 print('{:>4}      {:>17}  {:<24} {}' .format(i,                  key, name, cmd), file=Tabs.DBG_FILE)
             print(']', file=Tabs.DBG_FILE)
         if disp:
             info = 'printCmdHistory() {} cmds'.format(len(self.cmds))
@@ -2718,7 +2722,7 @@ class Tabs(object):
         elif m == 3 and n != 13: return 'rd'
         else:                    return 'th'
     
-    def clearRow(self, row, col=1, arg=2, file=None, dbg=1): # arg=0: col to end of line, arg=1: begin of line to col, arg=2: entire line
+    def clearRow(self, row, col=1, arg=2, file=None, dbg=0): # arg=0: col to end of line, arg=1: begin of line to col, arg=2: entire line
         cBgn = 1
         cEnd = self.endCol() + 1
         if   arg == 0: cBgn = col
