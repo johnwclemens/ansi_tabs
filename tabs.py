@@ -1039,7 +1039,8 @@ class Tabs(object):
         elif self.cursorMode == self.CURSOR_MODES['CHORD'] or self.cursorMode == self.CURSOR_MODES['ARPEGGIO']:
             if self.cursorMode == self.CURSOR_MODES['ARPEGGIO']:
                 self.clearRow(self.lastRow)
-                self.dispatch(uicKey=self.rCmds['moveRight'])
+                if back == 1: self.dispatch(uicKey=self.rCmds['moveLeft'])
+                else:         self.dispatch(uicKey=self.rCmds['moveRight'])
             line = self.row2Line(self.row)
             if self.cursorDir == self.CURSOR_DIRS['DOWN']:
                 self.clearRow(self.lastRow)
@@ -1079,61 +1080,6 @@ class Tabs(object):
         print('moveCursor(row={}, col={}, back={}) new: row={}, col={} end'.format(row, col, back, self.row, self.col), file=Tabs.DBG_FILE)
         info = 'moveCursor() from ({}, {}) to ({}, {})'.format(oldRow, oldCol, self.rowCol2Indices(self.row, self.col)[0], self.rowCol2Indices(self.row, self.col)[1])
         self.printh('{}: {}'.format(self.rCmds['moveCursor'], info))
-    
-    def moveCursor_LIST(self, uicKey=None, row=None, col=None, back=0):
-        '''Move cursor to next row and or col with automatic cursor mode optionally hilite new row and col'''
-        oldRow, oldCol = self.rowCol2Indices(self.row, self.col); tmp = []
-        print('moveCursor(row={}, col={}, back={}) old: row={} col={} bgn'.format(row, col, back, self.row, self.col), file=Tabs.DBG_FILE)
-        if row != None: self.row = row
-        if col != None: self.col = col
-        if self.cursorMode == self.CURSOR_MODES['MELODY']:
-            if back == 1: tmp.append(self.moveLeft)
-            else:         tmp.append(self.moveRight)
-        elif self.cursorMode == self.CURSOR_MODES['CHORD'] or self.cursorMode == self.CURSOR_MODES['ARPEGGIO']:
-            if self.cursorMode == self.CURSOR_MODES['ARPEGGIO']:
-                tmp.append(self.moveRight)
-            line = self.row2Line(self.row)
-            if self.cursorDir == self.CURSOR_DIRS['DOWN']:
-                if back == 1:
-                    if self.row > self.bgnRow(line):
-                        tmp.append(self.moveUp)
-                    else:
-                        print('moveCursor(line={} DOWN !<) row={} ? endRow(line)={}'.format(line, self.row, self.endRow(line)), file=Tabs.DBG_FILE)
-                        self.row = self.endRow(line)
-                        tmp.append(self.moveLeft)
-                else:
-                    if self.row < self.endRow(line):
-                        print('moveCursor(line={} DOWN <) row={} ? endRow(line)={}'.format(line, self.row, self.endRow(line)), file=Tabs.DBG_FILE)
-                        tmp.append(self.moveDown)
-                    else:
-                        print('moveCursor(line={} DOWN !<) row={} ? endRow(line)={} bgnRow={}'.format(line, self.row, self.endRow(line), self.bgnRow(line)), file=Tabs.DBG_FILE)
-                        self.row = self.bgnRow(line)
-                        tmp.append(self.moveRight)
-            elif self.cursorDir == self.CURSOR_DIRS['UP']:
-                if back == 1:
-                    if self.row < self.endRow(line):
-                        tmp.append(self.moveDown)
-                    else:
-                        print('moveCursor(line={} UP !>) row={} ? bgnRow(line)={}'.format(line, self.row, self.bgnRow(line)), file=Tabs.DBG_FILE)
-                        self.row = self.bgnRow(line)
-                        tmp.append(self.moveLeft)
-                else:
-                    if self.row > self.bgnRow(line):
-                        print('moveCursor(line={} UP >) row={} ? bgnRow(line)={}'.format(line, self.row, self.bgnRow(line)), file=Tabs.DBG_FILE)
-                        tmp.append(self.moveUp)
-                    else:
-                        print('moveCursor(line={} UP !>) row={} ? bgnRow(line)={} endRow(line)={}'.format(line, self.row, self.bgnRow(line), self.endRow(line)), file=Tabs.DBG_FILE)
-                        self.row = self.endRow(line)
-                        tmp.append(self.moveRight)
-        print('moveCursor(row={}, col={}, back={}) new: row={}, col={} end'.format(row, col, back, self.row, self.col), file=Tabs.DBG_FILE)
-        info = 'moveCursor() from ({}, {}) to ({}, {})'.format(oldRow, oldCol, self.rowCol2Indices(self.row, self.col)[0], self.rowCol2Indices(self.row, self.col)[1])
-        self.printh('{}: {}'.format(self.rCmds['moveCursor'], info))
-        print('moveCursor() tmp[len={}]='.format(len(tmp)), file=Tabs.DBG_FILE)
-        for i in range(len(tmp)):
-            print('[{}] {}()'.format(i, tmp[i].__name__), file=Tabs.DBG_FILE)
-            self.clearRow(self.lastRow)
-            tmp[i]()
-        print(file=Tabs.DBG_FILE)
     
     def tests(self):
         for c in (0, 207, 208, 415, 416, 623, 624, 831): print('tests() line=colIndex2Line({})={}'.format(c, self.colIndex2Line(c)), file=Tabs.DBG_FILE)
@@ -1619,9 +1565,9 @@ class Tabs(object):
                 else:
                     for r in range(self.numStrings):
                         self.wrapPrintInterval(r, cc, dbg=dbg)
-        info = 'setTab() set tab={}({}) at ({}, {})'.format(tab, chr(tab), self.rowCol2Indices(row, col)[0], self.rowCol2Indices(row, col)[1])
         self.dispatch(uicKey=self.rCmds['moveCursor'])
         self.getMaxFretInfo()
+        info = 'setTab() set tab={}({}) at ({}, {})'.format(tab, chr(tab), self.rowCol2Indices(row, col)[0], self.rowCol2Indices(row, col)[1])
         self.printh('{}: {}'.format(self.rCmds['setTab'], info))
         if dbg: self.dumpTabs('setTab() end')
     
@@ -2619,8 +2565,10 @@ class Tabs(object):
                 name = cmd[0 : cmd.find(' ')]
                 cmd = cmd.replace(name, '')
                 cmd = cmd.lstrip()
-                if i in self.cmdLvls: print('{:>4} {:>4} {:>17}  {:<24} {}'.format(i, self.cmdLvls[i], key, name, cmd), file=Tabs.DBG_FILE)
-                else:                 print('{:>4}      {:>17}  {:<24} {}' .format(i,                  key, name, cmd), file=Tabs.DBG_FILE)
+                if i in self.cmdLvls and self.cmdLvls[i] == 0: j = i
+                else:                                          j = i - 1
+                if i in self.cmdLvls: print('{:>4} {:>4} {:>4} {:>17}  {:<24} {}'.format(i, self.cmdLvls[i], j, key, name, cmd), file=Tabs.DBG_FILE)
+                else:                 print('{:>4}      {:>4} {:>17}  {:<24} {}' .format(i,                  j, key, name, cmd), file=Tabs.DBG_FILE)
             print(']', file=Tabs.DBG_FILE)
         if disp:
             info = 'printCmdHistory() {} cmds'.format(len(self.cmds))
