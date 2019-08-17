@@ -77,8 +77,9 @@ class Tabs(object):
         Tabs.clearScreen()
         self.initFiles(inName, outName)
         self.initConsts()
+        self.cmds = [[]]                                            # list of user interactive cmd history
+        self.rCmds = {}                                             # dict of user interactive cmd to key
         self.registerUiCmds()                                       # register the dictionary for all the user interactive commands
-        self.cmds = []                                              # list of user interactive cmd history
         self.cmdsIndex = None                                       # cmd history index
         self.errors = []                                            # list of error message history
         self.errorsIndex = None                                     # error history index
@@ -92,6 +93,7 @@ class Tabs(object):
         self.filterCmds = 1
         self.cleanExit = 0
         self.dispatchCnt = 0
+#        self.dispatchLvl = 0
         self.cmdLvls = {}
         
         self.tabs = []                                              # list of bytearrays, one for each string; for normal tabs
@@ -688,6 +690,10 @@ class Tabs(object):
         print(file=Tabs.DBG_FILE)
         self.dumpInfo('quit()')
         self.clearRow(self.lastRow)
+        print('quit() cmds[len={}]=['.format(len(self.cmds)), file=Tabs.DBG_FILE)
+        for i in range(len(self.cmds[0])):
+            print('{:>4}   {}    {}'.format(i, self.cmds[0][i], self.cmds[1][i]), file=Tabs.DBG_FILE)
+        print(']', file=Tabs.DBG_FILE)
         self.printErrorHistory(disp=not self.cleanExit)
         self.printCmdHistory(back=0, disp=not self.cleanExit)
         if self.cleanExit: exit(code)
@@ -732,6 +738,7 @@ class Tabs(object):
             print('{:>20} : {}'.format(k, self.uiCmds[k].__doc__), file=Tabs.DBG_FILE)
     
     def registerUiCmds(self):
+        if len(self.cmds) == 1: self.cmds.append([])
         self.rCmds = {}
         self.uiCmds = {}
         self.uiKeys = []
@@ -831,7 +838,7 @@ class Tabs(object):
         if   self.cmdsIndex not in self.cmdLvls:                 self.cmdLvls[self.cmdsIndex] = self.dispatchCnt
         elif self.dispatchCnt    > self.cmdLvls[self.cmdsIndex]: self.cmdLvls[self.cmdsIndex] = self.dispatchCnt
         print('cmdLvls={}'.format (self.cmdLvls), file=Tabs.DBG_FILE)
-        print('dispatch({} {} {}) {}'.format(self.dispatchCnt, len(self.cmds), self.cmdsIndex, self.cmds[self.cmdsIndex]), file=Tabs.DBG_FILE)
+        print('dispatch({} {} {}) pk={} cmd={}'.format(self.dispatchCnt, len(self.cmds[0]), self.cmdsIndex, pk, self.cmds[0][self.cmdsIndex]), file=Tabs.DBG_FILE)
     
     def loop(self):
         '''Run the user interactive loop, executing commands as they are entered via the keyboard'''
@@ -953,7 +960,7 @@ class Tabs(object):
         else:                             self.moveTo(col=self.col + 1, hi=1)
         info = 'moveRight() from ({}, {}) to ({}, {})'.format(oldRow, oldCol, self.rowCol2Indices(self.row, self.col)[0], self.rowCol2Indices(self.row, self.col)[1])
         if dbg or self.dbgMove: print(info, file=Tabs.DBG_FILE)
-        self.printh('{}: {}'.format(self.rCmds['moveRight'], info))
+        self.printh('{}: {}'.format(self.rCmds['moveRight'], info), pk=pk)
     
     def moveUp(self, pk=[], dbg=0):
         '''Move cursor up 1 row on current line wrapping to last row on previous line or last line'''
@@ -977,7 +984,7 @@ class Tabs(object):
         else:                             self.moveTo(row=self.row + 1, hi=1)
         info = 'moveDown() from ({}, {}) to ({}, {})'.format(oldRow, oldCol, self.rowCol2Indices(self.row, self.col)[0], self.rowCol2Indices(self.row, self.col)[1])
         if dbg or self.dbgMove: print(info, file=Tabs.DBG_FILE)
-        self.printh('{}: {}'.format(self.rCmds['moveDown'], info))
+        self.printh('{}: {}'.format(self.rCmds['moveDown'], info), pk=pk)
     
     def moveHome(self, pk=[], dbg=0):
         '''Move cursor to start of row on current line wrapping to end of row on previous line or last line'''
@@ -1080,7 +1087,7 @@ class Tabs(object):
         self.clearRow(self.lastRow)
         print('moveCursor(row={}, col={}, back={}) new: row={}, col={} end'.format(row, col, back, self.row, self.col), file=Tabs.DBG_FILE)
         info = 'moveCursor() from ({}, {}) to ({}, {})'.format(oldRow, oldCol, self.rowCol2Indices(self.row, self.col)[0], self.rowCol2Indices(self.row, self.col)[1])
-        self.printh('{}: {}'.format(self.rCmds['moveCursor'], info))
+        self.printh('{}: {}'.format(self.rCmds['moveCursor'], info), pk=pk)
     
     def tests(self):
         for c in (0, 207, 208, 415, 416, 623, 624, 831): print('tests() line=colIndex2Line({})={}'.format(c, self.colIndex2Line(c)), file=Tabs.DBG_FILE)
@@ -1568,12 +1575,10 @@ class Tabs(object):
                     for r in range(self.numStrings):
                         self.wrapPrintInterval(r, cc, dbg=dbg)
         pk.append(self.rCmds['setTab'])
-#        print('setTab() type(pk)={} pk={} before'.format(type(pk), pk), file=Tabs.DBG_FILE)
         self.dispatch(uicKey=self.rCmds['moveCursor'], pk=pk)
-#        print('setTab() type(pk)={} pk={} after'.format(type(pk), pk), file=Tabs.DBG_FILE)
         self.getMaxFretInfo()
         info = 'setTab() set tab={}({}) at ({}, {})'.format(tab, chr(tab), self.rowCol2Indices(row, col)[0], self.rowCol2Indices(row, col)[1])
-        self.printh('{}: {}'.format(self.rCmds['setTab'], info))
+        self.printh('{}: {}'.format(self.rCmds['setTab'], info), pk=pk)
         if dbg: self.dumpTabs('setTab() end')
     
     def deleteTab(self, pk=[], back=0, dbg=0):
@@ -2553,37 +2558,38 @@ class Tabs(object):
             self.errorsIndex += 1
             if self.errorsIndex == len(self.errors): self.errorsIndex = 0
     
-    def printCmdHistory(self, uicKey='', back=1, disp=1, dbg=1):
+    def printCmdHistory(self, back=1, disp=1, dbg=1):
         '''Display command history'''
-        if back == 1: iBgn, iEnd, iDelta, dir, index = len(self.cmds)-1, -1, -1, 'BACKWARD', 0
-        else:         iBgn, iEnd, iDelta, dir, index = 0, len(self.cmds), 1, 'FORWARD', 1
+        if back == 1: iBgn, iEnd, iDelta, dir, index = len(self.cmds[0])-1, -1, -1, 'BACKWARD', 0
+        else:         iBgn, iEnd, iDelta, dir, index = 0, len(self.cmds[0]), 1, 'FORWARD', 1
         if self.cmdsIndex == None:
             if disp: self.printh('{}: {} {} No command history to display - Press ? for help'.format(self.rCmds['printCmdHistory'][index], self.printCmdHistory.__doc__, dir), col=1, hist=1)
             return
         if dbg:
-            print('printCmdHistory({} {} {}) {} back={} cmdsIndex={} cmds[len={}]=['.format(iBgn, iEnd, iDelta, self.rCmds['printCmdHistory'][index], back, self.cmdsIndex, len(self.cmds)), file=Tabs.DBG_FILE)
+            print('printCmdHistory({} {} {}) {} back={} cmdsIndex={} cmds[len={}]=['.format(iBgn, iEnd, iDelta, self.rCmds['printCmdHistory'][index], back, self.cmdsIndex, len(self.cmds[0])), file=Tabs.DBG_FILE)
             for i in range(iBgn, iEnd, iDelta):
-                cmd = self.cmds[i]
+                cmd = self.cmds[0][i]
                 key = cmd[0 : cmd.find(':') + 1]
                 cmd = cmd.replace(key, '')
                 cmd = cmd.lstrip()
                 name = cmd[0 : cmd.find(' ')]
                 cmd = cmd.replace(name, '')
                 cmd = cmd.lstrip()
-                if i in self.cmdLvls and self.cmdLvls[i] == 0: j = i
-                else:                                          j = i - 1
-                if i in self.cmdLvls: print('{:>4} {:>4} {:>4} {:>17}  {:<24} {}'.format(i, self.cmdLvls[i], j, key, name, cmd), file=Tabs.DBG_FILE)
-                else:                 print('{:>4}      {:>4} {:>17}  {:<24} {}' .format(i,                  j, key, name, cmd), file=Tabs.DBG_FILE)
+#                if len(pk) > 0: self.dispatchLvl += 1
+#                if i in self.cmdLvls and self.cmdLvls[i] == 0: j = i
+#                else:                                          j = i - self.dispatchCnt
+                if i in self.cmdLvls: print('{:>4} {:>4} {:>17}  {:<24} {}'.format(i, self.cmdLvls[i], key, name, cmd), file=Tabs.DBG_FILE)
+                else:                 print('{:>4}      {:>17}  {:<24} {}' .format(i,                  key, name, cmd), file=Tabs.DBG_FILE)
             print(']', file=Tabs.DBG_FILE)
         if disp:
-            info = 'printCmdHistory() {} cmds'.format(len(self.cmds))
-            self.printh('{}: {} {} [{}] {}'.format(self.rCmds['printCmdHistory'][index], info, dir, self.cmdsIndex, self.cmds[self.cmdsIndex]), col=1, hist=1)
+            info = 'printCmdHistory() {} cmds'.format(len(self.cmds[0]))
+            self.printh('{}: {} {} [{}] {}'.format(self.rCmds['printCmdHistory'][index], info, dir, self.cmdsIndex, self.cmds[0][self.cmdsIndex]), col=1, hist=1)
         if back == 1:
             self.cmdsIndex -= 1
-            if self.cmdsIndex == -1:             self.cmdsIndex = len(self.cmds) - 1
+            if self.cmdsIndex == -1:             self.cmdsIndex = len(self.cmds[0]) - 1
         else:
             self.cmdsIndex += 1
-            if self.cmdsIndex == len(self.cmds): self.cmdsIndex = 0
+            if self.cmdsIndex == len(self.cmds[0]): self.cmdsIndex = 0
     
     def printe(self, reason, row=None, col=None, style=None, x=0):
         if row is None:     row = self.row
@@ -2596,16 +2602,17 @@ class Tabs(object):
         self.resetPos()
         if x: self.quit(reason='printe() {}'.format(reason), code=3)
     
-    def printh(self, reason, col=61, style=None, hist=0, dbg=0):
+    def printh(self, reason, pk=[], col=61, style=None, hist=0, dbg=0):
         if col is None:     col = self.col
         if style is None: style = self.styles['HLT_STUS']
         if hist == 0:
             if not self.filterCmds or reason.find(self.cmdFilterStr, 0, len(self.cmdFilterStr)) == -1:
-                self.cmds.append(reason)
-                self.cmdsIndex = len(self.cmds) - 1
+                self.cmds[0].append(reason)
+                self.cmdsIndex = len(self.cmds[0]) - 1
+                self.cmds[1].append(pk)
             else:
                 print('printh() filtered cmd={}'.format(reason), file=Tabs.DBG_FILE)
-        print('printh(col={}) hist={} reason[len={}]={}'.format(col, hist, len(reason), reason), file=Tabs.DBG_FILE)
+        print('printh(col={}) hist={} pk={} reason[len={}]={}'.format(col, hist, pk, len(reason), reason), file=Tabs.DBG_FILE)
         self.prints(reason, self.lastRow, col, style)
         self.resetPos()
     
