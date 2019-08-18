@@ -582,7 +582,7 @@ class Tabs(object):
                             self.numTabsPerString = self.numLines * self.numTabsPerStringPerLine
                             tmp, htmp, rowStr = self.appendTabs(tmp, htmp, rowStr)
                             tmp.append(data[i + 1])
-                            if dbg: print('readTabs({}) {} [{},{}] \'{}\' setting numTabsPerStringPerLine={} tmp=\'{}\''.format(rowStr, cnt, row, col, tab, self.numTabsPerStringPerLine, ''.join([chr(tmp[p]) for p in range(0, len(tmp))])), file=Tabs.DBG_FILE)
+                            if dbg: print('readTabs({}) {} [{},{}] \'{}\' setting numTabsPerStringPerLine={} tmp=\'{}\''.format(rowStr, cnt, row, col, tab, self.numTabsPerStringPerLine, ''.join([chr(tmp[p]) for p in range(len(tmp))])), file=Tabs.DBG_FILE)
                         elif self.isTab(tab) and self.numTabsPerStringPerLine != 0 and int(col) == self.COL_OFF - 1 + self.numTabsPerStringPerLine:
                             tmp, htmp, rowStr = self.appendTabs(tmp, htmp, rowStr)
                     else:
@@ -592,10 +592,10 @@ class Tabs(object):
             data = self.inFile.read(readSize)
             dataLen = len(data)
             if dataLen == 0:
-                print('readTabs() No more data to read from inFile, fragment: \'{}\''.format(''.join([chr(fragment[p]) for p in range(0, len(fragment))])), file=Tabs.DBG_FILE)
+                print('readTabs() No more data to read from inFile, fragment: \'{}\''.format(''.join([chr(fragment[p]) for p in range(len(fragment))])), file=Tabs.DBG_FILE)
                 break
             data = fragment + data
-            if dbg: print('readTabs() bytes read {:,}, reading next {:,} bytes and appending to fragment of len {} bytes ({:,} bytes):\n{}'.format(bytesRead, dataLen, len(fragment), dataLen + len(fragment), ''.join([chr(data[p]) for p in range(0, len(data))])), file=Tabs.DBG_FILE)
+            if dbg: print('readTabs() bytes read {:,}, reading next {:,} bytes and appending to fragment of len {} bytes ({:,} bytes):\n{}'.format(bytesRead, dataLen, len(fragment), dataLen + len(fragment), ''.join([chr(data[p]) for p in range(len(data))])), file=Tabs.DBG_FILE)
         print('readTabs() numStrings:{} =?= len(tabs):{}, numTabsPerString:{} =?= numLines:{} * numTabsPerStringPerLine:{}, totTabs:{}'.format(
             self.numStrings, len(self.tabs), self.numTabsPerString, self.numLines, self.numTabsPerStringPerLine, len(self.tabs) * len(self.tabs[0])), file=Tabs.DBG_FILE)
         self.dumpTabs('readTabs()')
@@ -663,12 +663,12 @@ class Tabs(object):
         print('removeLine(old) numTabsPerString:{} = numLines:{} * numTabsPerStringPerLine:{}, numTabs:{} = numStrings:{} * len(tabs[0]):{}'.format(self.numTabsPerString, self.numLines, self.numTabsPerStringPerLine, self.numTabs, self.numStrings, len(self.tabs[0])), file=Tabs.DBG_FILE)
         self.numLines -= 1
         self.numTabsPerString = self.numLines * self.numTabsPerStringPerLine
-        for (r, t) in enumerate(self.tabs):
+        for r, (t, ht) in enumerate(zip(self.tabs, self.htabs)):
             tabs.append(bytearray([ord('-')] * self.numTabsPerString))
             htabs.append(bytearray([ord('0')] * self.numTabsPerString))
             for c in range(self.numTabsPerString):
                 tabs[r][c] = t[c]
-                htabs[r][c] = self.htabs[r][c]
+                htabs[r][c] = ht[c]
         self.tabs = tabs
         self.htabs = htabs
         self.setLastRow()
@@ -693,6 +693,8 @@ class Tabs(object):
         print('quit() cmds[len={}]=['.format(len(self.cmds)), file=Tabs.DBG_FILE)
         for i in range(len(self.cmds[0])):
             print('{:>4}   {}    {}'.format(i, self.cmds[0][i], self.cmds[1][i]), file=Tabs.DBG_FILE)
+#        for i, (c0, c1) in enumerate(zip(self.cmds[0], self.cmds[1])):
+#            print('{:>4}   {}    {}'.format(i, c0[i], c1[i]), file=Tabs.DBG_FILE)
         print(']', file=Tabs.DBG_FILE)
         self.printErrorHistory(disp=not self.cleanExit)
         self.printCmdHistory(back=0, disp=not self.cleanExit)
@@ -1101,7 +1103,7 @@ class Tabs(object):
             print('row={} line={}'.format(row, line), file=Tabs.DBG_FILE)
     
     def row2Line(self, row):
-        for line in range(0, self.numLines):
+        for line in range(self.numLines):
             if 0 < row < self.bgnRow(line + 1) - 1:
                 return line
         self.printe('Range Error row={}'.format(row))
@@ -1146,14 +1148,14 @@ class Tabs(object):
         self.lastRow = self.ROW_OFF + self.numLines * self.lineDelta() - 1
     
     def _toggleCursorDir(self, dbg=1):
-        for line in range(0, self.numLines):
-            for r in range(0, self.numStrings):
+        for line in range(self.numLines):
+            for r in range(self.numStrings):
                 if self.cursorDir == self.CURSOR_DIRS['DOWN']: self.cursorDirStyle = self.styles['NUT_DN']
                 elif self.cursorDir == self.CURSOR_DIRS['UP']: self.cursorDirStyle = self.styles['NUT_UP']
                 self.prints(chr(self.capo), r + self.bgnRow(line)                                                        , self.cursorModeCol, self.cursorDirStyle)
                 self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings                                      , self.cursorModeCol, self.cursorDirStyle)
                 self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings + self.NOTES_LEN                     , self.cursorModeCol, self.cursorDirStyle)
-            for r in range(0, self.CHORDS_LEN):
+            for r in range(self.CHORDS_LEN):
                 self.prints(chr(self.capo), r + self.bgnRow(line) + self.numStrings + self.NOTES_LEN + self.INTERVALS_LEN, self.cursorModeCol, self.cursorDirStyle)
         if dbg: self.dumpLineInfo('toggleCursorDir({}) line={} row={} col={}'.format(self.cursorDir, line, self.row, self.col))
     
@@ -1176,7 +1178,7 @@ class Tabs(object):
         self.editMode = (self.editMode + 1) % len(self.EDIT_MODES)
         newMode = self.getEditMode()
         if self.displayLabels == self.DISPLAY_LABELS['ENABLED']:
-            for line in range(0, self.numLines):
+            for line in range(self.numLines):
                 r = line * self.lineDelta() + 1
                 self.prints(newMode, r, self.editModeCol, self.styles['MODES'])
             if dbg: self.dumpLineInfo('toggleEditMode({}, {})'.format(self.row, self.col))
@@ -1193,7 +1195,7 @@ class Tabs(object):
         self.cursorMode = (self.cursorMode + 1) % len(self.CURSOR_MODES)
         newMode = self.getCursorMode()
         if self.displayLabels == self.DISPLAY_LABELS['ENABLED']:
-            for line in range(0, self.numLines):
+            for line in range(self.numLines):
                 r = line * self.lineDelta() + 1
                 self.prints(newMode, r, self.cursorModeCol, self.styles['MODES'])
             if dbg: self.dumpLineInfo('toggleCursorMode({}, {})'.format(self.row, self.col))
@@ -1386,7 +1388,7 @@ class Tabs(object):
     
     def printColNums(self, row):
         print('printColNums(row={})'.format(row), file=Tabs.DBG_FILE)
-        for c in range(0, self.numTabsPerStringPerLine):
+        for c in range(self.numTabsPerStringPerLine):
             self.printColNum(row, c + 1, self.brightnessA)
     
     def printColNum(self, row, c, style):
@@ -1406,12 +1408,12 @@ class Tabs(object):
     def hiliteRowColNum(self, dbg=0):
         self.hiliteCount += 1
         if dbg: print('hiliteRowColNum({}, {}) hilitePrevRowPos={} hiliteRowNum={} hiliteColNum={} hiliteCount={}'.format(self.row, self.col, self.hilitePrevRowPos, self.hiliteRowNum, self.hiliteColNum, self.hiliteCount), file=Tabs.DBG_FILE)
-        for line in range(0, self.numLines):
+        for line in range(self.numLines):
             row = line * self.lineDelta() + 1
             if self.hiliteColNum != 0:
                 self.printColNum(row, self.hiliteColNum, self.brightnessA)
         self.hiliteColNum = self.col - self.COL_OFF + 1
-        for line in range(0, self.numLines):
+        for line in range(self.numLines):
             row = line * self.lineDelta() + 1
             if self.hiliteColNum != 0:
                 self.printColNum(row, self.hiliteColNum, self.brightnessB)
@@ -1645,11 +1647,11 @@ class Tabs(object):
         self.analyzeIndices = {}
         count = 0
         print('eraseTabs() chordAliases={} analyzeIndices={} setting all tabs to - and htabs to 0'.format(self.chordAliases, self.analyzeIndices), file=Tabs.DBG_FILE)
-        for (r, t) in enumerate(self.tabs):
+        for r, (t, ht) in enumerate(zip(self.tabs, self.htabs)):
             for c in range(len(t)):
                 count += 1
-                self.tabs[r][c] = ord('-')
-                self.htabs[r][c] = ord('0')
+                t[c] = ord('-')
+                ht[c] = ord('0')
                 if c in self.chordInfo:
                     print('eraseTabs() deleting chordInfo[{}]={}'.format(c, self.chordInfo[c]), file=Tabs.DBG_FILE)
                     del self.chordInfo[c]
@@ -1739,12 +1741,12 @@ class Tabs(object):
         print('selectCol(left={}) ({},{}), cc={} selectFlag={} selectRows={} selectCols={}'.format(left, self.row, self.col, cc, self.selectFlag, self.selectRows, self.selectCols), file=Tabs.DBG_FILE)
         if len(self.selectRows) == 0:
             self.selectFlag = 1
-            for r in range(0, self.numStrings):
+            for r in range(self.numStrings):
                 self.selectRows.append(r)
             print('selectCol(left={}) ({},{}) appended all rows cc={} selectFlag={} selectRows={} selectCols={}'.format(left, self.row, self.col, cc, self.selectFlag, self.selectRows, self.selectCols), file=Tabs.DBG_FILE)
         elif self.selectFlag == 0:
             self.selectFlag = 1
-            for c in range(0, len(self.selectCols)):
+            for c in range(len(self.selectCols)):
                 self.selectStyle(c, self.styles['NORMAL'], rList=self.selectRows)
             self.selectCols = []
             print('selectCol(left={}) ({},{}) removed all cols cc={} selectFlag={} selectRows={} selectCols={}'.format(left, self.row, self.col, cc, self.selectFlag, self.selectRows, self.selectCols), file=Tabs.DBG_FILE)
@@ -1787,7 +1789,7 @@ class Tabs(object):
     def selectStyle(self, c, bStyle, rList=None, r=None):
         print('selectStyle({}) c={}, rList={}, r={}'.format(bStyle, c, rList, r), file=Tabs.DBG_FILE)
         if rList is not None and r is None:
-            for rr in range(0, len(rList)):
+            for rr in range(len(rList)):
                 r = rList[rr]
                 self.selectRowStyle(r, c, bStyle)
         elif rList is None and r is not None:
@@ -1863,14 +1865,14 @@ class Tabs(object):
         elif  arpg == 1: size, nc, index = nsc * nsr,     nsc,   1
         elif  arpg == 0: size, nc, index = int(nsc / ns), int(nsc / ns), 2
         self.dumpSelectTabs(reason='copySelectTabs()', cols=1)
-        for r in range(0, nsr):
+        for r in range(nsr):
             self.selectTabs.append(bytearray([ord(' ')] * size))
             self.selectHTabs.append(bytearray([ord('0')] * size))
         nst = len(self.selectTabs[0])
         print('copySelectTabs({},{}) row={} col={} ns={} nsr={} nsc={} nt={} nst={} nc={}'.format(arpg, self.cursorDir, self.row, self.col, ns, nsr, nsc, nt, nst, nc), file=Tabs.DBG_FILE)
-        for c in range(0, nc):
+        for c in range(nc):
             cc = self.selectCols[c]
-            for r in range(0, nsr):
+            for r in range(nsr):
                 rr = self.selectRows[r]
                 if arpg is None: cst, ct = c, cc
                 elif arpg == 0:
@@ -1945,7 +1947,7 @@ class Tabs(object):
                 print('deleteTabsCol() deleting chordInfo[{}]={}'.format(cc, self.chordInfo[cc]), file=Tabs.DBG_FILE)
                 del self.chordInfo[cc]
             self.dumpChordInfo(self.chordInfo, reason='deleteTabsCol()')
-            for r in range(0, self.numStrings):
+            for r in range(self.numStrings):
                 for c in range(cc, len(self.tabs[r]) - 1):
                     self.tabs[r][c] = self.tabs[r][c + 1]
                     self.htabs[r][c] = self.htabs[r][c + 1]
@@ -1955,7 +1957,7 @@ class Tabs(object):
             self.printTabs()
         elif self.editMode == self.EDIT_MODES['REPLACE']:
             print('deleteTabsCol(REPLACE)'.format(cc, row, col), file=Tabs.DBG_FILE)
-            for r in range(0, self.numStrings):
+            for r in range(self.numStrings):
                 self._deleteTab(row + r, col, rmv=rmv)
         if dbg: self.dumpTabs('deleteTabsCol({}, {}) col={} end: '.format(self.row, self.col, col))
         self.getMaxFretInfo()
@@ -1978,7 +1980,7 @@ class Tabs(object):
         print('_initPasteInfo({},{}) row={} col={} rr={} cc={} nc={}'.format(self.arpeggiate, self.cursorDir, row, col, rr, cc, nc), file=Tabs.DBG_FILE)
         if self.editMode == self.EDIT_MODES['INSERT']:
             for c in range(nt - 1, cc - 1, -1):
-                for r in range(0, nsr):
+                for r in range(nsr):
                     if c >= nc + cc:
                         self.tabs[r][c] = self.tabs[r][c - nc]
                         self.htabs[r][c] = self.htabs[r][c - nc]
@@ -1989,13 +1991,13 @@ class Tabs(object):
                         print('_initPasteInfo(INSERT) c={} < cc={} + nst={}, tabs[{}][{}]={}'.format(c, cc, nst, r, c, chr(self.tabs[r][c])), file=Tabs.DBG_FILE)
         elif self.editMode == self.EDIT_MODES['REPLACE'] and self.arpeggiate and cc + nst < nt:
             for c in range(cc, cc + nst):
-                for r in range(0, nsr):
+                for r in range(nsr):
                     self.tabs[r][c] = ord('-')
                     self.htabs[r][c] = ord('0')
                     print('_initPasteInfo(REPLACE) tabs[{}][{}]={}'.format(r, c, chr(self.tabs[r][c])), file=Tabs.DBG_FILE)
-        for c in range(0, nsc):
+        for c in range(nsc):
             if rangeError: break
-            for r in range(0, nsr):
+            for r in range(nsr):
                 if self.arpeggiate == 1:
                     if   self.cursorDir == self.CURSOR_DIRS['DOWN']: ccc = c * nsr + r
                     elif self.cursorDir == self.CURSOR_DIRS['UP']:   ccc = (c + 1) * nsr - r - 1
@@ -2079,15 +2081,15 @@ class Tabs(object):
     
     def dumpTabs(self, reason='', h=None):
         print('dumpTabs({})'.format(reason), file=Tabs.DBG_FILE)
-        for line in range(0, self.numLines):
+        for line in range(self.numLines):
             for r, (t, ht) in enumerate(zip(self.tabs, self.htabs)):
                 if r == 0:
                     print('L={}: '.format(line), end='', file=Tabs.DBG_FILE)
-                    for c in range(0, self.numTabsPerStringPerLine):
+                    for c in range(self.numTabsPerStringPerLine):
                         print('{}'.format(Tabs.getColMod(c)), end='', file=Tabs.DBG_FILE)
                     print(file=Tabs.DBG_FILE)
                 print('R={}: '.format(r), end='', file=Tabs.DBG_FILE)
-                for c in range(0, self.numTabsPerStringPerLine):
+                for c in range(self.numTabsPerStringPerLine):
                     if h is None:
                         print(chr(t[c + line * self.numTabsPerStringPerLine]), end='', file=Tabs.DBG_FILE)
                     else:
@@ -2096,7 +2098,7 @@ class Tabs(object):
     
     def dumpLineInfo(self, reason):
         print('{} maxFN={}({}) numStrings={} numLines={} lineDelta={}'.format(reason, self.maxFretInfo['MAX'], chr(self.maxFretInfo['MAX']), self.numStrings, self.numLines, self.lineDelta()), end='', file=Tabs.DBG_FILE)
-        for line in range(0, self.numLines):
+        for line in range(self.numLines):
             print(' bgnRow{}={} endRow{}={}'.format(line, self.bgnRow(line), line, self.endRow(line)), end='', file=Tabs.DBG_FILE)
         print(' ROW_OFF={} lastRow={} bgnCol={} endCol={} line={}'.format(self.ROW_OFF, self.lastRow, self.bgnCol(), self.endCol(), self.row2Line(self.row)), file=Tabs.DBG_FILE)
     
@@ -2144,12 +2146,12 @@ class Tabs(object):
     
     def printNotes(self, dbg=0):
         self.printFileMark('<BGN_NOTES_SECTION>')
-        for line in range(0, self.numLines):
-            for r in range(0, self.numStrings):
+        for line in range(self.numLines):
+            for r, (t, ht) in enumerate(zip(self.tabs, self.htabs)):
                 row = r + line * self.lineDelta() + self.endRow(0) + 1
-                for c in range (0, self.numTabsPerStringPerLine):
+                for c in range (self.numTabsPerStringPerLine):
                     cc = c + line * self.numTabsPerStringPerLine
-                    capTab = tab = self.tabs[r][cc]
+                    capTab = tab = t[cc]
                     if dbg and line == 0 and c == 0: print('printNotes() r={} tab={}({}) captab={}({}) bgn'.format(r, tab, chr(tab), capTab, chr(capTab)), file=Tabs.DBG_FILE)
                     if Tabs.isFret(chr(tab)):
                         capTab = self.getFretByte(self.getFretNum(tab) + self.getFretNum(self.capo))
@@ -2158,7 +2160,7 @@ class Tabs(object):
                         self.printNote(row, self.editModeCol, n)
                         self.prints(chr(self.capo), row, self.cursorModeCol, self.cursorDirStyle)
                     if Tabs.isFret(chr(capTab)):
-                        if chr(self.htabs[r][cc]) == '1':
+                        if chr(ht[cc]) == '1':
                             print('printNotes() r={} tab={}({}) captab={}({}) tabFN={} capFN={}'.format(r, tab, chr(tab), capTab, chr(capTab), self.getFretNum(tab), self.getFretNum(capTab)), file=Tabs.DBG_FILE)
                             n = self.getHarmonicNote(r + 1, capTab)
                             self.printNote(row, c + self.COL_OFF, n, hn=1)
@@ -2198,14 +2200,12 @@ class Tabs(object):
     
     def printIntervals(self, dbg=1):
         self.printFileMark('<BGN_INTERVALS_SECTION>')
-        for line in range(0, self.numLines):
-            for r in range(0, self.numStrings):
+        for line in range(self.numLines):
+            for (r, il) in enumerate(self.IVAL_LABEL):
                 row = r + self.bgnRow(line) + self.numStrings + self.NOTES_LEN
-                self.prints(self.IVAL_LABEL[r], row, 1, self.styles['IVAL_LABEL'])
+                self.prints(il, row, 1, self.styles['IVAL_LABEL'])
                 self.prints(chr(self.capo), row, self.cursorModeCol, self.cursorDirStyle)
-                for c in range(self.COL_OFF, self.COL_OFF):
-                    self.prints(' ', row, c, self.styles['IVAL_LABEL'])
-            for c in range (0, self.numTabsPerStringPerLine):
+            for c in range (self.numTabsPerStringPerLine):
                 cc = c + line * self.numTabsPerStringPerLine
                 self.printColumnIvals(cc, dbg=0)
         self.printFileMark('<END_INTERVALS_SECTION>')
@@ -2213,7 +2213,7 @@ class Tabs(object):
     def printColumnIvals(self, c, dbg=0):
         line = self.colIndex2Line(c)
         if dbg and c==0: print('printColumnIvals({}) bgn line={} selectChords={}'.format(c, line, self.selectChords), file=Tabs.DBG_FILE)
-        for r in range(0, self.numStrings):
+        for r in range(self.numStrings):
             row = r + self.bgnRow(line) + self.numStrings + self.NOTES_LEN
             cc = c % self.numTabsPerStringPerLine
             self.prints('-', row, cc + self.COL_OFF, self.styles['NAT_IVAL'])
@@ -2264,7 +2264,7 @@ class Tabs(object):
     def printLabels(self):
         self.printFileMark('<BGN_LABELS_SECTION>')
         print('printLabels()'.format(), file=Tabs.DBG_FILE)
-        for line in range(0, self.numLines):
+        for line in range(self.numLines):
             row = line * self.lineDelta() + 1
             if self.outFile == None:
                 self.printCursorAndEditModes(row)
