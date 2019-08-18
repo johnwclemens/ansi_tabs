@@ -738,7 +738,7 @@ class Tabs(object):
             print('{:>20} : {}'.format(k, self.uiCmds[k].__doc__), file=Tabs.DBG_FILE)
     
     def registerUiCmds(self):
-        if len(self.cmds) == 1: self.cmds.append([])
+        if len(self.cmds) >= 1 and len(self.cmds) <= 2: self.cmds.append([])
         self.rCmds = {}
         self.uiCmds = {}
         self.uiKeys = []
@@ -2234,7 +2234,7 @@ class Tabs(object):
             imap = self.selectImaps[imapstr]
             if dbg and r == 0:
                 print('wrapPrintInterval({:>3} {}) imap={}        FOUND imapstr={} in'.format(c, index, imap, imapstr), end=' ', file=Tabs.DBG_FILE)
-                self.dumpSelectImaps()
+                self.dumpSelectImaps(reason='wrapPrintInterval()')
                 print('wrapPrintInterval({:>3} {}) imap={} SWAP MAP K&V imapstr={}'.format(c, index, imap, self.map2String(imap)), file=Tabs.DBG_FILE)
         im = {imap[k]:k for k in imap}
         tab = self.tabs[r][c]
@@ -2448,7 +2448,7 @@ class Tabs(object):
             info = 'analyzeChord() at c={} index={}'.format(c, index)
             self.printh('{}: {}'.format(self.rCmds['analyzeChord'], info))
     
-    def selectChord(self, pk=[], pt=1, dbg=0):
+    def selectChord(self, pk=[], pt=1, dbg=1):
         '''Select chordInfo index for chord names and intervals and info on the Status line'''
         r, c = self.rowCol2Indices(self.row, self.col)
         self.dumpInfo(reason='selectChord(pt={} c={}) row={} col={} r={}'.format(pt, c, self.row, self.col, r))
@@ -2474,19 +2474,19 @@ class Tabs(object):
             if dbg: print('selectChord(c={}) index={} selectChords[{}]={}'.format(c, index, name, self.selectChords[name]), file=Tabs.DBG_FILE)
             im = self.chordInfo[c]['LIMAP'][index]
             if dbg: print('selectChord(c={}) adding key={} : val={} to '.format(c, self.map2String(im), imap), end='', file=Tabs.DBG_FILE)
-            if dbg: self.dumpSelectImaps()
+            if dbg: self.dumpSelectImaps(reason='selectChord()')
             self.selectImaps[self.map2String(im)] = imap
-            if dbg: self.dumpSelectImaps()
+            if dbg: self.dumpSelectImaps(reason='selectChord()')
             if pt:
                 self.printTabs()
                 info = 'selectChord() at c={} index={}'.format(c, index)
                 self.printh('{}: {}'.format(self.rCmds['selectChord'], info))
         else: self.printe('selectChord() nothing to select use \'Ctrl A\' analyzeChord() first')
     
-    def dumpSelectImaps(self):
-        print('selectImaps={{'.format(), end=' ', file=Tabs.DBG_FILE)
-        for k in self.selectImaps:
-            print('{} : {}'.format(k, self.selectImaps[k]), end=', ', file=Tabs.DBG_FILE)
+    def dumpSelectImaps(self, reason):
+        print('dumpSelectImaps() {} selectImaps={{'.format(reason), end=' ', file=Tabs.DBG_FILE)
+        for k, v in self.selectImaps.items():
+            print('{} : {}'.format(k, v), end=', ', file=Tabs.DBG_FILE)
         print('}', file=Tabs.DBG_FILE)
     
     def printChordInfo(self, r, c, m, reason=None, dbg=0):

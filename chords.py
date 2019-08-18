@@ -46,14 +46,17 @@ class Chords(object):
         print('printChords({} {}) {} =?= {} * {}'.format(self.tobj.row, self.tobj.col, self.tobj.numTabsPerString, self.tobj.numLines, self.tobj.numTabsPerStringPerLine), file=self.tobj.DBG_FILE)
         for line in range(self.tobj.numLines):
             row = self.tobj.ROW_OFF + line * self.tobj.lineDelta() + self.tobj.numStrings + self.tobj.NOTES_LEN + self.tobj.INTERVALS_LEN
-            for r in range(self.tobj.CHORDS_LEN):
-                self.tobj.prints(self.CHORD_LABEL[r], r + row, 1, self.tobj.styles['NAT_CHORD'])
+#            for r in range(self.tobj.CHORDS_LEN):
+#                self.tobj.prints(self.CHORD_LABEL[r], r + row, 1, self.tobj.styles['NAT_CHORD'])
+#                self.tobj.prints(chr(self.tobj.capo), r + row, self.tobj.cursorModeCol, self.tobj.cursorDirStyle)
+            for (r, l) in enumerate(self.CHORD_LABEL):
+                self.tobj.prints(l, r + row, 1, self.tobj.styles['NAT_CHORD'])
                 self.tobj.prints(chr(self.tobj.capo), r + row, self.tobj.cursorModeCol, self.tobj.cursorDirStyle)
         for c in range(self.tobj.numTabsPerString):
             self.eraseChord(c, rmv=0)
             noteCount = 0
-            for r in range(self.tobj.numStrings):
-                if self.tobj.isFret(chr(self.tobj.tabs[r][c])):
+            for t in self.tobj.tabs:
+                if self.tobj.isFret(chr(t[c])):
                     noteCount += 1
                     if noteCount > 1:
                         self.printChord(c=c)
@@ -62,7 +65,7 @@ class Chords(object):
         self.tobj.printFileMark('<END_CHORDS_SECTION>')
         return self.chordNames
     
-    def printChord(self, c, bStyle='', pc=1, dbg=0):
+    def printChord(self, c, bStyle='', pc=1, dbg=1):
         '''Analyze notes in given column index and if a valid chord is discovered then print it in the appropriate chords section.'''
         self.c = c
         if self.c is None:
@@ -117,62 +120,64 @@ class Chords(object):
         tbs = []
         if capoed: label = ']\n{}capoed tabs ['.format(self.indent)
         else:      label = ']\n{}tabs        ['.format(self.indent)
-        for r in range(self.tobj.numStrings):
-            if self.tobj.isFret(chr(self.tobj.tabs[r][self.c])):
-                if capoed: tab = chr(self.tobj.getFretByte(self.tobj.getFretNum(self.tobj.tabs[r][self.c]) + self.tobj.getFretNum(self.tobj.capo)))
-                else:      tab = chr(self.tobj.tabs[r][self.c])
+        for t in self.tobj.tabs:
+            if self.tobj.isFret(chr(t[self.c])):
+                if capoed: tab = chr(self.tobj.getFretByte(self.tobj.getFretNum(t[self.c]) + self.tobj.getFretNum(self.tobj.capo)))
+                else:      tab = chr(t[self.c])
                 tbs.insert(0, tab)
         print('{}'.format(label), end='', file=self.tobj.DBG_FILE)
-        for t in range(len(tbs)):
-            print('{:>5}'.format(tbs[t]), end=' ', file=self.tobj.DBG_FILE)
+        for t in tbs:
+            print('{:>5}'.format(t), end=' ', file=self.tobj.DBG_FILE)
     
     def getNotesAndIndices(self, dbg=0):
         _notes = []
-        for r in range(self.tobj.numStrings):
-            if self.tobj.isFret(chr(self.tobj.tabs[r][self.c])):
-                tab = self.tobj.getFretByte(self.tobj.getFretNum(self.tobj.tabs[r][self.c]) + self.tobj.getFretNum(self.tobj.capo))
+        for (r, t) in enumerate(self.tobj.tabs):
+            if self.tobj.isFret(chr(t[self.c])):
+                tab = self.tobj.getFretByte(self.tobj.getFretNum(t[self.c]) + self.tobj.getFretNum(self.tobj.capo))
                 if self.tobj.isFret(chr(tab)):
                     note = self.tobj.getNote(r + 1, tab)
                     _notes.insert(0, note.name)
         if dbg:
             print(']\n{}notes       ['.format(self.indent), end='', file=self.tobj.DBG_FILE)
-            for t in range(len(_notes)):
-                print('{:>5}'.format(_notes[t]), end=' ', file=self.tobj.DBG_FILE)
+            for n in _notes:
+                print('{:>5}'.format(n), end=' ', file=self.tobj.DBG_FILE)
         indices = []
-        for r in range(self.tobj.numStrings):
-            if self.tobj.isFret(chr(self.tobj.tabs[r][self.c])):
-                tab = self.tobj.getFretByte(self.tobj.getFretNum(self.tobj.tabs[r][self.c]) + self.tobj.getFretNum(self.tobj.capo))
+        for (r, t) in enumerate(self.tobj.tabs):
+            if self.tobj.isFret(chr(t[self.c])):
+                tab = self.tobj.getFretByte(self.tobj.getFretNum(t[self.c]) + self.tobj.getFretNum(self.tobj.capo))
                 if self.tobj.isFret(chr(tab)):
                     note = self.tobj.getNote(r + 1, tab)
                     indices.insert(0, note.index)
         if dbg:
             print(']\n{}indices     ['.format(self.indent), end='', file=self.tobj.DBG_FILE)
-            for t in range(len(indices)):
-                print('{:>5}'.format(indices[t]), end=' ', file=self.tobj.DBG_FILE)
+            for i in indices:
+                print('{:>5}'.format(i), end=' ', file=self.tobj.DBG_FILE)
             print(']', file=self.tobj.DBG_FILE)
         return (_notes, indices)
     
     def getIntervals(self, j, indices, dbg=0):
         deltas = []
-        for i in range(len(indices)):
-            if indices[i] - indices[j] >= 0:
-                deltas.append((indices[i] - indices[j]) % notes.Note.NUM_SEMI_TONES)
+        for i in indices:
+            if i - indices[j] >= 0:
+                deltas.append((i - indices[j]) % notes.Note.NUM_SEMI_TONES)
             else:
-                d = (indices[j] - indices[i]) % notes.Note.NUM_SEMI_TONES
+                d = (indices[j] - i) % notes.Note.NUM_SEMI_TONES
                 delta = notes.Note.NUM_SEMI_TONES - d
                 if delta == notes.Note.NUM_SEMI_TONES: delta = 0
                 deltas.append(delta)
         if dbg:
             print('{}deltas      ['.format(self.indent), end='', file=self.tobj.DBG_FILE)
-            for t in range(len(deltas)):
-                print('{:>5}'.format(deltas[t]), end=' ', file=self.tobj.DBG_FILE)
+            for d in deltas:
+                print('{:>5}'.format(d), end=' ', file=self.tobj.DBG_FILE)
         intervals = []
-        for i in range(len(deltas)):
-            intervals.append(self.INTERVALS[deltas[i]])
+        for d in deltas:
+            intervals.append(self.INTERVALS[d])
         if dbg:
             print(']\n{}intervals   ['.format(self.indent), end='', file=self.tobj.DBG_FILE)
-            for t in range(len(deltas)):
-                print('{:>5}'.format(intervals[t]), end=' ', file=self.tobj.DBG_FILE)
+#            for t in range(len(deltas)):
+#                print('{:>5}'.format(intervals[t]), end=' ', file=self.tobj.DBG_FILE)
+            for (t, i) in enumerate(intervals):
+                print('{:>5}'.format(i), end=' ', file=self.tobj.DBG_FILE)
         return intervals
     
     def getImapAndKeys(self, intervals, _notes, dbg=0):
@@ -183,8 +188,10 @@ class Chords(object):
         sdeltas, rdeltas, relimapKeys = [], [], ['R']
         for k in imapKeys: sdeltas.append(self.INTERVAL_RANK[k])
         rdeltas.append(sdeltas[0])
-        for i in range(1, len(sdeltas)): 
-            rdeltas.append(sdeltas[i] - sdeltas[i-1])
+#        for i in range(1, len(sdeltas)):
+#            rdeltas.append(sdeltas[i] - sdeltas[i-1])
+        for (i, sd) in enumerate(sdeltas, 1):
+            rdeltas.append(sd - sdeltas[i-1])
             relimapKeys.append(self.INTERVALS[rdeltas[i]])
         if dbg >= 2:
             print(']\n{}sdeltas     ['.format(self.indent), end='', file=self.tobj.DBG_FILE)
