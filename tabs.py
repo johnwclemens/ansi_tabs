@@ -648,8 +648,8 @@ class Tabs(object):
         self.tabs = tabs
         self.setLastRow()
         count = 0
-        for r in range(0, self.numStrings):
-            count += len(self.tabs[r])
+        for t in self.tabs:
+            count += len(t)
         self.numTabs = count
         print('appendLine(new) numTabsPerString:{} = numLines:{} * numTabsPerStringPerLine:{}, numTabs:{} = numStrings:{} * len(tabs[0]):{}'.format(self.numTabsPerString, self.numLines, self.numTabsPerStringPerLine, self.numTabs, self.numStrings, len(self.tabs[0])), file=Tabs.DBG_FILE)
         if pt:
@@ -663,18 +663,19 @@ class Tabs(object):
         print('removeLine(old) numTabsPerString:{} = numLines:{} * numTabsPerStringPerLine:{}, numTabs:{} = numStrings:{} * len(tabs[0]):{}'.format(self.numTabsPerString, self.numLines, self.numTabsPerStringPerLine, self.numTabs, self.numStrings, len(self.tabs[0])), file=Tabs.DBG_FILE)
         self.numLines -= 1
         self.numTabsPerString = self.numLines * self.numTabsPerStringPerLine
-        for r in range(0, self.numStrings):
+#        for r in range(self.numStrings):
+        for (r, t) in enumerate(self.tabs):
             tabs.append(bytearray([ord('-')] * self.numTabsPerString))
             htabs.append(bytearray([ord('0')] * self.numTabsPerString))
-            for c in range(0, self.numTabsPerString):
-                tabs[r][c] = self.tabs[r][c]
+            for c in range(self.numTabsPerString):
+                tabs[r][c] = t[c]
                 htabs[r][c] = self.htabs[r][c]
         self.tabs = tabs
         self.htabs = htabs
         self.setLastRow()
         count = 0
-        for r in range(0, self.numStrings):
-            count += len(self.tabs[r])
+        for t in self.tabs:
+            count += len(t)
         self.numTabs = count
         print('removeLine(new) numTabsPerString:{} = numLines:{} * numTabsPerStringPerLine:{}, numTabs:{} = numStrings:{} * len(tabs[0]):{}'.format(self.numTabsPerString, self.numLines, self.numTabsPerStringPerLine, self.numTabs, self.numStrings, len(self.tabs[0])), file=Tabs.DBG_FILE)
         self.printTabs(cs=1)
@@ -1549,8 +1550,10 @@ class Tabs(object):
                 if cc in self.chordInfo: 
                     if dbg: print('setTab(DISPLAY_CHORDS) chordInfo[{}]={}'.format(cc, self.chordInfo[cc]), file=Tabs.DBG_FILE)
                 noteCount = 0
-                for r in range(0, self.numStrings):
-                    if Tabs.isFret(chr(self.tabs[r][cc])):
+#                for r in range(0, self.numStrings):
+#                    if Tabs.isFret(chr(self.tabs[r][cc])):
+                for (r, t) in enumerate(self.tabs):
+                    if Tabs.isFret(chr(t[cc])):
                         if dbg: self.dumpChordInfo(self.chordInfo, reason='setTab(DISPLAY_CHORDS) r={} cc={}'.format(r, cc))
                         noteCount += 1
                         if noteCount > 1:
@@ -1645,8 +1648,8 @@ class Tabs(object):
         self.analyzeIndices = {}
         count = 0
         print('eraseTabs() chordAliases={} analyzeIndices={} setting all tabs to - and htabs to 0'.format(self.chordAliases, self.analyzeIndices), file=Tabs.DBG_FILE)
-        for r in range(0, len(self.tabs)):
-            for c in range(0, len(self.tabs[r])):
+        for (r, t) in enumerate(self.tabs):
+            for c in range(0, len(t)):
                 count += 1
                 self.tabs[r][c] = ord('-')
                 self.htabs[r][c] = ord('0')
@@ -1777,8 +1780,8 @@ class Tabs(object):
     def unselectAll(self, pk=[]):
         '''Unselect all rows and columns.'''
         print('unselectAll({},{}) bgn selectFlag={} selectRows={} selectCols={} selectTabs={}'.format(self.row, self.col, self.selectFlag, self.selectRows, self.selectCols, self.selectTabs), file=Tabs.DBG_FILE)
-        for c in range(0, len(self.selectCols)):
-            self.selectStyle(self.selectCols[c], self.styles['NORMAL'], rList=self.selectRows)
+        for (c, sc) in enumerate(self.selectCols):
+            self.selectStyle(sc, self.styles['NORMAL'], rList=self.selectRows)
         self.selectRows, self.selectCols, self.selectTabs, self.selectHTabs, self.selectFlag = [], [], [], [], 0
         print('unselectAll({},{}) end selectFlag={} selectRows={} selectCols={} selectTabs={}'.format(self.row, self.col, self.selectFlag, self.selectRows, self.selectCols, self.selectTabs), file=Tabs.DBG_FILE)
         info = 'unselectAll() selectRows={} selectCols={}'.format(self.selectRows, self.selectCols)
@@ -1906,9 +1909,9 @@ class Tabs(object):
         '''Delete selected tabs and all corresponding notes, intervals, and chords, resets all tabs to [-]'''
         self.dumpLineInfo('deleteSelectTabs({}, {}) rmv={} selectCols={}'.format(self.row, self.col, rmv, self.selectCols))
         self.selectCols.sort(key = int, reverse = True)
-        for c in range(0, len(self.selectCols)):
+        for (c, sc) in enumerate(self.selectCols):
             print('deleteSelectTabs() c={}'.format(c), file=Tabs.DBG_FILE)
-            self.deleteTabsCol(self.selectCols[c], rmv=rmv)
+            self.deleteTabsCol(sc, rmv=rmv)
         if rmv == 1:
             self.selectCols = []
         if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
@@ -1930,10 +1933,10 @@ class Tabs(object):
     def dumpSelectTabs(self, reason='', cols=0):
         print('dumpSelectTabs(cols={}, reason={}) len(selectCols)={} len(selectTabs)={}'.format(cols, reason, len(self.selectCols), len(self.selectTabs)), file=Tabs.DBG_FILE)
         if cols:
-            for c in range(0, len(self.selectCols)):
-                print('    selectCols[{}]={}'.format(c, self.selectCols[c]), file=Tabs.DBG_FILE)
-        for c in range(0, len(self.selectTabs)):
-            print('    selectTabs[{}]={}'.format(c, self.selectTabs[c]), file=Tabs.DBG_FILE)
+            for (c, sc) in enumerate(self.selectCols):
+                print('    selectCols[{}]={}'.format(c, sc), file=Tabs.DBG_FILE)
+        for (c, st) in enumerate(self.selectTabs):
+            print('    selectTabs[{}]={}'.format(c, st), file=Tabs.DBG_FILE)
     
     def deleteTabsCol(self, cc, rmv=1, dbg=0):
         row, col = self.indices2RowCol(0, cc)

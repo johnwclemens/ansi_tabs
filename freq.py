@@ -13,7 +13,7 @@ INDICES = { 'C0': 0, 'C#0': 1, 'Db0': 1, 'D0': 2, 'D#0': 3, 'Eb0': 3, 'E0': 4, '
     
 def main():
     print('Index\tNote\tFreq')
-    for i in range(96):
+    for i in range(len(INDICES)):
         n = S_TONES[i % NUM_SEMI_TONES]
         f = getFreq(i)
         print('{}\t{}\t{}'.format(i, n, f))

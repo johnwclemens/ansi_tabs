@@ -46,9 +46,6 @@ class Chords(object):
         print('printChords({} {}) {} =?= {} * {}'.format(self.tobj.row, self.tobj.col, self.tobj.numTabsPerString, self.tobj.numLines, self.tobj.numTabsPerStringPerLine), file=self.tobj.DBG_FILE)
         for line in range(self.tobj.numLines):
             row = self.tobj.ROW_OFF + line * self.tobj.lineDelta() + self.tobj.numStrings + self.tobj.NOTES_LEN + self.tobj.INTERVALS_LEN
-#            for r in range(self.tobj.CHORDS_LEN):
-#                self.tobj.prints(self.CHORD_LABEL[r], r + row, 1, self.tobj.styles['NAT_CHORD'])
-#                self.tobj.prints(chr(self.tobj.capo), r + row, self.tobj.cursorModeCol, self.tobj.cursorDirStyle)
             for (r, l) in enumerate(self.CHORD_LABEL):
                 self.tobj.prints(l, r + row, 1, self.tobj.styles['NAT_CHORD'])
                 self.tobj.prints(chr(self.tobj.capo), r + row, self.tobj.cursorModeCol, self.tobj.cursorDirStyle)
@@ -174,9 +171,7 @@ class Chords(object):
             intervals.append(self.INTERVALS[d])
         if dbg:
             print(']\n{}intervals   ['.format(self.indent), end='', file=self.tobj.DBG_FILE)
-#            for t in range(len(deltas)):
-#                print('{:>5}'.format(intervals[t]), end=' ', file=self.tobj.DBG_FILE)
-            for (t, i) in enumerate(intervals):
+            for i in intervals:
                 print('{:>5}'.format(i), end=' ', file=self.tobj.DBG_FILE)
         return intervals
     
@@ -188,8 +183,6 @@ class Chords(object):
         sdeltas, rdeltas, relimapKeys = [], [], ['R']
         for k in imapKeys: sdeltas.append(self.INTERVAL_RANK[k])
         rdeltas.append(sdeltas[0])
-#        for i in range(1, len(sdeltas)):
-#            rdeltas.append(sdeltas[i] - sdeltas[i-1])
         for (i, sd) in enumerate(sdeltas, 1):
             rdeltas.append(sd - sdeltas[i-1])
             relimapKeys.append(self.INTERVALS[rdeltas[i]])
