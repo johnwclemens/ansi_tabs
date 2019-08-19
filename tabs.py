@@ -211,26 +211,26 @@ class Tabs(object):
             print('init() txts=\{ ', file=Tabs.DBG_FILE)
             for k in self.txts:
                 print('{}:{}, '.format(k, self.txts[k]), file=Tabs.DBG_FILE)
-            if 'help' in self.argMap and len(self.argMap['help']) == 0: self.printHelpInfo(ui=0)      # display the help info
-            if '?' in self.argMap and len(self.argMap['?']) == 0: self.printHelpInfo(ui=0)            # display the help info
-            if 'h' in self.argMap and len(self.argMap['h']) == 0: self.printHelpInfo(ui=0)            # display the help info
-            if 'k' in self.argMap and len(self.argMap['k'])  > 0: self.setCapo(c=self.argMap['k'][0]) # set capo at desired fret
-            if 'F' in self.argMap and len(self.argMap['F']) == 0: self.toggleEnharmonic()             # enharmonic notes displayed as sharp or flat
-            if 'i' in self.argMap and len(self.argMap['i']) == 0: self.toggleCursorDir(dbg=1)         # automatic cursor movement direction as down or up
-            if 'a' in self.argMap and len(self.argMap['a']) == 0: self.toggleDisplayLabels(pt=0)      # display edit mode, cursor mode, and column numbers
-            if 'b' in self.argMap and len(self.argMap['b']) == 0: self.toggleDisplayChords(pt=0)      # chords display section
-            if 'I' in self.argMap and len(self.argMap['I']) == 0: self.toggleDisplayIntervals(pt=0)   # intervals display section
-            if 'n' in self.argMap and len(self.argMap['n']) == 0: self.toggleDisplayNotes(pt=0)       # notes display section
-            if 'D' in self.argMap and len(self.argMap['D'])  > 0: self.toggleBrightness(pt=0, bi=int(self.argMap['D'][0])) # color scheme
-            if 'U' in self.argMap and len(self.argMap['U'])  > 0: self.toggleColors(pt=0,     ci=int(self.argMap['U'][0])) # brightness
-            if 'l' in self.argMap and len(self.argMap['l']) == 0: self.goToLastTab(cs=1)              # go to last tab on current line of current string
-            if 'L' in self.argMap and len(self.argMap['L']) == 0: self.goToLastTab()                  # go to last tab on current line of all strings
-            if 'z' in self.argMap and len(self.argMap['z']) == 0: self.goToLastTab(cs=1, ll=1)        # go to last tab on last line of current string
-            if 'Z' in self.argMap and len(self.argMap['Z']) == 0: self.goToLastTab(ll=1)              # go to last tab on last line of all strings
-            parse1, data1 = self.parseStateData(self.chordAliases, 'StartChordAliases')
+            if 'help' in self.argMap and len(self.argMap['help']) == 0: self.printHelpInfo(ui=0)            # display the help info
+            if    '?' in self.argMap and len(self.argMap   ['?']) == 0: self.printHelpInfo(ui=0)            # display the help info
+            if    'h' in self.argMap and len(self.argMap   ['h']) == 0: self.printHelpInfo(ui=0)            # display the help info
+            if    'k' in self.argMap and len(self.argMap   ['k'])  > 0: self.setCapo(c=self.argMap['k'][0]) # set capo at desired fret
+            if    'F' in self.argMap and len(self.argMap   ['F']) == 0: self.toggleEnharmonic()             # enharmonic notes displayed as sharp or flat
+            if    'i' in self.argMap and len(self.argMap   ['i']) == 0: self.toggleCursorDir(dbg=1)         # automatic cursor movement direction as down or up
+            if    'a' in self.argMap and len(self.argMap   ['a']) == 0: self.toggleDisplayLabels(pt=0)      # display edit mode, cursor mode, and column numbers
+            if    'b' in self.argMap and len(self.argMap   ['b']) == 0: self.toggleDisplayChords(pt=0)      # chords display section
+            if    'I' in self.argMap and len(self.argMap   ['I']) == 0: self.toggleDisplayIntervals(pt=0)   # intervals display section
+            if    'n' in self.argMap and len(self.argMap   ['n']) == 0: self.toggleDisplayNotes(pt=0)       # notes display section
+            if    'D' in self.argMap and len(self.argMap   ['D'])  > 0: self.toggleBrightness(pt=0, bi=int(self.argMap['D'][0])) # color scheme
+            if    'U' in self.argMap and len(self.argMap   ['U'])  > 0: self.toggleColors(pt=0,     ci=int(self.argMap['U'][0])) # brightness
+            if    'l' in self.argMap and len(self.argMap   ['l']) == 0: self.goToLastTab(cs=1)              # go to last tab on current line of current string
+            if    'L' in self.argMap and len(self.argMap   ['L']) == 0: self.goToLastTab()                  # go to last tab on current line of all strings
+            if    'z' in self.argMap and len(self.argMap   ['z']) == 0: self.goToLastTab(cs=1, ll=1)        # go to last tab on last line of current string
+            if    'Z' in self.argMap and len(self.argMap   ['Z']) == 0: self.goToLastTab(ll=1)              # go to last tab on last line of all strings
+            parse1, data1 = self.parseStateData(self.chordAliases,   'StartChordAliases')
             parse2, data2 = self.parseStateData(self.analyzeIndices, 'StartAnalyzeIndices')
             if parse1 and parse2:
-                self.chordAliases = data1
+                self.chordAliases   = data1
                 self.analyzeIndices = data2
                 print('init() chordAliases(len={})={}'.format(len(self.chordAliases), self.chordAliases), file=Tabs.DBG_FILE)
                 print('init() analyzeIndices(len={})={}'.format(len(self.analyzeIndices), self.analyzeIndices), file=Tabs.DBG_FILE)
@@ -314,13 +314,13 @@ class Tabs(object):
         for i in range(128): print('    {}({})'.format(i, chr(i)), file=Tabs.DBG_FILE)
     
     def testAnsi(self):
-        print(Tabs.CSI + self.styles['TABS']       + Tabs.CSI + '{};{}H{}'.format(1, 1, 'TABS'), file=file)
-        print(Tabs.CSI + self.styles['H_TABS']     + Tabs.CSI + '{};{}H{}'.format(1, 20, 'H_TABS!'), file=file)
-        print(Tabs.CSI + self.styles['NAT_NOTE']   + Tabs.CSI + '{};{}H{}'.format(2, 1, 'NAT_NOTE'), file=file)
+        print(Tabs.CSI + self.styles['TABS']       + Tabs.CSI + '{};{}H{}'.format(1, 1,  'TABS'),       file=file)
+        print(Tabs.CSI + self.styles['H_TABS']     + Tabs.CSI + '{};{}H{}'.format(1, 20, 'H_TABS!'),    file=file)
+        print(Tabs.CSI + self.styles['NAT_NOTE']   + Tabs.CSI + '{};{}H{}'.format(2, 1,  'NAT_NOTE'),   file=file)
         print(Tabs.CSI + self.styles['NAT_H_NOTE'] + Tabs.CSI + '{};{}H{}'.format(2, 20, 'NAT_H_NOTE'), file=file)
-        print(Tabs.CSI + self.styles['FLT_NOTE']   + Tabs.CSI + '{};{}H{}'.format(3, 1, 'FLT_NOTE'), file=file)
+        print(Tabs.CSI + self.styles['FLT_NOTE']   + Tabs.CSI + '{};{}H{}'.format(3, 1,  'FLT_NOTE'),   file=file)
         print(Tabs.CSI + self.styles['FLT_H_NOTE'] + Tabs.CSI + '{};{}H{}'.format(3, 20, 'FLT_H_NOTE'), file=file)
-        print(Tabs.CSI + self.styles['SHP_NOTE']   + Tabs.CSI + '{};{}H{}'.format(4, 1, 'SHP_NOTE'), file=file)
+        print(Tabs.CSI + self.styles['SHP_NOTE']   + Tabs.CSI + '{};{}H{}'.format(4, 1,  'SHP_NOTE'),   file=file)
         print(Tabs.CSI + self.styles['SHP_H_NOTE'] + Tabs.CSI + '{};{}H{}'.format(4, 20, 'SHP_H_NOTE'), file=file)
         exit()
     
@@ -381,41 +381,41 @@ class Tabs(object):
     
     def initConsts(self): # foreground 30-37, background 40-47, 0=black, 1=red, 2=green, 3=yellow, 4= blue, 5=magenta, 6=cyan, 7=white
         self.COLORS = { 'BLACK':'0', 'RED':'1', 'GREEN':'2', 'YELLOW':'3', 'BLUE':'4', 'MAGENTA':'5', 'CYAN':'6', 'WHITE':'7' }
-        self.RED_WHITE = self.initText('RED', 'WHITE')
-        self.BLUE_WHITE = self.initText('BLUE', 'WHITE')
-        self.CYAN_WHITE = self.initText('CYAN', 'WHITE')
-        self.BLACK_WHITE = self.initText('BLACK', 'WHITE')
-        self.GREEN_WHITE = self.initText('GREEN', 'WHITE')
-        self.YELLOW_WHITE = self.initText('YELLOW', 'WHITE')
+        self.RED_WHITE     = self.initText('RED', 'WHITE')
+        self.BLUE_WHITE    = self.initText('BLUE', 'WHITE')
+        self.CYAN_WHITE    = self.initText('CYAN', 'WHITE')
+        self.BLACK_WHITE   = self.initText('BLACK', 'WHITE')
+        self.GREEN_WHITE   = self.initText('GREEN', 'WHITE')
+        self.YELLOW_WHITE  = self.initText('YELLOW', 'WHITE')
         self.MAGENTA_WHITE = self.initText('MAGENTA', 'WHITE')
-        self.WHITE_YELLOW = self.initText('WHITE', 'YELLOW')
-        self.BLACK_YELLOW = self.initText('BLACK', 'YELLOW')
-        self.GREEN_YELLOW = self.initText('GREEN', 'YELLOW')
-        self.BLUE_YELLOW = self.initText('BLUE', 'YELLOW')
-        self.CYAN_YELLOW = self.initText('CYAN', 'YELLOW')
-        self.RED_YELLOW = self.initText('RED', 'YELLOW')
-        self.WHITE_BLUE = self.initText('WHITE', 'BLUE')
-        self.WHITE_BLACK = self.initText('WHITE', 'BLACK')
-        self.YELLOW_BLACK = self.initText('YELLOW', 'BLACK')
-        self.RED_BLACK = self.initText('RED', 'BLACK')
-        self.BLUE_BLACK = self.initText('BLUE', 'BLACK')
-        self.GREEN_BLACK = self.initText('GREEN', 'BLACK')
-        self.CYAN_BLACK = self.initText('CYAN', 'BLACK')
+        self.WHITE_YELLOW  = self.initText('WHITE', 'YELLOW')
+        self.BLACK_YELLOW  = self.initText('BLACK', 'YELLOW')
+        self.GREEN_YELLOW  = self.initText('GREEN', 'YELLOW')
+        self.BLUE_YELLOW   = self.initText('BLUE', 'YELLOW')
+        self.CYAN_YELLOW   = self.initText('CYAN', 'YELLOW')
+        self.RED_YELLOW    = self.initText('RED', 'YELLOW')
+        self.WHITE_BLUE    = self.initText('WHITE', 'BLUE')
+        self.WHITE_BLACK   = self.initText('WHITE', 'BLACK')
+        self.YELLOW_BLACK  = self.initText('YELLOW', 'BLACK')
+        self.RED_BLACK     = self.initText('RED', 'BLACK')
+        self.BLUE_BLACK    = self.initText('BLUE', 'BLACK')
+        self.GREEN_BLACK   = self.initText('GREEN', 'BLACK')
+        self.CYAN_BLACK    = self.initText('CYAN', 'BLACK')
         self.MAGENTA_BLACK = self.initText('MAGENTA', 'BLACK')
         self.MAGENTA_GREEN = self.initText('MAGENTA', 'GREEN')
-        self.WHITE_GREEN = self.initText('WHITE', 'GREEN')
-        self.RED_GREEN = self.initText('RED', 'GREEN')
-        self.BLUE_GREEN = self.initText('BLUE', 'GREEN')
-        self.BLACK_GREEN = self.initText('BLACK', 'GREEN')
+        self.WHITE_GREEN   = self.initText('WHITE', 'GREEN')
+        self.RED_GREEN     = self.initText('RED', 'GREEN')
+        self.BLUE_GREEN    = self.initText('BLUE', 'GREEN')
+        self.BLACK_GREEN   = self.initText('BLACK', 'GREEN')
         self.WHITE_MAGENTA = self.initText('WHITE', 'MAGENTA')
         self.BLACK_MAGENTA = self.initText('BLACK', 'MAGENTA')
-        self.BLACK_RED = self.initText('BLACK', 'RED')
-        self.WHITE_RED = self.initText('WHITE', 'RED')
-        self.CYAN_RED = self.initText('CYAN', 'RED')
-        self.BLACK_CYAN = self.initText('BLACK', 'CYAN')
-        self.BLUE_CYAN = self.initText('BLUE', 'CYAN')
-        self.WHITE_CYAN = self.initText('WHITE', 'CYAN')
-        self.RED_CYAN = self.initText('RED', 'CYAN')
+        self.BLACK_RED     = self.initText('BLACK', 'RED')
+        self.WHITE_RED     = self.initText('WHITE', 'RED')
+        self.CYAN_RED      = self.initText('CYAN', 'RED')
+        self.BLACK_CYAN    = self.initText('BLACK', 'CYAN')
+        self.BLUE_CYAN     = self.initText('BLUE', 'CYAN')
+        self.WHITE_CYAN    = self.initText('WHITE', 'CYAN')
+        self.RED_CYAN      = self.initText('RED', 'CYAN')
         self.colorsIndex = 0
         self.brightness = 0
         self.initColors()
@@ -693,8 +693,6 @@ class Tabs(object):
         print('quit() cmds[len={}]=['.format(len(self.cmds)), file=Tabs.DBG_FILE)
         for i in range(len(self.cmds[0])):
             print('{:>4}   {}    {}'.format(i, self.cmds[0][i], self.cmds[1][i]), file=Tabs.DBG_FILE)
-#        for i, (c0, c1) in enumerate(zip(self.cmds[0], self.cmds[1])):
-#            print('{:>4}   {}    {}'.format(i, c0[i], c1[i]), file=Tabs.DBG_FILE)
         print(']', file=Tabs.DBG_FILE)
         self.printErrorHistory(disp=not self.cleanExit)
         self.printCmdHistory(back=0, disp=not self.cleanExit)
@@ -718,6 +716,58 @@ class Tabs(object):
 #        os.fsync(Tabs.DBG_FILE)
         Tabs.DBG_FILE.close()
         exit(code)
+    
+    def eraseTabs(self, pk=[]):
+        '''Erase all tabs and all corresponding notes, intervals, and chords (resets all tabs to '-')'''
+        print('eraseTabs() deleting chordAliases={} analyzeIndices={}'.format(self.chordAliases, self.analyzeIndices), file=Tabs.DBG_FILE)
+        self.chordAliases = {}
+        self.analyzeIndices = {}
+        count = 0
+        print('eraseTabs() chordAliases={} analyzeIndices={} setting all tabs to - and htabs to 0'.format(self.chordAliases, self.analyzeIndices), file=Tabs.DBG_FILE)
+        for r, (t, ht) in enumerate(zip(self.tabs, self.htabs)):
+            for c in range(len(t)):
+                count += 1
+                t[c] = ord('-')
+                ht[c] = ord('0')
+                if c in self.chordInfo:
+                    print('eraseTabs() deleting chordInfo[{}]={}'.format(c, self.chordInfo[c]), file=Tabs.DBG_FILE)
+                    del self.chordInfo[c]
+        self.maxFretInfo['MAX'] = ord('0')
+        self.printTabs()
+        info = 'eraseTabs() erased {} tabs on {} lines, {} strings, and {} columns'.format(count, self.numLines, self.numStrings, self.numTabsPerStringPerLine)
+        self.printh('{}: {}'.format(self.rCmds['eraseTabs'], info))
+    
+    def resetTabs(self, pk=[]):
+        '''Reset all tabs to their initial state at start up by re-reading the data file'''
+        self.init()
+        self.getMaxFretInfo()
+        count = self.numLines * self.numStrings * self.numTabsPerStringPerLine
+        self.dispatchCnt += 1
+        info = 'resetTabs() reset {} tabs on {} lines, {} strings, and {} columns'.format(count, self.numLines, self.numStrings, self.numTabsPerStringPerLine)
+        self.printh('{}: {}'.format(self.rCmds['resetTabs'], info))
+    
+    def saveTabs(self, pk=[]):
+        '''Save tabs and ANSI codes to output file, the 'cat' cmd can be used to view the file'''
+        with open(self.outName, 'w') as self.outFile:
+            self.dumpLineInfo('saveTabs({}, {}) bgn writing tabs to file type={}'.format(self.row, self.col, self.outFile))
+            Tabs.clearScreen(file=self.outFile, reason='saveTabs()')
+            print(self.cmdLine, file=self.outFile)
+            print('cmdLineArgs:', file=self.outFile)
+            for k in self.argMap:
+                print('    {}={}'.format(k, self.argMap[k]), file=self.outFile)
+            self.printStringMap(file=self.outFile)
+            self.saveOrdDict(self.chordAliases, 'StartChordAliases', q='\'')
+            self.saveOrdDict(self.analyzeIndices, 'StartAnalyzeIndices')
+            self.printTabs()
+            self.moveTo(hi=1)
+            print(Tabs.CSI + self.styles['NORMAL'] + self.styles['CONS'] + Tabs.CSI + '{};{}H'.format(self.lastRow, 1), end='', file=self.outFile) # set the file cursor to the front of the next row (NUM_STR+r+1, 0) and set the foreground and background color
+            self.dumpTabs('saveTabs(h)', h=1)
+            self.dumpLineInfo('saveTabs({}, {}) end writing tabs to file'.format(self.row, self.col))
+        self.outFile = None
+        self.printTabs()
+        count = self.numLines * self.numStrings * self.numTabsPerStringPerLine
+        info = 'saveTabs() saved {} tabs on {} lines, {} strings, and {} columns'.format(count, self.numLines, self.numStrings, self.numTabsPerStringPerLine)
+        self.printh('{}: {}'.format(self.rCmds['saveTabs'], info))
     
     def printHelpInfo(self, pk=[], ui=1):
         '''printHelpInfo() press the '?' key for help [cmd line opt -h or -? or --help]'''
@@ -1639,57 +1689,6 @@ class Tabs(object):
             self.chordsObj.printChord(c=c)
         if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
             self.printColumnIvals(c, dbg=dbg)
-    
-    def eraseTabs(self, pk=[]):
-        '''Erase all tabs and all corresponding notes, intervals, and chords (resets all tabs to '-')'''
-        print('eraseTabs() deleting chordAliases={} analyzeIndices={}'.format(self.chordAliases, self.analyzeIndices), file=Tabs.DBG_FILE)
-        self.chordAliases = {}
-        self.analyzeIndices = {}
-        count = 0
-        print('eraseTabs() chordAliases={} analyzeIndices={} setting all tabs to - and htabs to 0'.format(self.chordAliases, self.analyzeIndices), file=Tabs.DBG_FILE)
-        for r, (t, ht) in enumerate(zip(self.tabs, self.htabs)):
-            for c in range(len(t)):
-                count += 1
-                t[c] = ord('-')
-                ht[c] = ord('0')
-                if c in self.chordInfo:
-                    print('eraseTabs() deleting chordInfo[{}]={}'.format(c, self.chordInfo[c]), file=Tabs.DBG_FILE)
-                    del self.chordInfo[c]
-        self.maxFretInfo['MAX'] = ord('0')
-        self.printTabs()
-        info = 'eraseTabs() erased {} tabs on {} lines, {} strings, and {} columns'.format(count, self.numLines, self.numStrings, self.numTabsPerStringPerLine)
-        self.printh('{}: {}'.format(self.rCmds['eraseTabs'], info))
-    
-    def resetTabs(self, pk=[]):
-        '''Reset all tabs to their initial state at start up by re-reading the data file'''
-        self.init()
-        self.getMaxFretInfo()
-        count = self.numLines * self.numStrings * self.numTabsPerStringPerLine
-        info = 'resetTabs() reset {} tabs on {} lines, {} strings, and {} columns'.format(count, self.numLines, self.numStrings, self.numTabsPerStringPerLine)
-        self.printh('{}: {}'.format(self.rCmds['resetTabs'], info))
-    
-    def saveTabs(self, pk=[]):
-        '''Save tabs and ANSI codes to output file, the 'cat' cmd can be used to view the file'''
-        with open(self.outName, 'w') as self.outFile:
-            self.dumpLineInfo('saveTabs({}, {}) bgn writing tabs to file type={}'.format(self.row, self.col, self.outFile))
-            Tabs.clearScreen(file=self.outFile, reason='saveTabs()')
-            print(self.cmdLine, file=self.outFile)
-            print('cmdLineArgs:', file=self.outFile)
-            for k in self.argMap:
-                print('    {}={}'.format(k, self.argMap[k]), file=self.outFile)
-            self.printStringMap(file=self.outFile)
-            self.saveOrdDict(self.chordAliases, 'StartChordAliases', q='\'')
-            self.saveOrdDict(self.analyzeIndices, 'StartAnalyzeIndices')
-            self.printTabs()
-            self.moveTo(hi=1)
-            print(Tabs.CSI + self.styles['NORMAL'] + self.styles['CONS'] + Tabs.CSI + '{};{}H'.format(self.lastRow, 1), end='', file=self.outFile) # set the file cursor to the front of the next row (NUM_STR+r+1, 0) and set the foreground and background color
-            self.dumpTabs('saveTabs(h)', h=1)
-            self.dumpLineInfo('saveTabs({}, {}) end writing tabs to file'.format(self.row, self.col))
-        self.outFile = None
-        self.printTabs()
-        count = self.numLines * self.numStrings * self.numTabsPerStringPerLine
-        info = 'saveTabs() saved {} tabs on {} lines, {} strings, and {} columns'.format(count, self.numLines, self.numStrings, self.numTabsPerStringPerLine)
-        self.printh('{}: {}'.format(self.rCmds['saveTabs'], info))
     
     def saveOrdDict(self, d, reason, q=''):
         print('{}'.format(reason), file=self.outFile)
