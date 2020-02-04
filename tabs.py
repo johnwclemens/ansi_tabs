@@ -177,10 +177,20 @@ class Tabs(object):
         self.setLastRow()                                           # calculate last row, depends on numStrings which is supposed to be set in initStrings()
         self.numTabs = self.numStrings * self.numTabsPerString      # total number of tab characters
         self.tests()
+
+        self.modsObj = mods.Mods(self)
+        self.mods = self.modsObj.getMods()
+        print('init() mods=\{ ', file=Tabs.DBG_FILE)
+        for k in self.mods:
+            print('{}:{}, '.format(k, self.mods[k]), file=Tabs.DBG_FILE)
+        self.txts = self.modsObj.getTxts()
+        print('init() txts=\{ ', file=Tabs.DBG_FILE)
+        for k in self.txts:
+            print('{}:{}, '.format(k, self.txts[k]), file=Tabs.DBG_FILE)
         
         try:
             with open(self.inName, 'rb') as self.inFile:
-                self.readTabs(readSize=8192)
+                self.readTabs(readSize=4096)
         except FileNotFoundError as e: #Exception as e:
             print('init() Exception: {} - {}'.format(e, sys.exc_info()[0]), file=Tabs.DBG_FILE)
             mult = 1
@@ -202,15 +212,15 @@ class Tabs(object):
                 self.tabs.append(bytearray([ord(t) for t in tabs] * mult))
                 self.htabs.append(bytearray([ord('0') for t in tabs] * mult))
         finally:
-            self.modsObj = mods.Mods(self)
-            self.mods = self.modsObj.getMods()
-            print('init() mods=\{ ', file=Tabs.DBG_FILE)
-            for k in self.mods:
-                print('{}:{}, '.format(k, self.mods[k]), file=Tabs.DBG_FILE)
-            self.txts = self.modsObj.getTxts()
-            print('init() txts=\{ ', file=Tabs.DBG_FILE)
-            for k in self.txts:
-                print('{}:{}, '.format(k, self.txts[k]), file=Tabs.DBG_FILE)
+#            self.modsObj = mods.Mods(self)
+#            self.mods = self.modsObj.getMods()
+#            print('init() mods=\{ ', file=Tabs.DBG_FILE)
+#            for k in self.mods:
+#                print('{}:{}, '.format(k, self.mods[k]), file=Tabs.DBG_FILE)
+#            self.txts = self.modsObj.getTxts()
+#            print('init() txts=\{ ', file=Tabs.DBG_FILE)
+#            for k in self.txts:
+#                print('{}:{}, '.format(k, self.txts[k]), file=Tabs.DBG_FILE)
             if 'help' in self.argMap and len(self.argMap['help']) == 0: self.printHelpInfo(ui=0)            # display the help info
             if    '?' in self.argMap and len(self.argMap   ['?']) == 0: self.printHelpInfo(ui=0)            # display the help info
             if    'h' in self.argMap and len(self.argMap   ['h']) == 0: self.printHelpInfo(ui=0)            # display the help info
@@ -518,6 +528,7 @@ class Tabs(object):
         print('readTabs({}) fileSize {:,} bytes, reading first {:,} bytes:\'\n{}\''.format(rowStr, fileSize, readSize, ''.join([chr(data[p]) for p in range(readSize)])), file=Tabs.DBG_FILE)
         while len(data) != 0:
             bytesRead += len(data)
+            print('readTabs() bytesRead = {} len(tabs) = {}'.format(bytesRead, len(self.tabs)), file=Tabs.DBG_FILE)
             p1, p2, i, bgn, fragment, end = -1, -1, 0, 0, b'', len(data)
             while i != -1:
                 ii = i
@@ -526,7 +537,7 @@ class Tabs(object):
                 if i == -1 or i + 1 >= len(data):
                     fragment += data[ii+2:end]
                     hasFrag = 1
-                    if dbg: print('readTabs({}) detected fragment, len={} \'{}\' ii={}, p1={}, p2={}, i={}, bgn={}'.format(rowStr, len(fragment), ''.join([chr(fragment[p]) for p in range(len(fragment))]), ii, p1, p2, i, bgn), file=Tabs.DBG_FILE)
+                    print('readTabs({}) detected fragment, len={} \'{}\' ii={}, p1={}, p2={}, i={}, bgn={}'.format(rowStr, len(fragment), ''.join([chr(fragment[p]) for p in range(len(fragment))]), ii, p1, p2, i, bgn), file=Tabs.DBG_FILE)
                 else:
                     p2 = data.rfind(ord(';'), i-4, i)
                     p1 = data.rfind(ord('['), i-7, p2) + 1
@@ -547,15 +558,15 @@ class Tabs(object):
                     if z1 != -1 and z2 != -1 and data[z1+1:z2] == b'BGN_TABS_SECTION':
                         bgnTabs = data[z1+1:z2]
                         print('readTabs() found {} mark at z1,z2={},{}'.format(bgnTabs, z1, z2), file=Tabs.DBG_FILE)
-                        z = data.find(ord('c'), bgn, z1)
-                        if z != -1:
-                            zName = ''.join([chr(data[p]) for p in range(z, z+len('capo'))])
-                            zLen = len(zName)
-                            print('readTabs() found name={} at z={} with len={}!'.format(zName, z, zLen), file=Tabs.DBG_FILE)
-                            if zName == 'capo' and chr(data[z+zLen]) == '=':
-                                z += zLen + 1
-                                self.capo = ord(data[z:z+1])
-                                print('readTabs() parsing capo, raw value={}, setting capo={}'.format(data[z:z+1], self.capo), file=Tabs.DBG_FILE)
+#                        z = data.find(ord('c'), bgn, z1)
+#                        if z != -1:
+#                            zName = ''.join([chr(data[p]) for p in range(z, z+len('capo'))])
+#                            zLen = len(zName)
+#                            print('readTabs() found name={} at z={} with len={}!'.format(zName, z, zLen), file=Tabs.DBG_FILE)
+#                            if zName == 'capo' and chr(data[z+zLen]) == '=':
+#                                z += zLen + 1
+#                                self.capo = ord(data[z:z+1])
+#                                print('readTabs() parsing capo, raw value={}, setting capo={}'.format(data[z:z+1], self.capo), file=Tabs.DBG_FILE)
                     if bgnTabs:
                         tab = chr(data[i+1])
                         tmp.append(data[i+1])
@@ -563,16 +574,19 @@ class Tabs(object):
                             if col != '1' and col != '2':
                                 tabFN = self.getFretNum(ord(tab))
                                 maxFN = self.getFretNum(self.maxFretInfo['MAX'])
-                                if tabFN > maxFN:
-                                    self.maxFretInfo['MAX'], self.maxFretInfo['LINE'], self.maxFretInfo['STR'], self.maxFretInfo['COL'] = ord(tab), self.row2Line(int(rowStr)), int(rowStr), int(col)
-                                    self.dumpMaxFretInfo('readTabs({} {})'.format(row, col))
+#                                if tabFN > maxFN:
+#                                    print('readTabs() tab={}({}) tabFN={} maxFN={} maxFretInfo[MAX]={}'.format(tab, ord(tab), tabFN, maxFN, self.maxFretInfo['MAX']), file=Tabs.DBG_FILE)
+#                                    print('readTabs() rowStr={}({}) col={}({}) row2Line={}'.format(rowStr, int(rowStr), col, int(col), self.row2Line(int(rowStr))), file=Tabs.DBG_FILE)
+#                                    self.maxFretInfo['MAX'], self.maxFretInfo['LINE'], self.maxFretInfo['STR'], self.maxFretInfo['COL'] = ord(tab), self.row2Line(int(rowStr)), int(rowStr), int(col)
+#                                    self.dumpMaxFretInfo('readTabs({} {})'.format(row, col))
                         if hasFrag:
                             print('readTabs({}) {} {} [{},{}] ii={} p1={} p2={} i={} bgn={} {} \'{}\' data=\'{}\' tmp=\'{}\''.format(rowStr, cnt, len(fragment), row, col, ii, p1, p2, i, bgn, hasFrag, tab, ''.join([chr(data[p]) for p in range(ii, i+2)]), ''.join([chr(tmp[p]) for p in range(0, len(tmp))])), file=Tabs.DBG_FILE)
                             hasFrag = 0
                         elif dbg:
-                            print('readTabs({}) {} {} [{},{}] ii={} p1={} p2={} i={} bgn={} {} \'{}\' data=\'{}\' tmp=\'{}\''.format(rowStr, cnt, len(fragment), row, col, ii, p1, p2, i, bgn, hasFrag, tab, ''.join([chr(data[p]) for p in range(ii+2, i+2)]), ''.join([chr(tmp[p]) for p in range(0, len(tmp))])), file=Tabs.DBG_FILE)
+                            print('readTabs({} {} {}) {} {} [{},{}] ii={} p1={} p2={} i={} bgn={} {} \'{}\' data=\'{}\' tmp=\'{}\''.format(rowStr, z1, z2, cnt, len(fragment), row, col, ii, p1, p2, i, bgn, hasFrag, tab, ''.join([chr(data[p]) for p in range(ii+2, i+2)]), ''.join([chr(tmp[p]) for p in range(0, len(tmp))])), file=Tabs.DBG_FILE)
                         z1 = data.find(ord('<'), bgn, p1)
                         z2 = data.find(ord('>'), z1, p1)
+                        print('readTabs() tab={} isTab={} col={} type(col)={}'.format(tab, self.isTab(tab), col, type(col)), file=Tabs.DBG_FILE)
                         if z1 != -1 and z2 != -1 and data[z1+1:z2] == b'END_TABS_SECTION':
                             endTabs = data[z1+1:z2]
                             print('readTabs() found {} mark at z1,z2={},{}'.format(endTabs, z1, z2), file=Tabs.DBG_FILE)
@@ -582,9 +596,11 @@ class Tabs(object):
                             self.numTabsPerString = self.numLines * self.numTabsPerStringPerLine
                             tmp, htmp, rowStr = self.appendTabs(tmp, htmp, rowStr)
                             tmp.append(data[i + 1])
-                            if dbg: print('readTabs({}) {} [{},{}] \'{}\' setting numTabsPerStringPerLine={} tmp=\'{}\''.format(rowStr, cnt, row, col, tab, self.numTabsPerStringPerLine, ''.join([chr(tmp[p]) for p in range(len(tmp))])), file=Tabs.DBG_FILE)
+                            print('readTabs({}) {} [{},{}] \'{}\' setting numTabsPerStringPerLine={} tmp=\'{}\''.format(rowStr, cnt, row, col, tab, self.numTabsPerStringPerLine, ''.join([chr(tmp[p]) for p in range(len(tmp))])), file=Tabs.DBG_FILE)
                         elif self.isTab(tab) and self.numTabsPerStringPerLine != 0 and int(col) == self.COL_OFF - 1 + self.numTabsPerStringPerLine:
                             tmp, htmp, rowStr = self.appendTabs(tmp, htmp, rowStr)
+                        else:
+                            print('readTabs(else) type(col)={} numTabsPerStringPerLine={} ROW_OFF={} row={}'.format(type(col), self.numTabsPerStringPerLine, self.ROW_OFF, int(row)), file=Tabs.DBG_FILE)
                     else:
                         self.quit('readTabs() prior to bgnTabs!', code=1)
                 bgn = i + 2
@@ -596,8 +612,10 @@ class Tabs(object):
                 break
             data = fragment + data
             if dbg: print('readTabs() bytes read {:,}, reading next {:,} bytes and appending to fragment of len {} bytes ({:,} bytes):\n{}'.format(bytesRead, dataLen, len(fragment), dataLen + len(fragment), ''.join([chr(data[p]) for p in range(len(data))])), file=Tabs.DBG_FILE)
-        print('readTabs() numStrings:{} =?= len(tabs):{}, numTabsPerString:{} =?= numLines:{} * numTabsPerStringPerLine:{}, totTabs:{}'.format(
-            self.numStrings, len(self.tabs), self.numTabsPerString, self.numLines, self.numTabsPerStringPerLine, len(self.tabs) * len(self.tabs[0])), file=Tabs.DBG_FILE)
+        print('readTabs() dataLen={} endTabs={} len(self.tabs)={}'.format(dataLen, endTabs, len(self.tabs)), file=Tabs.DBG_FILE)
+#        exit()
+#        print('readTabs() numStrings:{} =?= len(tabs):{}, numTabsPerString:{} =?= numLines:{} * numTabsPerStringPerLine:{}, totTabs:{}'.format(
+#            self.numStrings, len(self.tabs), self.numTabsPerString, self.numLines, self.numTabsPerStringPerLine, len(self.tabs) * len(self.tabs[0])), file=Tabs.DBG_FILE)
         self.dumpTabs('readTabs()')
         self.dumpTabs('readTabs(h)', h=1)
     
@@ -609,11 +627,13 @@ class Tabs(object):
         self.tabCount += len(tabDataRow)
         print('appendTabs({}) [{}, {}, {}, {}, {}] checking     \'{}\''.format(rowStr, self.numTabsPerStringPerLine, self.numLines, stringStr, self.numTabsPerString, self.tabCount, ''.join([chr(t) for t in tabDataRow])), file=Tabs.DBG_FILE)
         print('appendTabs({}) len(tmp)={} len(htmp)={}'.format(rowStr, len(tmp), len(htmp)), file=Tabs.DBG_FILE)
+        print('appendTabs({}) tabCount = {} numStrings = {} numTabsPerStringPerLine = {} mod = {} testRow = {}'.format(rowStr, self.tabCount, self.numStrings, self.numTabsPerStringPerLine, ((self.tabCount - self.numTabsPerStringPerLine) % (self.numStrings * self.numTabsPerStringPerLine)), int(rowStr) - (self.numLines - 1) * self.numStrings - self.ROW_OFF), file=Tabs.DBG_FILE)
         if self.tabCount > self.numStrings * self.numTabsPerStringPerLine:
             if ((self.tabCount - self.numTabsPerStringPerLine) % (self.numStrings * self.numTabsPerStringPerLine)) == 0:
                 self.appendLine(pt=0)
             if int(rowStr) - (self.numLines - 1) * self.numStrings - self.ROW_OFF <= self.numStrings:
                 r = (int(rowStr) - self.ROW_OFF - 1) % self.numStrings
+                print('appendTabs() r = {} rowStr = {} ROW_OFF = {}'.format(r, rowStr, self.ROW_OFF), file=Tabs.DBG_FILE)
                 for (c, tdr) in enumerate(tabDataRow):
                     self.tabs[r][c + (self.numLines - 1) * self.numTabsPerStringPerLine] = tdr
                     self.htabs[r][c + (self.numLines - 1) * self.numTabsPerStringPerLine] = ord('0')
@@ -1488,7 +1508,7 @@ class Tabs(object):
                         maxFN = currFN
                         self.maxFretInfo['MAX'], self.maxFretInfo['LINE'], self.maxFretInfo['STR'], self.maxFretInfo['COL'] = self.getFretByte(maxFN), self.colIndex2Line(c), self.indices2Row(r, c)-1, self.index2Col(c)
                         if dbg: print('getMaxFretInfo() r={} c={} tab={}({}) maxFN={}'.format(r, c, tab, chr(tab), maxFN), file=Tabs.DBG_FILE)
-                        if dbg: self.dumpMaxFretInfo('getMaxFretInfo()')
+#                        if dbg: self.dumpMaxFretInfo('getMaxFretInfo()')
     
     def dumpMaxFretInfo(self, reason):
         print('dumpMaxFretInfo() {} max={}({}) line={} string={} col={}'.format(reason, self.maxFretInfo['MAX'], chr(self.maxFretInfo['MAX']), self.maxFretInfo['LINE']+1, self.maxFretInfo['STR'], self.maxFretInfo['COL']-2), file=Tabs.DBG_FILE)
@@ -2488,12 +2508,12 @@ class Tabs(object):
             print('{} : {}'.format(k, v), end=', ', file=Tabs.DBG_FILE)
         print('}', file=Tabs.DBG_FILE)
     
-    def printChordInfo(self, r, c, m, reason=None, dbg=0):
+    def printChordInfo(self, r, c, m, reason=None, dbg=1):
         tab = chr(self.tabs[r][c])
         if dbg: print('printChordInfo(r={} c={} m={} tab={}) bgn reason={}'.format(r, c, m, tab, reason), file=Tabs.DBG_FILE)
         if dbg: self.dumpInfo('printChordInfo()')
         if dbg and m < len(self.chordInfo[c]['LIMAP']): print('printChordInfo() m={} < len(self.chordInfo[c][LIMAP])={}'.format(m, len(self.chordInfo[c]['LIMAP'])), file=Tabs.DBG_FILE)
-        elif dbg: print('printChordInfo(?) m={} >= len(self.chordInfo[c][LIMAP])={}'.format(r, c, m, tab, len(self.chordInfo[c]['LIMAP'])), file=Tabs.DBG_FILE)
+        elif dbg: print('printChordInfo(?) m={} >= len(self.chordInfo[c][LIMAP])={}'.format(m, len(self.chordInfo[c]['LIMAP'])), file=Tabs.DBG_FILE)
         imap = self.chordInfo[c]['LIMAP'][m]
         imapKeys = sorted(imap, key=self.chordsObj.imapKeyFunc, reverse=False)
         if dbg: 
@@ -2604,11 +2624,12 @@ class Tabs(object):
     def printh(self, reason, pk=[], col=61, style=None, hist=0, dbg=0):
         if col is None:     col = self.col
         if style is None: style = self.styles['HLT_STUS']
+        reason = reason[:148]
         if hist == 0:
             if not self.filterCmds or reason.find(self.cmdFilterStr, 0, len(self.cmdFilterStr)) == -1:
                 self.cmds[0].append(reason)
                 self.cmdsIndex = len(self.cmds[0]) - 1
-                self.cmds[1].append(pk)
+                self.cmds[1].append(pk[::-1])
             else:
                 print('printh() filtered cmd={}'.format(reason), file=Tabs.DBG_FILE)
         print('printh(col={}) hist={} pk={} reason[len={}]={}'.format(col, hist, pk, len(reason), reason), file=Tabs.DBG_FILE)

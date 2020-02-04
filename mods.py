@@ -16,14 +16,16 @@ class Mods(object):
     
     def _setMods(self, pn, nn, ph, nh):
         '''Internal method to update tab modifiers dictionary with contextual data.'''
-        self.mods['#']  = self._frmt1(' mute ', pn, nn, ph, nh, shrt=1)
-        self.txts['#']  = self._frmt2(' mute ', pn, nn, ph, nh, shrt=1)
-        self.mods['=']  = self._frmt1(' vibrato ', pn, nn, ph, nh, shrt=1)
-        self.txts['=']  = self._frmt2(' vibrato ', pn, nn, ph, nh, shrt=1)
-        self.mods['.']  = self._frmt1(' staccato ', pn, nn, ph, nh, shrt=1)
-        self.txts['.']  = self._frmt2(' staccato ', pn, nn, ph, nh, shrt=1)
-        self.mods['_']  = self._frmt1(' legato ', pn, nn, ph, nh, shrt=1)
-        self.txts['_']  = self._frmt2(' legato ', pn, nn, ph, nh, shrt=1)
+        self.mods['#']  = self._frmt1(' mute ',         pn, nn, ph, nh, shrt=1)
+        self.txts['#']  = self._frmt2(' mute ',         pn, nn, ph, nh, shrt=1)
+        self.mods['^']  = self._frmt1(' tie ',          pn, nn, ph, nh, shrt=1)
+        self.txts['^']  = self._frmt2(' tie ',          pn, nn, ph, nh, shrt=1)
+        self.mods['=']  = self._frmt1(' vibrato ',      pn, nn, ph, nh, shrt=1)
+        self.txts['=']  = self._frmt2(' vibrato ',      pn, nn, ph, nh, shrt=1)
+        self.mods['.']  = self._frmt1(' staccato ',     pn, nn, ph, nh, shrt=1)
+        self.txts['.']  = self._frmt2(' staccato ',     pn, nn, ph, nh, shrt=1)
+        self.mods['_']  = self._frmt1(' legato ',       pn, nn, ph, nh, shrt=1)
+        self.txts['_']  = self._frmt2(' legato ',       pn, nn, ph, nh, shrt=1)
         self.mods['+']  = self._frmt1(' hammer {} to '.format(self.dir2), pn, nn, ph, nh)
         self.txts['+']  = self._frmt2(' hammer {} to '.format(self.dir2), pn, nn, ph, nh)
         self.mods['/']  = self._frmt1(' slide {} to '.format(self.dir1), pn, nn, ph, nh)
@@ -34,10 +36,10 @@ class Mods(object):
         self.txts['[']  = self._frmt2(' bgn_group {} ', pn, nn, ph, nh, shrt=1)
         self.mods[']']  = self._frmt1(' end_group {} ', pn, nn, ph, nh, shrt=1)
         self.txts[']']  = self._frmt2(' end_group {} ', pn, nn, ph, nh, shrt=1)
-        self.mods['|']  = self._frmt1(' bar ', pn, nn, ph, nh, shrt=1)
-        self.txts['|']  = self._frmt2(' bar ', pn, nn, ph, nh, shrt=1)
-        self.mods['%']  = self._frmt1(' repeat ', pn, nn, ph, nh, shrt=1)
-        self.txts['%']  = self._frmt2(' repeat ', pn, nn, ph, nh, shrt=1)
+        self.mods['|']  = self._frmt1(' bar ',          pn, nn, ph, nh, shrt=1)
+        self.txts['|']  = self._frmt2(' bar ',          pn, nn, ph, nh, shrt=1)
+        self.mods['%']  = self._frmt1(' repeat ',       pn, nn, ph, nh, shrt=1)
+        self.txts['%']  = self._frmt2(' repeat ',       pn, nn, ph, nh, shrt=1)
     
     def _frmt1(self, modText, pn, nn, ph, nh, shrt=0):
         '''Internal method to format the tab modifiers dictionary string values.'''
