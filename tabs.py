@@ -452,8 +452,8 @@ class Tabs(object):
         print('initColors() colorsIndex={}'.format(self.colorsIndex), file=Tabs.DBG_FILE)
         if   self.colorsIndex == 0:
             self.styles = { 'NAT_NOTE':self.GREEN_WHITE,    'NAT_H_NOTE':self.YELLOW_WHITE,  'NAT_IVAL':self.YELLOW_WHITE,  'NAT_CHORD':self.BLACK_WHITE,    'TABS':self.RED_WHITE,
-                            'FLT_NOTE':self.BLUE_WHITE,     'FLT_H_NOTE':self.CYAN_WHITE,    'FLT_IVAL':self.CYAN_WHITE,    'FLT_CHORD':self.GREEN_WHITE,   'H_TABS':self.CYAN_WHITE,
-                            'SHP_NOTE':self.RED_WHITE,      'SHP_H_NOTE':self.MAGENTA_WHITE, 'SHP_IVAL':self.RED_WHITE,     'SHP_CHORD':self.MAGENTA_WHITE, 'MODES':self.BLUE_WHITE,
+                            'FLT_NOTE':self.BLUE_WHITE,     'FLT_H_NOTE':self.CYAN_WHITE,    'FLT_IVAL':self.CYAN_WHITE,    'FLT_CHORD':self.CYAN_WHITE,    'H_TABS':self.CYAN_WHITE,
+                            'SHP_NOTE':self.RED_WHITE,      'SHP_H_NOTE':self.MAGENTA_WHITE, 'SHP_IVAL':self.RED_WHITE,     'SHP_CHORD':self.RED_WHITE,     'MODES':self.BLUE_WHITE,
                               'NUT_UP':self.WHITE_MAGENTA, 'MIN_COL_NUM':self.RED_WHITE,   'IVAL_LABEL':self.MAGENTA_WHITE,    'STATUS':self.MAGENTA_WHITE, 'ERROR':self.WHITE_RED,
                               'NUT_DN':self.WHITE_CYAN,    'MAJ_COL_NUM':self.BLUE_WHITE, 'CHORD_LABEL':self.GREEN_WHITE,    'HLT_STUS':self.GREEN_WHITE,    'CONS':self.BLACK_WHITE,
                              'NO_IVAL':self.BLACK_WHITE,     'MOD_DELIM':self.YELLOW_WHITE,    'NORMAL':'22;',                 'BRIGHT':'1;' }
@@ -793,7 +793,7 @@ class Tabs(object):
         count = self.numLines * self.numStrings * self.numTabsPerStringPerLine
         info = 'saveTabs() saved {} tabs on {} lines, {} strings, and {} columns'.format(count, self.numLines, self.numStrings, self.numTabsPerStringPerLine)
         self.printh('{}: {}'.format(self.rCmds['saveTabs'], info))
-        print('saveTabs(END)'.format())
+        print('saveTabs(END)', file=Tabs.DBG_FILE)
     
     def printHelpInfo(self, pk=[], ui=1):
         '''printHelpInfo() press the '?' key for help [cmd line opt -h or -? or --help]'''
@@ -1458,7 +1458,7 @@ class Tabs(object):
             self.printTabs()
             info = 'toggleColors() from {} to {}'.format(oldColors, newColors)
             self.printh('{}: {}'.format(self.rCmds['toggleColors'], info))
-        print('toggleColors('END)', file=tabs.DBG_FILE)
+        print('toggleColors(END)', file=tabs.DBG_FILE)
     
     def getColors(self):
         if   self.colorsIndex == 0: return 'COLOR_1'
@@ -2490,12 +2490,13 @@ class Tabs(object):
             self.printChordInfo(r, c, self.analyzeIndices[c], reason='analyzeChord()')
             info = 'analyzeChord() at c={} index={}'.format(c, index)
             self.printh('{}: {}'.format(self.rCmds['analyzeChord'], info))
-        print('analyzeChord(BGN)', file=Tabs.DBG_FILE)
+        print('analyzeChord(END)', file=Tabs.DBG_FILE)
     
     def selectChord(self, pk=[], pt=1, dbg=1):
         '''Select chordInfo index for chord names and intervals and info on the Status line'''
         r, c = self.rowCol2Indices(self.row, self.col)
-        self.dumpInfo(reason='selectChord(BGN pt={} c={} row={} col={} r={}'.format(pt, c, self.row, self.col, r))
+        self.dumpInfo(reason='selectChord(BGN) pt={} c={} row={} col={} r={}'.format(pt, c, self.row, self.col, r))
+        print('selectChord() len={} analyzeIndices={}\nlen={} chordInfo={}'.format(len(self.analyzeIndices), self.analyzeIndices, len(self.chordInfo), self.chordInfo), file=Tabs.DBG_FILE)
         if c in self.chordInfo and c in self.analyzeIndices:
             index = self.analyzeIndices[c]
             self.chordInfo[c]['INDEX'] = index
@@ -2527,7 +2528,7 @@ class Tabs(object):
                 info = 'selectChord() at c={} index={}'.format(c, index)
                 self.printh('{}: {}'.format(self.rCmds['selectChord'], info))
         else: self.printe('selectChord() nothing to select use \'Ctrl A\' analyzeChord() first')
-        print('selectChord(END c={}) name={} imap={}'.format(c, name, imap), file=Tabs.DBG_FILE)
+        print('selectChord(END) c={} name={} imap={}'.format(c, name, imap), file=Tabs.DBG_FILE)
     
     def dumpSelectImaps(self, reason):
         print('dumpSelectImaps() {} selectImaps={{'.format(reason), end=' ', file=Tabs.DBG_FILE)

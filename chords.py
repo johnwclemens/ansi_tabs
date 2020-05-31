@@ -70,7 +70,7 @@ class Chords(object):
         self.eraseChord(self.c, rmv=0)
         row, col = self.tobj.indices2RowCol(self.tobj.numStrings + self.tobj.NOTES_LEN + self.tobj.INTERVALS_LEN, self.c)
         if dbg:
-            print('printChord(row={} col={}) c={} bStyle={} pc={} dbg={} BGN'.format(row, col, self.c, bStyle, pc, dbg), file=self.tobj.DBG_FILE)
+            print('printChord(BGN row={} col={}) c={} bStyle={} pc={} dbg={}'.format(row, col, self.c, bStyle, pc, dbg), file=self.tobj.DBG_FILE)
             self.printStrings()
             self.printTabs()
         if dbg >= 3: self.printTabs(capoed=1)
@@ -83,6 +83,7 @@ class Chords(object):
             currentName = self.updateChords(i, chordKey, imap, count, dbg=dbg)
             lchords.insert(0, currentName)
             limap = self.add2Limap(imap, limap, currentName, dbg=dbg)
+#            '''
             if len(currentName) > 0:
                 chordName = currentName
                 if chordName in self.tobj.selectChords:
@@ -94,6 +95,7 @@ class Chords(object):
                         if pc: self.printChordName(row, col, chordName, imap, bStyle)
                         self.chordNames[self.c] = chordName
                         print('printChord({}) ADDING chordName[{}]={} to chordNames={}'.format(self.c, self.c, self.chordNames[self.c], self.chordNames), file=self.tobj.DBG_FILE)
+#            '''
         if selected == 0 and len(limap):
             imap = limap[0]
             if dbg: print('printChord({}) currentName={} chordName={} imap={}'.format(self.c, currentName, chordName, imap), file=self.tobj.DBG_FILE)
@@ -104,6 +106,7 @@ class Chords(object):
                 if dbg: print('printChord({}) ADDING chordName[{}]={} to chordNames={}'.format(self.c, self.c, self.chordNames[self.c], self.chordNames), file=self.tobj.DBG_FILE)
         if dbg and self.c in self.tobj.chordInfo:
             self.tobj.dumpChordInfoCol(self.tobj.chordInfo[self.c], reason='printChord({})'.format(self.c))
+            print('printChord(END)', file=self.tobj.DBG_FILE)
         return chordName
     
     def printStrings(self):
