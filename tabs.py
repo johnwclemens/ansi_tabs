@@ -2495,6 +2495,8 @@ class Tabs(object):
     def selectChord(self, pk=[], pt=1, dbg=1):
         '''Select chordInfo index for chord names and intervals and info on the Status line'''
         r, c = self.rowCol2Indices(self.row, self.col)
+        name = 'None'
+        imap = {}
         self.dumpInfo(reason='selectChord(BGN) pt={} c={} row={} col={} r={}'.format(pt, c, self.row, self.col, r))
         print('selectChord() len={} analyzeIndices={}\nlen={} chordInfo={}'.format(len(self.analyzeIndices), self.analyzeIndices, len(self.chordInfo), self.chordInfo), file=Tabs.DBG_FILE)
         if c in self.chordInfo and c in self.analyzeIndices:

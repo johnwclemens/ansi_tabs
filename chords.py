@@ -557,7 +557,9 @@ class Chords(object):
             elif len(imap) == 4:
                 if   'b7' in imap:
                     if   '2' in imap:
-                        if '4' in imap:                          return '{}9s4n5'.format(r)   # 9sus4(no5)
+                        if '4' in imap:                        return '{}9s4n5'.format(r)   # 9sus4(no5)
+                    if   'b2' in imap:
+                        if '4' in imap:                        return '{}s4b9n5'.format(r)   # 9sus4(no5)
         return ''
     
 '''
