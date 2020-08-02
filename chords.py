@@ -15,7 +15,7 @@ class Chords(object):
         self.INTERVAL_RANK = { 'R':0, 'b2':1, '2':2, 'm3':3, 'M3':4, '4':5, 'b5':6, '5':7, 'a5':8, '6':9, 'b7':10, '7':11, }
         self.tobj = tabsObj
         self.chords = collections.OrderedDict()                 # dict of chord spelling -> chord name; cache of discovered chords to avoid calculation
-        print('Chords() tobj={}, chords={}'.format(self.tobj, self.chords), file=self.tobj.DBG_FILE)
+#        print('Chords() tobj={}, chords={}'.format(self.tobj, self.chords), file=self.tobj.DBG_FILE)
     
     def imapKeyFunc(self, inKey):
         return self.INTERVAL_RANK[inKey]
@@ -557,7 +557,7 @@ class Chords(object):
             elif len(imap) == 4:
                 if   'b7' in imap:
                     if   '2' in imap:
-                        if '4' in imap:                        return '{}9s4n5'.format(r)   # 9sus4(no5)
+                        if '4' in imap:                        return '{}9s4n5'.format(r)    # 9sus4(no5)
                     if   'b2' in imap:
                         if '4' in imap:                        return '{}s4b9n5'.format(r)   # 9sus4(no5)
         return ''
