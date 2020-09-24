@@ -446,7 +446,7 @@ class Tabs(object):
             self.brightnessA, self.brightnessB, self.bStyle = self.styles['NORMAL'], self.styles['BRIGHT'], self.styles['NORMAL']
         elif self.brightness == 1:
             self.brightnessA, self.brightnessB, self.bStyle = self.styles['BRIGHT'], self.styles['NORMAL'], self.styles['BRIGHT']
-        else: self.printe('initBrightness() brightness={} our of range [0-1]'.format(self.brightness))
+        else: self.printe('initBrightness() brightness={} out of range [0-1]'.format(self.brightness))
     
     def initColors(self):
         print('initColors() colorsIndex={}'.format(self.colorsIndex), file=Tabs.DBG_FILE)

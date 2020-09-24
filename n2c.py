@@ -37,6 +37,8 @@ class N2C(object):
                 if dbg: print('index={} indices={} c={}'.format(index, indices, c))
                 s[-1] = c
                 print('\b{}'.format(s[-1]), end='', flush=True)
+            elif c == '\b': print('\b \b', end='', flush=True)
+#            else: print('{}'.format(c), end='', flush=True)
         print()
         for i in range(len(indices)):
             intervals = self.chordsObj.getIntervals(i, indices)
