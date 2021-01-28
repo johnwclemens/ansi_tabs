@@ -20,7 +20,7 @@ except ImportError as e:
         impFile.flush()
         import msvcrt
     except ImportError as e:
-        print('ERROR! e={}, import msvcrt failed, getch not available'.format(), file=impFile)
+        print('ERROR! e={}, import msvcrt failed, getch not available'.format(e), file=impFile)
         impFile.flush()
         raise ImportError('ERROR! e={}, import msvcrt failed, getch not available'.format(e))
     else:
@@ -324,14 +324,14 @@ class Tabs(object):
         for i in range(128): print('    {}({})'.format(i, chr(i)), file=Tabs.DBG_FILE)
     
     def testAnsi(self):
-        print(Tabs.CSI + self.styles['TABS']       + Tabs.CSI + '{};{}H{}'.format(1, 1,  'TABS'),       file=file)
-        print(Tabs.CSI + self.styles['H_TABS']     + Tabs.CSI + '{};{}H{}'.format(1, 20, 'H_TABS!'),    file=file)
-        print(Tabs.CSI + self.styles['NAT_NOTE']   + Tabs.CSI + '{};{}H{}'.format(2, 1,  'NAT_NOTE'),   file=file)
-        print(Tabs.CSI + self.styles['NAT_H_NOTE'] + Tabs.CSI + '{};{}H{}'.format(2, 20, 'NAT_H_NOTE'), file=file)
-        print(Tabs.CSI + self.styles['FLT_NOTE']   + Tabs.CSI + '{};{}H{}'.format(3, 1,  'FLT_NOTE'),   file=file)
-        print(Tabs.CSI + self.styles['FLT_H_NOTE'] + Tabs.CSI + '{};{}H{}'.format(3, 20, 'FLT_H_NOTE'), file=file)
-        print(Tabs.CSI + self.styles['SHP_NOTE']   + Tabs.CSI + '{};{}H{}'.format(4, 1,  'SHP_NOTE'),   file=file)
-        print(Tabs.CSI + self.styles['SHP_H_NOTE'] + Tabs.CSI + '{};{}H{}'.format(4, 20, 'SHP_H_NOTE'), file=file)
+        print(Tabs.CSI + self.styles['TABS']       + Tabs.CSI + '{};{}H{}'.format(1, 1,  'TABS'),       file=impFile)
+        print(Tabs.CSI + self.styles['H_TABS']     + Tabs.CSI + '{};{}H{}'.format(1, 20, 'H_TABS!'),    file=impFile)
+        print(Tabs.CSI + self.styles['NAT_NOTE']   + Tabs.CSI + '{};{}H{}'.format(2, 1,  'NAT_NOTE'),   file=impFile)
+        print(Tabs.CSI + self.styles['NAT_H_NOTE'] + Tabs.CSI + '{};{}H{}'.format(2, 20, 'NAT_H_NOTE'), file=impFile)
+        print(Tabs.CSI + self.styles['FLT_NOTE']   + Tabs.CSI + '{};{}H{}'.format(3, 1,  'FLT_NOTE'),   file=impFile)
+        print(Tabs.CSI + self.styles['FLT_H_NOTE'] + Tabs.CSI + '{};{}H{}'.format(3, 20, 'FLT_H_NOTE'), file=impFile)
+        print(Tabs.CSI + self.styles['SHP_NOTE']   + Tabs.CSI + '{};{}H{}'.format(4, 1,  'SHP_NOTE'),   file=impFile)
+        print(Tabs.CSI + self.styles['SHP_H_NOTE'] + Tabs.CSI + '{};{}H{}'.format(4, 20, 'SHP_H_NOTE'), file=impFile)
         exit()
     
     def testAnsi2(self):
@@ -889,7 +889,7 @@ class Tabs(object):
         print('    {:>16}: {}'.format(key, method.__name__), file=Tabs.DBG_FILE)
         if key not in self.uiKeys:
             self.uiCmds[key] = method
-        else: self.printe('registerUiCmd() duplicate key={}'.format(key), x)
+        else: self.printe('registerUiCmd() duplicate key={}'.format(key), x=1)
         if method.__name__ in self.rCmds:
             if type(self.rCmds[method.__name__]) is str:
                 self.rCmds[method.__name__] = [self.rCmds[method.__name__], key]
@@ -1458,7 +1458,7 @@ class Tabs(object):
             self.printTabs()
             info = 'toggleColors() from {} to {}'.format(oldColors, newColors)
             self.printh('{}: {}'.format(self.rCmds['toggleColors'], info))
-        print('toggleColors(END)', file=tabs.DBG_FILE)
+        print('toggleColors(END)', file=Tabs.DBG_FILE)
     
     def getColors(self):
         if   self.colorsIndex == 0: return 'COLOR_1'
@@ -1958,7 +1958,7 @@ class Tabs(object):
         self.copySelectTabs(arpg=arpg)
         self.deleteSelectTabs(rmv=0)
         if arpg is None: index = 0
-        elif erpg is 1:  index = 1
+        elif arpg is 1:  index = 1
         info = 'cutSelectTabs() index={} arpg={} selectCols={}'.format(index, arpg, self.selectCols)
         self.printh('{}: {}'.format(self.rCmds['cutSelectTabs'][index], info))
     
