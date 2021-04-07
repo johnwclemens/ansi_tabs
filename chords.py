@@ -319,294 +319,310 @@ class Chords(object):
             elif  '6' in imap:                                 return  '{} 6'.format(r)     #  6 interval (bb7)
             elif 'b7' in imap:                                 return '{} b7'.format(r)     #  7 interval (dom)
             elif  '7' in imap:                                 return  '{} 7'.format(r)     # M7 interval
+        elif 'b5' in imap and 'a5' in imap:
+            if 'b7' in imap:
+                if 'm3' in imap and 'M3' in imap:              return '{}#9#11b13'.format(r) # #9#11b13
+        elif '5' in imap and 'a5' in imap:
+            if   'M3' in imap and 'b7' in imap and '2' in imap:  return '{}9b13'.format(r)    # 9b13
+#            elif 'b7' in imap and ''
         elif '5' in imap: 
-#            if len(imap) == 2:                                 return '{}5'.format(r)      # (Power)5
+#            if len(imap) == 2:                                 return '{}5'.format(r)       # (Power)5
             if   'M3' in imap:
-                if len(imap) == 3:                             return '{}'.format(r)       # (Maj)
+                if len(imap) == 3:                             return '{}'.format(r)        # (Maj)
                 elif len(imap) == 4:
-                    if   'b7' in imap:                         return '{}7'.format(r)      # 7
-                    elif  '7' in imap:                         return '{}M7'.format(r)     # Maj7
-                    elif 'b2' in imap:                         return '{}b2'.format(r)     # addb2
-                    elif  '2' in imap:                         return '{}2'.format(r)      # add2
-                    elif  '4' in imap:                         return '{}4'.format(r)      # add4
-                    elif  '6' in imap:                         return '{}6'.format(r)      # add6
-                    elif  'a5' in imap:                        return '{}b6'.format(r)     # addb6
+                    if   'b7' in imap:                         return '{}7'.format(r)       # 7
+                    elif  '7' in imap:                         return '{}M7'.format(r)      # Maj7
+                    elif 'b2' in imap:                         return '{}b2'.format(r)      # addb2
+                    elif  '2' in imap:                         return '{}2'.format(r)       # add2
+                    elif  '4' in imap:                         return '{}4'.format(r)       # add4
+                    elif  '6' in imap:                         return '{}6'.format(r)       # add6
+                    elif  'a5' in imap:                        return '{}b6'.format(r)      # addb6
                 elif len(imap) == 5:
                     if 'b7' in imap:
-                        if   'b2' in imap:                     return '{}7b9'.format(r)    # 7b9
-                        elif  '2' in imap:                     return '{}9'.format(r)      # 9
-                        elif 'm3' in imap:                     return '{}7#9'.format(r)    # 7#9
-                        elif  '4' in imap:                     return '{}11'.format(r)     # 11(no9)
-                        elif 'a5' in imap:                     return '{}b13'.format(r)    # b13(no9)
-                        elif  '6' in imap:                     return '{}13'.format(r)     # 13(no9)
+                        if   'b2' in imap:                     return '{}7b9'.format(r)     # 7b9
+                        elif  '2' in imap:                     return '{}9'.format(r)       # 9
+                        elif 'm3' in imap:                     return '{}7#9'.format(r)     # 7#9
+                        elif  '4' in imap:                     return '{}11'.format(r)      # 11(no9)
+#                        elif 'a5' in imap:                     return '{}b13'.format(r)     # b13(no9)
+                        elif  '6' in imap:                     return '{}13'.format(r)      # 13(no9)
                     elif '7' in imap:
-                        if   '2' in imap:                      return '{}M9'.format(r)     # Maj9
-                        elif '4' in imap:                      return '{}M11'.format(r)    # Maj11(no9)
-                        elif '6' in imap:                      return '{}M13'.format(r)    # Maj13(no9)
-                    elif '2' in imap and '6' in imap:          return '{}6/9'.format(r)    # 6add9
+                        if   '2' in imap:                      return '{}M9'.format(r)      # Maj9
+                        elif '4' in imap:                      return '{}M11'.format(r)     # Maj11(no9)
+                        elif '6' in imap:                      return '{}M13'.format(r)     # Maj13(no9)
+                    elif '2' in imap and '6' in imap:          return '{}6/9'.format(r)     # 6add9
                 elif len(imap) == 6:
                     if  'b7' in imap:
                         if '2' in imap:
-                            if   '4' in imap:                  return '{}11'.format(r)     # 11
-                            elif '6' in imap:                  return '{}13'.format(r)     # 13(no11)
+                            if    '4' in imap:                 return '{}11'.format(r)      # 11
+                            elif  '6' in imap:                 return '{}13'.format(r)      # 913(no11)
+#                            elif 'a5' in imap:                 return '{}9b13'.format(r)    # 9b13(no11)
                     elif '7' in imap:
                         if '2' in imap:
-                            if   '4' in imap:                  return '{}M11'.format(r)    # Maj11
-                            elif '6' in imap:                  return '{}M13'.format(r)    # Maj13(no11)
+                            if   '4' in imap:                  return '{}M11'.format(r)     # Maj11
+                            elif '6' in imap:                  return '{}M13'.format(r)     # Maj13(no11)
                     '''
                     if '2' in imap:
                         if 'b7' in imap:
-                            if   '4' in imap:                  return '{}11'.format(r)     # 11
-                            elif '6' in imap:                  return '{}13'.format(r)     # 13(no11)
+                            if   '4' in imap:                  return '{}11'.format(r)      # 11
+                            elif '6' in imap:                  return '{}13'.format(r)      # 13(no11)
                         elif '7' in imap:
-                            if   '4' in imap:                  return '{}M11'.format(r)    # Maj11
-                            elif '6' in imap:                  return '{}M13'.format(r)    # Maj13(no11)
+                            if   '4' in imap:                  return '{}M11'.format(r)     # Maj11
+                            elif '6' in imap:                  return '{}M13'.format(r)     # Maj13(no11)
                     '''
             elif 'm3' in imap:
-                if len(imap) == 3:                             return '{}m'.format(r)      # min
+                if len(imap) == 3:                             return '{}m'.format(r)       # min
                 elif len(imap) == 4:
-                    if  'b7' in imap:                          return '{}m7'.format(r)     # min7
-                    elif '7' in imap:                          return '{}mM7'.format(r)    # minMaj7
-                    elif '2' in imap:                          return '{}m2'.format(r)     # minadd2
-                    elif '4' in imap:                          return '{}m4'.format(r)     # minadd4
-                    elif '6' in imap:                          return '{}m6'.format(r)     # minadd6
-                    elif 'a5' in imap:                         return '{}mb6'.format(r)    # minaddb6
+                    if  'b7' in imap:                          return '{}m7'.format(r)      # min7
+                    elif '7' in imap:                          return '{}mM7'.format(r)     # minMaj7
+                    elif '2' in imap:                          return '{}m2'.format(r)      # minadd2
+                    elif '4' in imap:                          return '{}m4'.format(r)      # minadd4
+                    elif '6' in imap:                          return '{}m6'.format(r)      # minadd6
+                    elif 'a5' in imap:                         return '{}mb6'.format(r)     # minaddb6
                 elif len(imap) == 5:
                     if 'b7' in imap:
-                        if  'b2' in imap:                      return '{}m7b9'.format(r)   # min7b9
-                        elif '2' in imap:                      return '{}m9'.format(r)     # min9
-                        elif '4' in imap:                      return '{}m11'.format(r)    # min11(no9)
-                        elif '6' in imap:                      return '{}m13'.format(r)    # min13(no9)
+                        if  'b2' in imap:                      return '{}m7b9'.format(r)    # min7b9
+                        elif '2' in imap:                      return '{}m9'.format(r)      # min9
+                        elif '4' in imap:                      return '{}m11'.format(r)     # min11(no9)
+                        elif '6' in imap:                      return '{}m13'.format(r)     # min13(no9)
                     elif '7' in imap:
-                        if   '2' in imap:                      return '{}mM9'.format(r)    # minMaj9
-                        elif '4' in imap:                      return '{}mM11'.format(r)   # minMaj11(no9)
-                        elif '6' in imap:                      return '{}mM13'.format(r)   # minMaj13(no9)
-                    elif '2' in imap and '6' in imap:          return '{}m6/9'.format(r)   # min6add9
+                        if   '2' in imap:                      return '{}mM9'.format(r)     # minMaj9
+                        elif '4' in imap:                      return '{}mM11'.format(r)    # minMaj11(no9)
+                        elif '6' in imap:                      return '{}mM13'.format(r)    # minMaj13(no9)
+                    elif '2' in imap and '6' in imap:          return '{}m6/9'.format(r)    # min6add9
                 elif len(imap) == 6:
                     if '2' in imap:
                         if 'b7' in imap:
-                            if   '4' in imap:                  return '{}m11'.format(r)    # min11
-                            elif '6' in imap:                  return '{}m13'.format(r)    # min13(no11)
+                            if   '4' in imap:                  return '{}m11'.format(r)     # min11
+                            elif '6' in imap:                  return '{}m13'.format(r)     # min13(no11)
                         elif '7' in imap:
-                            if   '4' in imap:                  return '{}mM11'.format(r)   # minMaj11
-                            elif '6' in imap:                  return '{}mM13'.format(r)   # minMaj13(no11)
+                            if   '4' in imap:                  return '{}mM11'.format(r)    # minMaj11
+                            elif '6' in imap:                  return '{}mM13'.format(r)    # minMaj13(no11)
             elif len(imap) == 3:
-                if    '2' in imap:                             return '{}s2'.format(r)     # sus2
-                elif  '4' in imap:                             return '{}s4'.format(r)     # sus4
+                if    '2' in imap:                             return '{}s2'.format(r)      # sus2
+                elif  '4' in imap:                             return '{}s4'.format(r)      # sus4
+                elif  '6' in imap:                             return '{}6n3'.format(r)     # 6(no3)
             elif len(imap) == 4:
                 if  'b7' in imap:
-                    if    '2' in imap:                         return '{}7s2'.format(r)    # 7sus2
-                    elif  '4' in imap:                         return '{}7s4'.format(r)    # 7sus4
-                    elif 'b5' in imap:                         return '{}#11n3'.format(r)  # #11no3
-                    elif  '6' in imap:                         return '{}13n3'.format(r)   # 13no3
+                    if    '2' in imap:                         return '{}7s2'.format(r)     # 7sus2
+                    elif  '4' in imap:                         return '{}7s4'.format(r)     # 7sus4
+                    elif 'b5' in imap:                         return '{}#11n3'.format(r)   # #11no3
+                    elif  '6' in imap:                         return '{}13n3'.format(r)    # 13no3
                 elif '7' in imap:
-                    if    '2' in imap:                         return '{}M7s2'.format(r)   # Maj7sus2
-                    elif  '4' in imap:                         return '{}M7s4'.format(r)   # Maj7sus4
+                    if    '2' in imap:                         return '{}M7s2'.format(r)    # Maj7sus2
+                    elif  '4' in imap:                         return '{}M7s4'.format(r)    # Maj7sus4
                 elif '6' in imap:
-                    if    '2' in imap:                         return '{}6/9n3'.format(r)  # 6add9no3
-                    elif  '4' in imap:                         return '{}6s4'.format(r)    # 6sus4
-#                elif '2' in imap and '6' in imap:              return '{}6/9'.format(r)    # 6add9no3
-#                elif '4' in imap and '6' in imap:              return '{}6s4'.format(r)    # 6sus4
+                    if    '2' in imap:                         return '{}6/9n3'.format(r)   # 6add9no3
+                    elif  '4' in imap:                         return '{}6s4'.format(r)     # 6sus4
+#                elif '2' in imap and '6' in imap:              return '{}6/9'.format(r)     # 6add9no3
+#                elif '4' in imap and '6' in imap:              return '{}6s4'.format(r)     # 6sus4
             elif len(imap) == 5:
                 if   'b7' in imap:
-                    if 'b2' in imap and 'b5' in imap:          return '{}7b9#11'.format(r) # 7b9#11(no3)
+                    if 'b2' in imap and 'b5' in imap:          return '{}7b9#11'.format(r)  # 7b9#11(no3)
         elif 'b5' in imap: # Note 'b5' is equivalent to '#11' or Lydian #4
             if 'M3' in imap:
-                if len(imap) == 3:                             return '{}#4'.format(r)     # #4
-            if 'm3' in imap:
-                if len(imap) == 3:                             return '{}o'.format(r)      # dim
+                if   len(imap) == 3:                           return '{}#4'.format(r)      # #4 b5
                 elif len(imap) == 4:
-                    if  'b7' in imap:                          return '{}07'.format(r)     # halfdim7
-                    elif '2' in imap:                          return '{}o2'.format(r)     # dimadd2
-                    elif '4' in imap:                          return '{}o4'.format(r)     # dimadd4
-                    elif '6' in imap:                          return '{}o7'.format(r)     # dim7
-                    elif '7' in imap:                          return '{}oM7'.format(r)    # dimMaj7
-#                    elif '7' in imap:                          return '{}mM#11'.format(r)  # mM#11
+                    if 'b7' in imap:                           return '{}#11'.format(r)     # #11
+                elif len(imap) == 5:
+                    if 'b7' in imap:
+                        if   '2' in imap:                      return '{}9#11'.format(r)    # 9#11
+                        elif '6' in imap:                      return '{}#1113'.format(r)   # #11 13
+                elif len(imap) == 6:
+                    if 'b7' in imap:
+                        if '2' in imap and '6' in imap:        return '{}9#1113'.format(r)  # 9#11 13 Prometheus (Mystic)
+            if 'm3' in imap:
+                if len(imap) == 3:                             return '{}o'.format(r)       # dim
+                elif len(imap) == 4:
+                    if  'b7' in imap:                          return '{}07'.format(r)      # halfdim7
+                    elif '2' in imap:                          return '{}o2'.format(r)      # dimadd2
+                    elif '4' in imap:                          return '{}o4'.format(r)      # dimadd4
+                    elif '6' in imap:                          return '{}o7'.format(r)      # dim7
+                    elif '7' in imap:                          return '{}oM7'.format(r)     # dimMaj7
+#                    elif '7' in imap:                          return '{}mM#11'.format(r)   # mM#11
                 elif len(imap) == 5:
                     if   'b7' in imap:
-                        if  'b2' in imap:                      return '{}07b9'.format(r)   # halfdim7b9
-                        elif '2' in imap:                      return '{}09'.format(r)     # halfdim9
-                        elif '4' in imap:                      return '{}011'.format(r)    # halfdim11(no9)
-                        elif '6' in imap:                      return '{}013'.format(r)    # halfdim13(no9)
+                        if  'b2' in imap:                      return '{}07b9'.format(r)    # halfdim7b9
+                        elif '2' in imap:                      return '{}09'.format(r)      # halfdim9
+                        elif '4' in imap:                      return '{}011'.format(r)     # halfdim11(no9)
+                        elif '6' in imap:                      return '{}013'.format(r)     # halfdim13(no9)
                     elif '6' in imap:
-                        if  'b2' in imap:                      return '{}o7b9'.format(r)   # dimb9
-                        elif '2' in imap:                      return '{}o9'.format(r)     # dim9
-                        elif '4' in imap:                      return '{}o11'.format(r)    # dim11(no9)
-                    elif '2' in imap and '6' in imap:          return '{}o6/9'.format(r)   # dim6add9
+                        if  'b2' in imap:                      return '{}o7b9'.format(r)    # dimb9
+                        elif '2' in imap:                      return '{}o9'.format(r)      # dim9
+                        elif '4' in imap:                      return '{}o11'.format(r)     # dim11(no9)
+                    elif '2' in imap and '6' in imap:          return '{}o6/9'.format(r)    # dim6add9
                 elif len(imap) == 6:
                     if '2' in imap:
                         if 'b7' in imap:
-                            if   '4' in imap:                  return '{}011'.format(r)    # halfdim11
-                            elif '6' in imap:                  return '{}013'.format(r)    # halfdim13(no11)
+                            if   '4' in imap:                  return '{}011'.format(r)     # halfdim11
+                            elif '6' in imap:                  return '{}013'.format(r)     # halfdim13(no11)
                         elif '6' in imap:
-                            if   '4' in imap:                  return '{}o11'.format(r)    # dim11
+                            if   '4' in imap:                  return '{}o11'.format(r)     # dim11
             elif 'M3' in imap:
                 if len(imap) == 4:
-                    if   'b7' in imap:                         return '{}7b5'.format(r)    # 7b5
-                    elif  '7' in imap:                         return '{}M#11'.format(r)   # M#11
-                    elif 'b2' in imap:                         return '{}b9#11'.format(r)  # b9add#11
-#                    elif 'b2' in imap:                         return '{}b2b5'.format(r)   # b2b5
+                    if   'b7' in imap:                         return '{}7b5'.format(r)     # 7b5
+                    elif  '7' in imap:                         return '{}M#11'.format(r)    # M#11
+                    elif 'b2' in imap:                         return '{}b9#11'.format(r)   # b9add#11
+#                    elif 'b2' in imap:                         return '{}b2b5'.format(r)    # b2b5
                 if len(imap) == 5:
                     if  '7' in imap:
-                        if   '2' in imap:                      return '{}M9#11'.format(r)  # M9#11
-                        elif '6' in imap:                      return '{}M13#11'.format(r) # M13#11
+                        if   '2' in imap:                      return '{}M9#11'.format(r)   # M9#11
+                        elif '6' in imap:                      return '{}M13#11'.format(r)  # M13#11
             elif len(imap) == 3:
-                if    '2' in imap:                             return '{}os2'.format(r)    # dimSus2
-                elif  '4' in imap:                             return '{}os4'.format(r)    # dimSus4
+                if    '2' in imap:                             return '{}os2'.format(r)     # dimSus2
+                elif  '4' in imap:                             return '{}os4'.format(r)     # dimSus4
             elif len(imap) == 4:
                 if 'b7' in imap:
-                    if   '2' in imap:                          return '{}07s2'.format(r)   # halfDim7sus2
-                    elif '4' in imap:                          return '{}07s4'.format(r)   # halfDim7sus4
+                    if   '2' in imap:                          return '{}07s2'.format(r)    # halfDim7sus2
+                    elif '4' in imap:                          return '{}07s4'.format(r)    # halfDim7sus4
                 elif '6' in imap:
-                    if   '4' in imap:                          return '{}6s4b5'.format(r)  # 6sus4b5
-                
+                    if   '4' in imap:                          return '{}6s4b5'.format(r)   # 6sus4b5
             elif len(imap) == 5:
                 if   'b7' in imap:
-                    if 'b2' in imap and '6' in imap:           return '{}13b9'.format(r)   # 13b9(no5)
+                    if 'b2' in imap and '6' in imap:           return '{}13b9'.format(r)    # 13b9(no5)
 #                elif  '7' in imap:
 #                    if  '2' in imap: 
         elif 'a5' in imap: # Note 'a5' is equivalent to 'b13'
             if 'M3' in imap:
-                if len(imap) == 3:                             return '{}+'.format(r)      # aug
+                if len(imap) == 3:                             return '{}+'.format(r)       # aug
                 elif len(imap) == 4:
-                    if  'b7'  in imap:                         return '{}7+'.format(r)     # aug7           7b13(no5)
-                    elif '7'  in imap:                         return '{}M7+'.format(r)    # augMaj7       M7b13(no5)
-                    elif '2'  in imap:                         return '{}2+'.format(r)     # augadd2
-                    elif '4'  in imap:                         return '{}4+'.format(r)     # augadd4
-                    elif '6'  in imap:                         return '{}6+'.format(r)     # augadd6
+                    if  'b7'  in imap:                         return '{}7+'.format(r)      # aug7           7b13(no5)
+                    elif '7'  in imap:                         return '{}M7+'.format(r)     # augMaj7       M7b13(no5)
+                    elif '2'  in imap:                         return '{}2+'.format(r)      # augadd2
+                    elif '4'  in imap:                         return '{}4+'.format(r)      # augadd4
+                    elif '6'  in imap:                         return '{}6+'.format(r)      # augadd6
                 elif len(imap) == 5:
                     if    'b7' in imap:
-                        if   'b2' in imap:                     return '{}7b9+'.format(r)   # aug7b9        7b9b13(no5)
-                        elif  '2' in imap:                     return '{}9+'.format(r)     # aug9             9b13(no5)
-                        elif 'm3' in imap:                     return '{}7#9+'.format(r)   # aug7#9         7#9b13(no5)
-                        elif  '4' in imap:                     return '{}11+'.format(r)    # aug11(no9)
-                        elif  '6' in imap:                     return '{}13+'.format(r)    # aug13(no9)
+                        if   'b2' in imap:                     return '{}7b9+'.format(r)    # aug7b9        7b9b13(no5)
+                        elif  '2' in imap:                     return '{}9+'.format(r)      # aug9             9b13(no5)
+                        elif 'm3' in imap:                     return '{}7#9+'.format(r)    # aug7#9         7#9b13(no5)
+                        elif  '4' in imap:                     return '{}11+'.format(r)     # aug11(no9)
+                        elif  '6' in imap:                     return '{}13+'.format(r)     # aug13(no9)
                     elif  '7' in imap:
-                        if   '2' in imap:                      return '{}M9+'.format(r)    # augMaj9
-                        elif '4' in imap:                      return '{}M11+'.format(r)   # augMaj11(no9)
-                        elif '6' in imap:                      return '{}M13+'.format(r)   # augMaj13(no9)
-                    elif '2' in imap and '6' in imap:          return '{}6/9+'.format(r)   # aug6add9
+                        if   '2' in imap:                      return '{}M9+'.format(r)     # augMaj9
+                        elif '4' in imap:                      return '{}M11+'.format(r)    # augMaj11(no9)
+                        elif '6' in imap:                      return '{}M13+'.format(r)    # augMaj13(no9)
+                    elif '2' in imap and '6' in imap:          return '{}6/9+'.format(r)    # aug6add9
                 elif len(imap) == 6:
                     if '2' in imap:
                         if 'b7' in imap:
-                            if   '4' in imap:                  return '{}11+'.format(r)    # aug11
-                            elif '6' in imap:                  return '{}13+'.format(r)    # aug13(no11)
+                            if   '4' in imap:                  return '{}11+'.format(r)     # aug11
+                            elif '6' in imap:                  return '{}13+'.format(r)     # aug13(no11)
                         elif '7' in imap:
-                            if   '4' in imap:                  return '{}M11+'.format(r)   # augMaj11
-                            elif '6' in imap:                  return '{}M13+'.format(r)   # augMaj13(no11)
+                            if   '4' in imap:                  return '{}M11+'.format(r)    # augMaj11
+                            elif '6' in imap:                  return '{}M13+'.format(r)    # augMaj13(no11)
             if 'm3' in imap:
-                if len(imap) == 3:                             return '{}m+'.format(r)     # augMin      # hides something?
+                if len(imap) == 3:                             return '{}m+'.format(r)      # augMin      # hides something?
                 elif len(imap) == 4:
-                    if  'b7'  in imap:                         return '{}m7+'.format(r)    # augMin7       7b13(no5)
-                    elif '7'  in imap:                         return '{}mM7+'.format(r)   # augMinMaj7    mM7b13(no5)
-                    elif '2'  in imap:                         return '{}m2+'.format(r)    # augMinAdd2
-                    elif '4'  in imap:                         return '{}m4+'.format(r)    # augMinAdd4
-                    elif '6'  in imap:                         return '{}m6+'.format(r)    # augMinAdd6
+                    if  'b7'  in imap:                         return '{}m7+'.format(r)     # augMin7       7b13(no5)
+                    elif '7'  in imap:                         return '{}mM7+'.format(r)    # augMinMaj7    mM7b13(no5)
+                    elif '2'  in imap:                         return '{}m2+'.format(r)     # augMinAdd2
+                    elif '4'  in imap:                         return '{}m4+'.format(r)     # augMinAdd4
+                    elif '6'  in imap:                         return '{}m6+'.format(r)     # augMinAdd6
                 elif len(imap) == 5:
                     if    'b7' in imap:
-                        if  'b2'  in imap:                     return '{}m7b9+'.format(r)  # aug7b9        7b9b13(no5)
-                        elif '2' in imap:                      return '{}m9+'.format(r)    # aug9          9b13(no5)
-                        elif '4' in imap:                      return '{}m11+'.format(r)   # aug11(no9)
-                        elif '6' in imap:                      return '{}m13+'.format(r)   # aug13(no9)
+                        if  'b2'  in imap:                     return '{}m7b9+'.format(r)   # aug7b9        7b9b13(no5)
+                        elif '2' in imap:                      return '{}m9+'.format(r)     # aug9          9b13(no5)
+                        elif '4' in imap:                      return '{}m11+'.format(r)    # aug11(no9)
+                        elif '6' in imap:                      return '{}m13+'.format(r)    # aug13(no9)
                     elif  '7' in imap:
-                        if   '2' in imap:                      return '{}mM9+'.format(r)   # augMaj9
-                        elif '4' in imap:                      return '{}mM11+'.format(r)  # augMaj11(no9)
-                        elif '6' in imap:                      return '{}mM13+'.format(r)  # augMaj13(no9)
+                        if   '2' in imap:                      return '{}mM9+'.format(r)    # augMaj9
+                        elif '4' in imap:                      return '{}mM11+'.format(r)   # augMaj11(no9)
+                        elif '6' in imap:                      return '{}mM13+'.format(r)   # augMaj13(no9)
                 elif len(imap) == 6:
                     if '2' in imap:
                         if 'b7' in imap:
-                            if   '4' in imap:                  return '{}m11+'.format(r)   # aug11
-                            elif '6' in imap:                  return '{}m13+'.format(r)   # aug13(no11)
+                            if   '4' in imap:                  return '{}m11+'.format(r)    # aug11
+                            elif '6' in imap:                  return '{}m13+'.format(r)    # aug13(no11)
                         elif '7' in imap:
-                            if   '4' in imap:                  return '{}mM11+'.format(r)  # augMaj11
-                            elif '6' in imap:                  return '{}mM13+'.format(r)  # augMaj13(no11)
+                            if   '4' in imap:                  return '{}mM11+'.format(r)   # augMaj11
+                            elif '6' in imap:                  return '{}mM13+'.format(r)   # augMaj13(no11)
             elif len(imap) == 3:
-                if    '2' in imap:                             return '{}s2+'.format(r)    # augSus2
-                elif  '4' in imap:                             return '{}s4+'.format(r)    # augSus4
+                if    '2' in imap:                             return '{}s2+'.format(r)     # augSus2
+                elif  '4' in imap:                             return '{}s4+'.format(r)     # augSus4
             elif len(imap) == 4:
                 if   'b7' in imap:
-                    if    '2' in imap:                         return '{}7s2+'.format(r)   # aug7sus2
-                    elif  '4' in imap:                         return '{}7s4+'.format(r)   # aug7sus4
+                    if    '2' in imap:                         return '{}7s2+'.format(r)    # aug7sus2
+                    elif  '4' in imap:                         return '{}7s4+'.format(r)    # aug7sus4
                 elif  '7' in imap:
-                    if    '2' in imap:                         return '{}M7s2+'.format(r)  # augMaj7sus2
-                    elif  '4' in imap:                         return '{}M7s4+'.format(r)  # augMaj7sus4
+                    if    '2' in imap:                         return '{}M7s2+'.format(r)   # augMaj7sus2
+                    elif  '4' in imap:                         return '{}M7s4+'.format(r)   # augMaj7sus4
                 elif  '6' in imap:
-                    if    '2' in imap:                         return '{}6s2+'.format(r)   # aug6sus2
-                elif  '2' in imap and '4' in imap:             return '{}2s4+'.format(r)   # aug2sus4
+                    if    '2' in imap:                         return '{}6s2+'.format(r)    # aug6sus2
+                elif  '2' in imap and '4' in imap:             return '{}2s4+'.format(r)    # aug2sus4
         # Maybe omit all the n5 (no 5th) chords for simplicity?
         elif 'M3' in imap:
             if len(imap) == 3:
-                if  'b7' in imap:                              return '{}7'.format(r)      # 7(no5)
-                elif '7' in imap:                              return '{}M7'.format(r)     # Maj7(no5)
-                elif '2' in imap:                              return '{}2'.format(r)      # Maj2(no5)
-                elif '4' in imap:                              return '{}4'.format(r)      # Maj4(no5)
-                elif '6' in imap:                              return '{}6'.format(r)      # Maj6(no5)
+                if  'b7' in imap:                              return '{}7'.format(r)       # 7(no5)
+                elif '7' in imap:                              return '{}M7'.format(r)      # Maj7(no5)
+                elif '2' in imap:                              return '{}2'.format(r)       # Maj2(no5)
+                elif '4' in imap:                              return '{}4'.format(r)       # Maj4(no5)
+                elif '6' in imap:                              return '{}6'.format(r)       # Maj6(no5)
             elif len(imap) == 4:
                 if   'b7' in imap:
-                    if   'b2' in imap:                         return '{}7b9'.format(r)    # 7b9(no5)
-                    elif  '2' in imap:                         return '{}9'.format(r)      # 9(no5)
-                    elif 'm3' in imap:                         return '{}7#9'.format(r)    # 7#9(no5)
-                    elif  '4' in imap:                         return '{}11'.format(r)     # 11(no5)
-                    elif  '6' in imap:                         return '{}13'.format(r)     # 13(no5)
+                    if   'b2' in imap:                         return '{}7b9'.format(r)     # 7b9(no5)
+                    elif  '2' in imap:                         return '{}9'.format(r)       # 9(no5)
+                    elif 'm3' in imap:                         return '{}7#9'.format(r)     # 7#9(no5)
+                    elif  '4' in imap:                         return '{}11'.format(r)      # 11(no5)
+                    elif  '6' in imap:                         return '{}13'.format(r)      # 13(no5)
                 elif '7' in imap:
-                    if   'b2' in imap:                         return '{}M7b9'.format(r)   # Maj7b9(no5)
-                    elif  '2' in imap:                         return '{}M9'.format(r)     # Maj9(no5)
-                    elif 'm3' in imap:                         return '{}M7#9'.format(r)   # Maj7#9(no5)
-                    elif  '4' in imap:                         return '{}M11'.format(r)    # Maj11(no5)
-                    elif  '6' in imap:                         return '{}M13'.format(r)    # Maj13(no5)
-                elif '2' in imap and '6' in imap:              return '{}6/9'.format(r)    # Maj6add9(no5)
-                elif '2' in imap and '4' in imap:              return '{}4/9'.format(r)    # Maj4add9(no5)
+                    if   'b2' in imap:                         return '{}M7b9'.format(r)    # Maj7b9(no5)
+                    elif  '2' in imap:                         return '{}M9'.format(r)      # Maj9(no5)
+                    elif 'm3' in imap:                         return '{}M7#9'.format(r)    # Maj7#9(no5)
+                    elif  '4' in imap:                         return '{}M11'.format(r)     # Maj11(no5)
+                    elif  '6' in imap:                         return '{}M13'.format(r)     # Maj13(no5)
+                elif '2' in imap and '6' in imap:              return '{}6/9'.format(r)     # Maj6add9(no5)
+                elif '2' in imap and '4' in imap:              return '{}4/9'.format(r)     # Maj4add9(no5)
             elif len(imap) == 5:
                 if  'b7' in imap:
-                    if   'b2' in imap and  '6' in imap:        return '{}13b9'.format(r)   # 13b9(no5)
-                    elif '2'  in imap and  '6' in imap:        return '{}13'.format(r)     # 13(no5)
+                    if   'b2' in imap and  '6' in imap:        return '{}13b9'.format(r)    # 13b9(no5)
+                    elif '2'  in imap and  '6' in imap:        return '{}13'.format(r)      # 13(no5)
                 elif '7' in imap:
-                    if   '2'  in imap and  '6' in imap:        return '{}M13'.format(r)    # M13(no5)
-#                    elif '2'  in imap and 'b5' in imap:        return '{}M9#11'.format(r)  # M9#11(no5)
+                    if   '2'  in imap and  '6' in imap:        return '{}M13'.format(r)     # M13(no5)
+#                    elif '2'  in imap and 'b5' in imap:        return '{}M9#11'.format(r)   # M9#11(no5)
         elif 'm3' in imap:
             if len(imap) == 3:
-                if  'b7' in imap:                              return '{}m7'.format(r)     # min7(no5)
-                elif '7' in imap:                              return '{}mM7'.format(r)    # minMaj7(no5)
-                elif '2' in imap:                              return '{}m2'.format(r)     # min2(no5)
-                elif '4' in imap:                              return '{}m4'.format(r)     # min4(no5)
-                elif '6' in imap:                              return '{}m6'.format(r)     # min6(no5)
+                if  'b7' in imap:                              return '{}m7'.format(r)      # min7(no5)
+                elif '7' in imap:                              return '{}mM7'.format(r)     # minMaj7(no5)
+                elif '2' in imap:                              return '{}m2'.format(r)      # min2(no5)
+                elif '4' in imap:                              return '{}m4'.format(r)      # min4(no5)
+                elif '6' in imap:                              return '{}m6'.format(r)      # min6(no5)
             elif len(imap) == 4:
                 if   'b7' in imap:
-                    if  'b2' in imap:                          return '{}m7b9'.format(r)   # min7b9(no5)
-                    elif '2' in imap:                          return '{}m9'.format(r)     # min9(no5)
-                    elif '4' in imap:                          return '{}m11'.format(r)    # min11(no5)
-                    elif '6' in imap:                          return '{}m13'.format(r)    # min13(no5)
+                    if  'b2' in imap:                          return '{}m7b9'.format(r)    # min7b9(no5)
+                    elif '2' in imap:                          return '{}m9'.format(r)      # min9(no5)
+                    elif '4' in imap:                          return '{}m11'.format(r)     # min11(no5)
+                    elif '6' in imap:                          return '{}m13'.format(r)     # min13(no5)
                 elif '7' in imap:
-                    if  'b2' in imap:                          return '{}mM7b9'.format(r)  # minMaj7b9(no5)
-                    elif '2' in imap:                          return '{}mM9'.format(r)    # minMaj9(no5)
-                    elif '4' in imap:                          return '{}mM11'.format(r)   # minMaj11(no5)
-                    elif '6' in imap:                          return '{}mM13'.format(r)   # minMaj13(no5)
-                elif '2' in imap and '6' in imap:              return '{}m6/9'.format(r)   # min6add9(no5)
-                elif '2' in imap and '4' in imap:              return '{}m4/9'.format(r)   # min4add9(no5)
+                    if  'b2' in imap:                          return '{}mM7b9'.format(r)   # minMaj7b9(no5)
+                    elif '2' in imap:                          return '{}mM9'.format(r)     # minMaj9(no5)
+                    elif '4' in imap:                          return '{}mM11'.format(r)    # minMaj11(no5)
+                    elif '6' in imap:                          return '{}mM13'.format(r)    # minMaj13(no5)
+                elif '2' in imap and '6' in imap:              return '{}m6/9'.format(r)    # min6add9(no5)
+                elif '2' in imap and '4' in imap:              return '{}m4/9'.format(r)    # min4add9(no5)
             elif len(imap) == 5:
                 if   'b7' in imap:
-                    if  'b2' in imap and '4' in imap:          return '{}m7b911'.format(r) # m11(no5)
-                    elif '2' in imap and '4' in imap:          return '{}m11'.format(r)    # m11(no5)
+                    if  'b2' in imap and '4' in imap:          return '{}m7b911'.format(r)  # m11(no5)
+                    elif '2' in imap and '4' in imap:          return '{}m11'.format(r)     # m11(no5)
         else:
             if len(imap) == 3:
                 if   'b7' in imap:
-                    if   '2' in imap:                          return '{}7s2'.format(r)    # 7sus2(no5)
-                    elif '4' in imap:                          return '{}7s4'.format(r)    # 7sus4(no5)
+                    if   '2' in imap:                          return '{}7s2'.format(r)     # 7sus2(no5)
+                    elif '4' in imap:                          return '{}7s4'.format(r)     # 7sus4(no5)
                 elif '7' in imap:
-                    if   '2' in imap:                          return '{}M7s2'.format(r)   # Maj7sus2(no5) 
-                    elif '4' in imap:                          return '{}M7s4'.format(r)   # Maj7sus4(no5)
+                    if   '2' in imap:                          return '{}M7s2'.format(r)    # Maj7sus2(no5) 
+                    elif '4' in imap:                          return '{}M7s4'.format(r)    # Maj7sus4(no5)
             elif len(imap) == 4:
                 if   'b7' in imap:
                     if   '2' in imap:
-                        if '4' in imap:                        return '{}9s4'.format(r)    # 9sus4(no5)
+                        if '4' in imap:                        return '{}9s4'.format(r)     # 9sus4(no5)
                     if   'b2' in imap:
-                        if '4' in imap:                        return '{}s4b9'.format(r)   # b9sus4(no5)
+                        if '4' in imap:                        return '{}s4b9'.format(r)    # b9sus4(no5)
                 elif '7' in imap:
                     if   '2' in imap:
-                        if '6' in imap:                        return '{}M13s2'.format(r)  # Maj13sus2(no5)
+                        if '6' in imap:                        return '{}M13s2'.format(r)   # Maj13sus2(no5)
                 elif '6' in imap:
                     if   '2' in imap:
-                        if '4' in imap:                        return '{}6/9s4'.format(r)  # 6/9sus4(no5)
+                        if '4' in imap:                        return '{}6/9s4'.format(r)   # 6/9sus4(no5)
         return ''
     
 '''
