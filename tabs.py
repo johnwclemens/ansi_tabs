@@ -2139,7 +2139,7 @@ class Tabs(object):
             print(' bgnRow{}={} endRow{}={}'.format(line, self.bgnRow(line), line, self.endRow(line)), end='', file=Tabs.DBG_FILE)
         print(' ROW_OFF={} lastRow={} bgnCol={} endCol={} line={}'.format(self.ROW_OFF, self.lastRow, self.bgnCol(), self.endCol(), self.row2Line(self.row)), file=Tabs.DBG_FILE)
     
-    def printTabs(self, pk=[], cs=0):
+    def printTabs(self, pk=[], cs=0, dbg=0):
         '''Print all labels, tabs, notes, intervals, and chords for each string on each line'''
         self.dumpLineInfo('printTabs(BGN cs={}) outFile={}'.format(cs, self.outFile))
         if cs: Tabs.clearScreen(reason='printTabs()')
@@ -2161,7 +2161,7 @@ class Tabs(object):
         self.printFileMark('<END_TABS_SECTION>')
         if self.displayNotes == self.DISPLAY_NOTES['ENABLED']:
             self.printNotes()
-        if self.displayChords == self.DISPLAY_CHORDS['ENABLED']:
+        if self.displayChords == self.DISPLAY_CHORDS['ENABLED'] or dbg:
             self.chordsObj.printChords()
         if self.displayIntervals == self.DISPLAY_INTERVALS['ENABLED']:
             self.printIntervals(dbg=1)
