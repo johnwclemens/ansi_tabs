@@ -1475,7 +1475,7 @@ class Tabs(object):
         '''123456789112345678921234567893123456789412345678951234567896123456789712345678981234567899123456789012345678911234567892123456789312345678941234567895'''
         if c % 10: style += self.styles['MIN_COL_NUM']
         else:      style += self.styles['MAJ_COL_NUM']
-        self.prints('{}'.format(Tabs.getColMod(c)), row, c + self.COL_OFF - 1, style)
+        self.prints('{}'.format(Tabs.getColMod(c - 1)), row, c + self.COL_OFF - 1, style)
     
     @staticmethod
     def getColMod(c):
