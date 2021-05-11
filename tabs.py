@@ -212,6 +212,7 @@ class Tabs(object):
                 self.tabs.append(bytearray([ord(t) for t in tabs] * mult))
                 self.htabs.append(bytearray([ord('0') for t in tabs] * mult))
         finally:
+            self.testNoteFreq()
 #            self.modsObj = mods.Mods(self)
 #            self.mods = self.modsObj.getMods()
 #            print('init() mods=\{ ', file=Tabs.DBG_FILE)
@@ -382,7 +383,12 @@ class Tabs(object):
         print(Tabs.CSI + '22;37;46m' + Tabs.CSI + '1B' + Tabs.CSI +  '0D' + 'Normal White on Cyan',    end='')
         print(Tabs.CSI +  '1;37;46m' + Tabs.CSI + '1B' + Tabs.CSI + '20D' + 'Bright White on Cyan',    end='')
         self.quit(reason='testAnsi3()', code=4)
-    
+
+    def testNoteFreq(self):
+        for i in range(len(notes.Note.INDICES)):
+            n = notes.Note(i)
+            print('testNoteFreq() {} {}'.format(i, n.getPhysProps()), file=Tabs.DBG_FILE)
+            
     def initFiles(self, inName, outName):
         self.inName = inName
         self.inFile = None
